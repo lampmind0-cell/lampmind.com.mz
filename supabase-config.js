@@ -1,0 +1,5 @@
+// ⚠️ PREENCHE ESTES DOIS VALORES DEPOIS DE CRIARES O TEU PROJETO NO SUPABASE
+// Encontras estes valores em: Supabase → o teu projeto → Settings → API
+
+export const SUPABASE_URL = "COLA_AQUI_A_TUA_SUPABASE_URL";
+export const SUPABASE_ANON_KEY = "COLA_AQUI_A_TUA_SUPABASE_ANON_KEY";

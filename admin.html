@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>LampMind — Painel Admin</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{ --bg:#050505; --card:#0F1114; --hair:rgba(255,255,255,.08); --electric:#0A84FF; --energy:#FFC107; --neon:#00E5FF; }
+  html,body{ background:var(--bg); color:#F4F5F7; font-family:'Inter',sans-serif; min-height:100vh; }
+  .font-display{ font-family:'Space Grotesk',sans-serif; }
+  input,textarea,select{ background:var(--card); border:1px solid var(--hair); color:#F4F5F7; }
+  input:focus,textarea:focus,select:focus{ outline:2px solid var(--neon); outline-offset:1px; }
+  .btn{ background:linear-gradient(100deg,var(--electric),#1c66ff); font-weight:600; transition:transform .3s ease; }
+  .btn:hover{ transform:translateY(-2px); }
+  .btn-danger{ background:#3a1414; color:#ff8b8b; }
+  .card{ background:var(--card); border:1px solid var(--hair); }
+</style>
+</head>
+<body class="antialiased">
+
+<div class="max-w-3xl mx-auto px-6 py-14">
+  <div class="flex items-center gap-2 mb-10">
+    <svg width="26" height="26" viewBox="0 0 48 48" fill="none"><path d="M27 3 L11 26H21L17 45L37 20H26L27 3Z" fill="#FFC107"/></svg>
+    <span class="font-display font-semibold text-lg">Lamp<span style="color:#0A84FF">Mind</span> · Admin</span>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="login-box" class="card rounded-2xl p-8 max-w-md mx-auto">
+    <p class="font-display text-xl mb-1">Entrar</p>
+    <p class="text-sm text-gray-400 mb-6">Acesso restrito à equipa LampMind.</p>
+    <form id="login-form" class="space-y-4">
+      <input required type="email" id="login-email" placeholder="Email" class="w-full rounded-lg px-4 py-3 text-sm">
+      <input required type="password" id="login-password" placeholder="Senha" class="w-full rounded-lg px-4 py-3 text-sm">
+      <button type="submit" class="btn w-full rounded-lg py-3 text-sm">Entrar</button>
+      <p id="login-error" class="text-red-400 text-sm hidden"></p>
+    </form>
+  </div>
+
+  <!-- PAINEL (só visível após login) -->
+  <div id="panel" class="hidden">
+    <div class="flex items-center justify-between mb-8">
+      <p class="text-sm text-gray-400">Sessão iniciada como <span id="user-email" class="text-white"></span></p>
+      <button id="logout-btn" class="text-sm text-gray-400 hover:text-white underline">Sair</button>
+    </div>
+
+    <div class="card rounded-2xl p-8 mb-10">
+      <p class="font-display text-xl mb-6">Carregar novo material</p>
+      <form id="upload-form" class="space-y-4">
+        <input required type="text" id="titulo" placeholder="Título (ex: Ebook — Fundamentos de IA)" class="w-full rounded-lg px-4 py-3 text-sm">
+        <textarea id="descricao" placeholder="Descrição curta" rows="2" class="w-full rounded-lg px-4 py-3 text-sm"></textarea>
+        <select id="categoria" class="w-full rounded-lg px-4 py-3 text-sm">
+          <option value="Ebook">Ebook</option>
+          <option value="Artigo Científico">Artigo Científico</option>
+          <option value="Apresentação">Apresentação</option>
+          <option value="Código / Projeto">Código / Projeto</option>
+          <option value="Outro">Outro</option>
+        </select>
+        <input required type="file" id="ficheiro" class="w-full rounded-lg px-4 py-3 text-sm">
+        <button type="submit" id="upload-btn" class="btn w-full rounded-lg py-3 text-sm">Publicar no site</button>
+        <p id="upload-msg" class="text-sm hidden"></p>
+      </form>
+    </div>
+
+    <div class="card rounded-2xl p-8">
+      <p class="font-display text-xl mb-6">Materiais publicados</p>
+      <div id="lista" class="space-y-3 text-sm"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+  import { SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase-config.js';
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const BUCKET = 'materiais';
+  const TABLE = 'materiais';
+
+  const loginBox = document.getElementById('login-box');
+  const panel = document.getElementById('panel');
+  const loginForm = document.getElementById('login-form');
+  const loginError = document.getElementById('login-error');
+  const userEmailEl = document.getElementById('user-email');
+
+  async function checkSession() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      loginBox.classList.add('hidden');
+      panel.classList.remove('hidden');
+      userEmailEl.textContent = session.user.email;
+      carregarLista();
+    } else {
+      loginBox.classList.remove('hidden');
+      panel.classList.add('hidden');
+    }
+  }
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginError.classList.add('hidden');
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      loginError.textContent = 'Credenciais inválidas: ' + error.message;
+      loginError.classList.remove('hidden');
+      return;
+    }
+    checkSession();
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    checkSession();
+  });
+
+  document.getElementById('upload-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('upload-btn');
+    const msg = document.getElementById('upload-msg');
+    btn.disabled = true; btn.textContent = 'A carregar...';
+
+    const titulo = document.getElementById('titulo').value;
+    const descricao = document.getElementById('descricao').value;
+    const categoria = document.getElementById('categoria').value;
+    const file = document.getElementById('ficheiro').files[0];
+
+    try {
+      const path = `${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file);
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+
+      const { error: insertError } = await supabase.from(TABLE).insert({
+        titulo, descricao, categoria, url: publicUrlData.publicUrl
+      });
+      if (insertError) throw insertError;
+
+      msg.textContent = 'Publicado com sucesso!';
+      msg.className = 'text-sm text-green-400';
+      msg.classList.remove('hidden');
+      e.target.reset();
+      carregarLista();
+    } catch (err) {
+      msg.textContent = 'Erro: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Publicar no site';
+    }
+  });
+
+  async function carregarLista() {
+    const lista = document.getElementById('lista');
+    lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+    const { data, error } = await supabase.from(TABLE).select('*').order('criado_em', { ascending: false });
+    if (error) { lista.innerHTML = '<p class="text-red-400">Erro ao carregar: ' + error.message + '</p>'; return; }
+    if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não há materiais publicados.</p>'; return; }
+
+    lista.innerHTML = '';
+    data.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between border-b border-white/5 pb-3';
+      row.innerHTML = `
+        <div>
+          <p class="font-medium">${item.titulo}</p>
+          <p class="text-gray-500 text-xs">${item.categoria || ''}</p>
+        </div>
+        <button data-id="${item.id}" class="del-btn btn-danger rounded-lg px-3 py-1.5 text-xs">Remover</button>
+      `;
+      lista.appendChild(row);
+    });
+
+    document.querySelectorAll('.del-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (!confirm('Remover este material do site?')) return;
+        await supabase.from(TABLE).delete().eq('id', b.dataset.id);
+        carregarLista();
+      });
+    });
+  }
+
+  checkSession();
+</script>
+</body>
+</html>
