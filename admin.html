@@ -14,10 +14,13 @@
   .font-display{ font-family:'Space Grotesk',sans-serif; }
   input,textarea,select{ background:var(--card); border:1px solid var(--hair); color:#F4F5F7; }
   input:focus,textarea:focus,select:focus{ outline:2px solid var(--neon); outline-offset:1px; }
+  input[type="color"]{ padding:4px; height:44px; cursor:pointer; }
   .btn{ background:linear-gradient(100deg,var(--electric),#1c66ff); font-weight:600; transition:transform .3s ease; }
   .btn:hover{ transform:translateY(-2px); }
   .btn-danger{ background:#3a1414; color:#ff8b8b; }
   .card{ background:var(--card); border:1px solid var(--hair); }
+  .tab{ color:#8A93A3; border-bottom:2px solid transparent; padding-bottom:10px; cursor:pointer; }
+  .tab.active{ color:#F4F5F7; border-color:var(--electric); }
 </style>
 </head>
 <body class="antialiased">
@@ -47,27 +50,100 @@
       <button id="logout-btn" class="text-sm text-gray-400 hover:text-white underline">Sair</button>
     </div>
 
-    <div class="card rounded-2xl p-8 mb-10">
-      <p class="font-display text-xl mb-6">Carregar novo material</p>
-      <form id="upload-form" class="space-y-4">
-        <input required type="text" id="titulo" placeholder="Título (ex: Ebook — Fundamentos de IA)" class="w-full rounded-lg px-4 py-3 text-sm">
-        <textarea id="descricao" placeholder="Descrição curta" rows="2" class="w-full rounded-lg px-4 py-3 text-sm"></textarea>
-        <select id="categoria" class="w-full rounded-lg px-4 py-3 text-sm">
-          <option value="Ebook">Ebook</option>
-          <option value="Artigo Científico">Artigo Científico</option>
-          <option value="Apresentação">Apresentação</option>
-          <option value="Código / Projeto">Código / Projeto</option>
-          <option value="Outro">Outro</option>
-        </select>
-        <input required type="file" id="ficheiro" class="w-full rounded-lg px-4 py-3 text-sm">
-        <button type="submit" id="upload-btn" class="btn w-full rounded-lg py-3 text-sm">Publicar no site</button>
-        <p id="upload-msg" class="text-sm hidden"></p>
-      </form>
+    <div class="flex gap-8 border-b border-white/10 mb-10">
+      <div class="tab active" data-tab="materiais">Materiais</div>
+      <div class="tab" data-tab="personalizacao">Personalização do Site</div>
     </div>
 
-    <div class="card rounded-2xl p-8">
-      <p class="font-display text-xl mb-6">Materiais publicados</p>
-      <div id="lista" class="space-y-3 text-sm"></div>
+    <!-- ABA: MATERIAIS -->
+    <div id="tab-materiais">
+      <div class="card rounded-2xl p-8 mb-10">
+        <p class="font-display text-xl mb-6">Carregar novo material</p>
+        <form id="upload-form" class="space-y-4">
+          <input required type="text" id="titulo" placeholder="Título (ex: Ebook — Fundamentos de IA)" class="w-full rounded-lg px-4 py-3 text-sm">
+          <textarea id="descricao" placeholder="Descrição curta" rows="2" class="w-full rounded-lg px-4 py-3 text-sm"></textarea>
+
+          <div class="grid sm:grid-cols-2 gap-4">
+            <select id="categoria" class="w-full rounded-lg px-4 py-3 text-sm">
+              <option value="Ebook">Ebook</option>
+              <option value="Vídeo">Vídeo</option>
+              <option value="Artigo Científico">Artigo Científico</option>
+              <option value="Apresentação">Apresentação</option>
+              <option value="Código / Projeto">Código / Projeto</option>
+              <option value="Outro">Outro</option>
+            </select>
+            <select id="tipo" class="w-full rounded-lg px-4 py-3 text-sm">
+              <option value="Gratuito">Gratuito (download livre)</option>
+              <option value="Pago">Pago (mostra preço + link de compra)</option>
+            </select>
+          </div>
+
+          <div id="campos-pago" class="grid sm:grid-cols-2 gap-4 hidden">
+            <input type="text" id="preco" placeholder="Preço (ex: 500 MT)" class="w-full rounded-lg px-4 py-3 text-sm">
+            <input type="url" id="link_pagamento" placeholder="Link de pagamento (Stripe, PayPal, etc.)" class="w-full rounded-lg px-4 py-3 text-sm">
+          </div>
+
+          <input required type="file" id="ficheiro" class="w-full rounded-lg px-4 py-3 text-sm">
+          <p class="text-xs text-gray-500">Aceita PDF, imagens e vídeos (mp4, webm). Ficheiros grandes podem demorar a carregar.</p>
+          <button type="submit" id="upload-btn" class="btn w-full rounded-lg py-3 text-sm">Publicar no site</button>
+          <p id="upload-msg" class="text-sm hidden"></p>
+        </form>
+      </div>
+
+      <div class="card rounded-2xl p-8">
+        <p class="font-display text-xl mb-6">Materiais publicados</p>
+        <div id="lista" class="space-y-3 text-sm"></div>
+      </div>
+    </div>
+
+    <!-- ABA: PERSONALIZAÇÃO -->
+    <div id="tab-personalizacao" class="hidden">
+      <div class="card rounded-2xl p-8 mb-10">
+        <p class="font-display text-xl mb-2">Cores da marca</p>
+        <p class="text-sm text-gray-400 mb-6">Alteram botões, links, ícones e destaques em todo o site.</p>
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div>
+            <label class="text-xs text-gray-400 block mb-2">Azul Elétrico (principal)</label>
+            <input type="color" id="cor_electric" value="#0A84FF" class="w-full rounded-lg">
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-2">Amarelo Energia (secundária)</label>
+            <input type="color" id="cor_energy" value="#FFC107" class="w-full rounded-lg">
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-2">Ciano Neon (destaque)</label>
+            <input type="color" id="cor_neon" value="#00E5FF" class="w-full rounded-lg">
+          </div>
+        </div>
+      </div>
+
+      <div class="card rounded-2xl p-8 mb-10">
+        <p class="font-display text-xl mb-2">Textos do Hero (topo do site)</p>
+        <div class="space-y-4 mt-6">
+          <div>
+            <label class="text-xs text-gray-400 block mb-2">Linha pequena acima do título</label>
+            <input type="text" id="hero_eyebrow" placeholder="ENGENHARIA · IA · AUTOMAÇÃO · EDUCAÇÃO" class="w-full rounded-lg px-4 py-3 text-sm">
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-2">Slogan</label>
+            <input type="text" id="hero_slogan" placeholder="Inteligência para Criar o Futuro." class="w-full rounded-lg px-4 py-3 text-sm">
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-2">Texto de apoio</label>
+            <textarea id="hero_texto" rows="2" placeholder="Conectamos Engenharia, Inteligência Artificial..." class="w-full rounded-lg px-4 py-3 text-sm"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="card rounded-2xl p-8 mb-10">
+        <p class="font-display text-xl mb-2">Imagem de fundo do Hero</p>
+        <p class="text-sm text-gray-400 mb-4">Opcional — substitui o fundo animado por uma imagem (com sobreposição escura).</p>
+        <input type="file" id="hero_bg_file" accept="image/*" class="w-full rounded-lg px-4 py-3 text-sm mb-3">
+        <p class="text-xs text-gray-500" id="hero_bg_status"></p>
+      </div>
+
+      <button id="salvar-config-btn" class="btn rounded-lg px-6 py-3 text-sm">Guardar alterações no site</button>
+      <p id="config-msg" class="text-sm mt-3 hidden"></p>
     </div>
   </div>
 </div>
@@ -79,6 +155,7 @@
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const BUCKET = 'materiais';
   const TABLE = 'materiais';
+  const CONFIG_TABLE = 'site_config';
 
   const loginBox = document.getElementById('login-box');
   const panel = document.getElementById('panel');
@@ -86,6 +163,7 @@
   const loginError = document.getElementById('login-error');
   const userEmailEl = document.getElementById('user-email');
 
+  /* ---------- Sessão ---------- */
   async function checkSession() {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
@@ -93,6 +171,7 @@
       panel.classList.remove('hidden');
       userEmailEl.textContent = session.user.email;
       carregarLista();
+      carregarConfig();
     } else {
       loginBox.classList.remove('hidden');
       panel.classList.add('hidden');
@@ -118,6 +197,24 @@
     checkSession();
   });
 
+  /* ---------- Abas ---------- */
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab-materiais').classList.toggle('hidden', tab.dataset.tab !== 'materiais');
+      document.getElementById('tab-personalizacao').classList.toggle('hidden', tab.dataset.tab !== 'personalizacao');
+    });
+  });
+
+  /* ---------- Materiais: mostrar campos de preço se "Pago" ---------- */
+  const tipoSelect = document.getElementById('tipo');
+  const camposPago = document.getElementById('campos-pago');
+  tipoSelect.addEventListener('change', () => {
+    camposPago.classList.toggle('hidden', tipoSelect.value !== 'Pago');
+  });
+
+  /* ---------- Upload de material ---------- */
   document.getElementById('upload-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('upload-btn');
@@ -127,6 +224,9 @@
     const titulo = document.getElementById('titulo').value;
     const descricao = document.getElementById('descricao').value;
     const categoria = document.getElementById('categoria').value;
+    const tipo = document.getElementById('tipo').value;
+    const preco = document.getElementById('preco').value;
+    const link_pagamento = document.getElementById('link_pagamento').value;
     const file = document.getElementById('ficheiro').files[0];
 
     try {
@@ -137,7 +237,8 @@
       const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
 
       const { error: insertError } = await supabase.from(TABLE).insert({
-        titulo, descricao, categoria, url: publicUrlData.publicUrl
+        titulo, descricao, categoria, tipo, preco, link_pagamento,
+        url: publicUrlData.publicUrl
       });
       if (insertError) throw insertError;
 
@@ -145,6 +246,7 @@
       msg.className = 'text-sm text-green-400';
       msg.classList.remove('hidden');
       e.target.reset();
+      camposPago.classList.add('hidden');
       carregarLista();
     } catch (err) {
       msg.textContent = 'Erro: ' + err.message;
@@ -169,7 +271,7 @@
       row.innerHTML = `
         <div>
           <p class="font-medium">${item.titulo}</p>
-          <p class="text-gray-500 text-xs">${item.categoria || ''}</p>
+          <p class="text-gray-500 text-xs">${item.categoria || ''} · ${item.tipo || 'Gratuito'}${item.tipo === 'Pago' && item.preco ? ' · ' + item.preco : ''}</p>
         </div>
         <button data-id="${item.id}" class="del-btn btn-danger rounded-lg px-3 py-1.5 text-xs">Remover</button>
       `;
@@ -184,6 +286,61 @@
       });
     });
   }
+
+  /* ---------- Personalização do site ---------- */
+  let heroBgUrlPendente = null;
+
+  document.getElementById('hero_bg_file').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    const status = document.getElementById('hero_bg_status');
+    if (!file) return;
+    status.textContent = 'A carregar imagem...';
+    try {
+      const path = `site/hero-${Date.now()}-${file.name}`;
+      const { error } = await supabase.storage.from(BUCKET).upload(path, file);
+      if (error) throw error;
+      const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+      heroBgUrlPendente = data.publicUrl;
+      status.textContent = 'Imagem carregada — clica em "Guardar alterações" para aplicar.';
+    } catch (err) {
+      status.textContent = 'Erro ao carregar imagem: ' + err.message;
+    }
+  });
+
+  async function carregarConfig() {
+    const { data } = await supabase.from(CONFIG_TABLE).select('*').limit(1).single();
+    if (!data) return;
+    if (data.cor_electric) document.getElementById('cor_electric').value = data.cor_electric;
+    if (data.cor_energy) document.getElementById('cor_energy').value = data.cor_energy;
+    if (data.cor_neon) document.getElementById('cor_neon').value = data.cor_neon;
+    if (data.hero_eyebrow) document.getElementById('hero_eyebrow').value = data.hero_eyebrow;
+    if (data.hero_slogan) document.getElementById('hero_slogan').value = data.hero_slogan;
+    if (data.hero_texto) document.getElementById('hero_texto').value = data.hero_texto;
+    if (data.hero_bg_url) heroBgUrlPendente = data.hero_bg_url;
+  }
+
+  document.getElementById('salvar-config-btn').addEventListener('click', async () => {
+    const msg = document.getElementById('config-msg');
+    const payload = {
+      id: 1,
+      cor_electric: document.getElementById('cor_electric').value,
+      cor_energy: document.getElementById('cor_energy').value,
+      cor_neon: document.getElementById('cor_neon').value,
+      hero_eyebrow: document.getElementById('hero_eyebrow').value,
+      hero_slogan: document.getElementById('hero_slogan').value,
+      hero_texto: document.getElementById('hero_texto').value,
+      hero_bg_url: heroBgUrlPendente
+    };
+    const { error } = await supabase.from(CONFIG_TABLE).upsert(payload);
+    msg.classList.remove('hidden');
+    if (error) {
+      msg.textContent = 'Erro ao guardar: ' + error.message;
+      msg.className = 'text-sm mt-3 text-red-400';
+    } else {
+      msg.textContent = 'Alterações guardadas! Atualiza o site para ver.';
+      msg.className = 'text-sm mt-3 text-green-400';
+    }
+  });
 
   checkSession();
 </script>

@@ -178,6 +178,7 @@
     *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
   }
 </style>
+<style id="dynamic-theme"></style>
 </head>
 <body class="antialiased">
 
@@ -230,18 +231,19 @@
 
 <!-- ================= HERO ================= -->
 <section id="top" class="relative min-h-screen flex items-center pt-28 pb-16 overflow-hidden">
+  <div id="hero-bg-layer" class="absolute inset-0 bg-cover bg-center opacity-0 transition-opacity duration-700"></div>
   <div class="absolute inset-0 circuit-grid"></div>
   <div class="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full bg-electric/20 blur-[140px]"></div>
   <div class="absolute bottom-0 right-0 w-[480px] h-[480px] rounded-full bg-energy/10 blur-[140px]"></div>
 
   <div class="relative z-10 max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-14 items-center">
     <div>
-      <p class="eyebrow reveal" data-reveal>ENGENHARIA · IA · AUTOMAÇÃO · EDUCAÇÃO</p>
+      <p class="eyebrow reveal" data-reveal data-cms="hero_eyebrow">ENGENHARIA · IA · AUTOMAÇÃO · EDUCAÇÃO</p>
       <h1 class="font-display font-semibold leading-[0.98] tracking-tight mt-5 reveal" style="font-size:clamp(2.8rem,6.2vw,5.2rem);" data-reveal>
         Lamp<span class="text-gradient">Mind</span>
       </h1>
-      <p class="font-display text-xl md:text-2xl text-ink/90 mt-3 reveal" data-reveal>Inteligência para Criar o Futuro.</p>
-      <p class="text-mute text-base md:text-lg mt-6 max-w-lg leading-relaxed reveal" data-reveal>
+      <p class="font-display text-xl md:text-2xl text-ink/90 mt-3 reveal" data-reveal data-cms="hero_slogan">Inteligência para Criar o Futuro.</p>
+      <p class="text-mute text-base md:text-lg mt-6 max-w-lg leading-relaxed reveal" data-reveal data-cms="hero_texto">
         Conectamos Engenharia, Inteligência Artificial, Automação e Educação para transformar ideias em soluções reais.
       </p>
 
@@ -846,13 +848,17 @@
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) animate();
 </script>
 
-<!-- Biblioteca (materiais carregados via painel admin no Supabase) -->
+<!-- Biblioteca + Personalização (dados carregados via painel admin no Supabase) -->
 <script type="module">
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   import { SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase-config.js';
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const container = document.getElementById('biblioteca-lista');
+
+  function isVideo(url) {
+    return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url || '');
+  }
 
   async function carregarBiblioteca() {
     try {
@@ -870,16 +876,22 @@
 
       container.innerHTML = '';
       data.forEach(item => {
+        const pago = item.tipo === 'Pago';
         const card = document.createElement('div');
-        card.className = 'card-lift rounded-2xl border border-hair bg-card p-6 reveal';
-        card.style.opacity = '1'; card.style.transform = 'none';
+        card.className = 'card-lift rounded-2xl border border-hair bg-card p-6';
+        const preview = isVideo(item.url)
+          ? `<video src="${item.url}" class="w-full rounded-lg mb-4 aspect-video bg-black" controls preload="metadata"></video>`
+          : '';
+        const acao = pago
+          ? `<a href="${item.link_pagamento || '#contato'}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-sm text-energy mt-4">Comprar${item.preco ? ' — ' + item.preco : ''} <i data-lucide="shopping-cart" class="w-4 h-4"></i></a>`
+          : `<a href="${item.url}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-sm text-neon mt-4">Descarregar <i data-lucide="download" class="w-4 h-4"></i></a>`;
+
         card.innerHTML = `
-          <span class="eyebrow">${item.categoria || 'Material'}</span>
+          ${preview}
+          <span class="eyebrow">${item.categoria || 'Material'}${pago ? ' · Pago' : ' · Gratuito'}</span>
           <p class="font-display text-lg mt-3">${item.titulo}</p>
           <p class="text-mute text-sm mt-2">${item.descricao || ''}</p>
-          <a href="${item.url}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-sm text-neon mt-4">
-            Descarregar <i data-lucide="download" class="w-4 h-4"></i>
-          </a>
+          ${acao}
         `;
         container.appendChild(card);
       });
@@ -889,6 +901,52 @@
     }
   }
 
+  function hexToRgb(hex) {
+    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
+    return m ? `${parseInt(m[1],16)} ${parseInt(m[2],16)} ${parseInt(m[3],16)}` : null;
+  }
+
+  async function aplicarPersonalizacao() {
+    try {
+      const { data, error } = await supabase.from('site_config').select('*').limit(1).single();
+      if (error || !data) return;
+
+      const root = document.documentElement;
+      const c1 = data.cor_electric, c2 = data.cor_energy, c3 = data.cor_neon;
+      if (c1) root.style.setProperty('--electric', c1);
+      if (c2) root.style.setProperty('--energy', c2);
+      if (c3) root.style.setProperty('--neon', c3);
+
+      const rgb1 = hexToRgb(c1), rgb2 = hexToRgb(c2), rgb3 = hexToRgb(c3);
+      const themeStyle = document.getElementById('dynamic-theme');
+      if (rgb1 || rgb2 || rgb3) {
+        themeStyle.textContent = `
+          ${rgb1 ? `.text-electric,.text-electric\\/70{color:${c1} !important}
+          .border-electric{border-color:${c1} !important}
+          .bg-electric\\/20{background-color:rgb(${rgb1} / .2) !important}` : ''}
+          ${rgb2 ? `.text-energy,.text-energy\\/70{color:${c2} !important}
+          .border-energy\\/30{border-color:rgb(${rgb2} / .3) !important}
+          .bg-energy\\/10{background-color:rgb(${rgb2} / .1) !important}` : ''}
+          ${rgb3 ? `.text-neon,.text-neon\\/70{color:${c3} !important}` : ''}
+        `;
+      }
+
+      document.querySelectorAll('[data-cms]').forEach(el => {
+        const key = el.getAttribute('data-cms');
+        if (data[key]) el.textContent = data[key];
+      });
+
+      if (data.hero_bg_url) {
+        const layer = document.getElementById('hero-bg-layer');
+        layer.style.backgroundImage = `linear-gradient(rgba(5,5,5,.75), rgba(5,5,5,.9)), url('${data.hero_bg_url}')`;
+        layer.style.opacity = '1';
+      }
+    } catch (err) {
+      // sem configuração personalizada ainda — mantém o visual padrão
+    }
+  }
+
+  aplicarPersonalizacao();
   carregarBiblioteca();
 </script>
 </body>
