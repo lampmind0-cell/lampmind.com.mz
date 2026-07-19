@@ -52,7 +52,7 @@
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <!-- Tailwind (utility layer) -->
 <script src="https://cdn.tailwindcss.com"></script>
@@ -91,6 +91,7 @@
   :root{
     --bg:#050505; --panel:#0B0C0E; --card:#0F1114; --hair:rgba(255,255,255,.07);
     --electric:#0A84FF; --energy:#FFC107; --neon:#00E5FF; --ink:#F4F5F7; --mute:#8A93A3;
+    --font-display:'Space Grotesk',sans-serif;
   }
   *{ box-sizing:border-box; }
   html,body{ background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; overflow-x:hidden; }
@@ -99,7 +100,7 @@
   ::-webkit-scrollbar-track{ background:var(--bg); }
   ::-webkit-scrollbar-thumb{ background:#1c1f24; border-radius:4px; }
 
-  .font-display{ font-family:'Space Grotesk',sans-serif; }
+  .font-display{ font-family:var(--font-display); }
   .font-mono{ font-family:'JetBrains Mono',monospace; }
 
   /* focus visibility */
@@ -177,6 +178,30 @@
   @media (prefers-reduced-motion: reduce){
     *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
   }
+
+  /* ---------- Modo de Edição ao vivo ---------- */
+  #edit-fab{
+    position:fixed; bottom:22px; right:22px; z-index:200;
+    background:linear-gradient(100deg,var(--electric),#1c66ff); color:#fff; font-weight:600;
+    border:none; border-radius:999px; padding:12px 20px; font-size:.85rem;
+    box-shadow:0 10px 30px -8px rgba(10,132,255,.6); cursor:pointer;
+    display:flex; align-items:center; gap:8px;
+  }
+  #edit-login-modal, #edit-toolbar{
+    position:fixed; z-index:210; background:rgba(15,17,20,.92); backdrop-filter:blur(14px);
+    border:1px solid var(--hair); border-radius:16px; padding:22px;
+  }
+  #edit-login-modal{ inset:0; margin:auto; height:fit-content; max-width:340px; }
+  #edit-toolbar{
+    bottom:22px; right:22px; left:22px; max-width:380px; margin-left:auto;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  body.editing [data-cms]{
+    outline:1.5px dashed rgba(0,229,255,.5); outline-offset:4px; border-radius:6px;
+    cursor:text; transition:outline-color .2s ease;
+  }
+  body.editing [data-cms]:hover{ outline-color:var(--neon); }
+  body.editing [data-cms]:focus{ outline:2px solid var(--neon); background:rgba(0,229,255,.05); }
 </style>
 <style id="dynamic-theme"></style>
 </head>
@@ -346,10 +371,10 @@
 
     <div>
       <p class="eyebrow reveal" data-reveal>QUEM SOMOS</p>
-      <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 leading-tight reveal" data-reveal>
+      <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 leading-tight reveal" data-reveal data-cms="sobre_titulo">
         A LampMind nasceu para inspirar a próxima geração de engenheiros, criadores e inovadores.
       </h2>
-      <p class="text-mute mt-6 leading-relaxed reveal" data-reveal>
+      <p class="text-mute mt-6 leading-relaxed reveal" data-reveal data-cms="sobre_texto">
         O nosso propósito é transformar conhecimento técnico em soluções inteligentes que gerem impacto positivo para a sociedade — dos circuitos à sala de aula, da pesquisa ao produto.
       </p>
 
@@ -749,6 +774,58 @@
   </div>
 </footer>
 
+<!-- ================= MODO DE EDIÇÃO AO VIVO (só para admin) ================= -->
+<button id="edit-fab" class="hidden">
+  <i data-lucide="pencil" class="w-4 h-4"></i> <span id="edit-fab-label">Editar Site</span>
+</button>
+
+<div id="edit-login-modal" class="hidden">
+  <p class="font-display text-lg mb-1">Entrar como admin</p>
+  <p class="text-mute text-xs mb-5">Só a equipa LampMind pode editar o site.</p>
+  <form id="edit-login-form" class="space-y-3">
+    <input required type="email" id="edit-login-email" placeholder="Email" class="w-full rounded-lg px-4 py-2.5 text-sm bg-card border border-hair text-ink">
+    <input required type="password" id="edit-login-password" placeholder="Senha" class="w-full rounded-lg px-4 py-2.5 text-sm bg-card border border-hair text-ink">
+    <button type="submit" class="btn-primary w-full rounded-lg py-2.5 text-sm">Entrar</button>
+    <button type="button" id="edit-login-cancel" class="w-full text-xs text-mute hover:text-ink">Cancelar</button>
+    <p id="edit-login-error" class="text-red-400 text-xs hidden"></p>
+  </form>
+</div>
+
+<div id="edit-toolbar" class="hidden">
+  <div class="flex items-center justify-between">
+    <p class="font-display text-sm">Modo de Edição</p>
+    <button id="edit-close-btn" class="text-mute hover:text-ink text-xs">Sair</button>
+  </div>
+  <p class="text-xs text-mute -mt-2">Clica em qualquer texto sublinhado no site para o editares diretamente.</p>
+
+  <div>
+    <label class="text-xs text-mute block mb-1">Tipo de letra dos títulos</label>
+    <select id="edit-font-select" class="w-full rounded-lg px-3 py-2 text-sm bg-card border border-hair text-ink">
+      <option value="'Space Grotesk',sans-serif">Space Grotesk</option>
+      <option value="'Poppins',sans-serif">Poppins</option>
+      <option value="'Inter',sans-serif">Inter</option>
+    </select>
+  </div>
+
+  <div class="grid grid-cols-3 gap-2">
+    <div>
+      <label class="text-xs text-mute block mb-1">Azul</label>
+      <input type="color" id="edit-cor-electric" value="#0A84FF" class="w-full h-9 rounded-lg bg-card border border-hair">
+    </div>
+    <div>
+      <label class="text-xs text-mute block mb-1">Amarelo</label>
+      <input type="color" id="edit-cor-energy" value="#FFC107" class="w-full h-9 rounded-lg bg-card border border-hair">
+    </div>
+    <div>
+      <label class="text-xs text-mute block mb-1">Ciano</label>
+      <input type="color" id="edit-cor-neon" value="#00E5FF" class="w-full h-9 rounded-lg bg-card border border-hair">
+    </div>
+  </div>
+
+  <button id="edit-save-btn" class="btn-primary w-full rounded-lg py-2.5 text-sm">Guardar alterações</button>
+  <p id="edit-save-msg" class="text-xs hidden"></p>
+</div>
+
 <script>
   lucide.createIcons();
   gsap.registerPlugin(ScrollTrigger);
@@ -916,6 +993,7 @@
       if (c1) root.style.setProperty('--electric', c1);
       if (c2) root.style.setProperty('--energy', c2);
       if (c3) root.style.setProperty('--neon', c3);
+      if (data.font_display) root.style.setProperty('--font-display', data.font_display);
 
       const rgb1 = hexToRgb(c1), rgb2 = hexToRgb(c2), rgb3 = hexToRgb(c3);
       const themeStyle = document.getElementById('dynamic-theme');
@@ -948,6 +1026,151 @@
 
   aplicarPersonalizacao();
   carregarBiblioteca();
+</script>
+
+<!-- Modo de Edição ao Vivo (login + edição inline + guardar) -->
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+  import { SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase-config.js';
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const fab = document.getElementById('edit-fab');
+  const fabLabel = document.getElementById('edit-fab-label');
+  const loginModal = document.getElementById('edit-login-modal');
+  const loginForm = document.getElementById('edit-login-form');
+  const loginError = document.getElementById('edit-login-error');
+  const toolbar = document.getElementById('edit-toolbar');
+  const fontSelect = document.getElementById('edit-font-select');
+  const corElectric = document.getElementById('edit-cor-electric');
+  const corEnergy = document.getElementById('edit-cor-energy');
+  const corNeon = document.getElementById('edit-cor-neon');
+  const saveBtn = document.getElementById('edit-save-btn');
+  const saveMsg = document.getElementById('edit-save-msg');
+
+  let logado = false;
+  let editando = false;
+
+  function hexToRgb(hex) {
+    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
+    return m ? `${parseInt(m[1],16)} ${parseInt(m[2],16)} ${parseInt(m[3],16)}` : null;
+  }
+
+  function preVisualizarCores() {
+    const root = document.documentElement;
+    const c1 = corElectric.value, c2 = corEnergy.value, c3 = corNeon.value;
+    root.style.setProperty('--electric', c1);
+    root.style.setProperty('--energy', c2);
+    root.style.setProperty('--neon', c3);
+    const rgb1 = hexToRgb(c1), rgb2 = hexToRgb(c2), rgb3 = hexToRgb(c3);
+    document.getElementById('dynamic-theme').textContent = `
+      .text-electric,.text-electric\\/70{color:${c1} !important}
+      .border-electric{border-color:${c1} !important}
+      .bg-electric\\/20{background-color:rgb(${rgb1} / .2) !important}
+      .text-energy,.text-energy\\/70{color:${c2} !important}
+      .border-energy\\/30{border-color:rgb(${rgb2} / .3) !important}
+      .bg-energy\\/10{background-color:rgb(${rgb2} / .1) !important}
+      .text-neon,.text-neon\\/70{color:${c3} !important}
+    `;
+  }
+
+  async function checkSession() {
+    const { data: { session } } = await supabase.auth.getSession();
+    logado = !!session;
+    fab.classList.remove('hidden');
+  }
+
+  function ativarEdicao() {
+    editando = true;
+    document.body.classList.add('editing');
+    toolbar.classList.remove('hidden');
+    fabLabel.textContent = 'Fechar Edição';
+    document.querySelectorAll('[data-cms]').forEach(el => el.setAttribute('contenteditable', 'true'));
+  }
+
+  function desativarEdicao() {
+    editando = false;
+    document.body.classList.remove('editing');
+    toolbar.classList.add('hidden');
+    fabLabel.textContent = 'Editar Site';
+    document.querySelectorAll('[data-cms]').forEach(el => el.removeAttribute('contenteditable'));
+  }
+
+  fab.addEventListener('click', () => {
+    if (!logado) {
+      loginModal.classList.remove('hidden');
+      return;
+    }
+    editando ? desativarEdicao() : ativarEdicao();
+  });
+
+  document.getElementById('edit-login-cancel').addEventListener('click', () => {
+    loginModal.classList.add('hidden');
+  });
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginError.classList.add('hidden');
+    const email = document.getElementById('edit-login-email').value;
+    const password = document.getElementById('edit-login-password').value;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      loginError.textContent = 'Credenciais inválidas.';
+      loginError.classList.remove('hidden');
+      return;
+    }
+    logado = true;
+    loginModal.classList.add('hidden');
+    ativarEdicao();
+  });
+
+  corElectric.addEventListener('input', preVisualizarCores);
+  corEnergy.addEventListener('input', preVisualizarCores);
+  corNeon.addEventListener('input', preVisualizarCores);
+
+  fontSelect.addEventListener('change', () => {
+    document.documentElement.style.setProperty('--font-display', fontSelect.value);
+  });
+
+  saveBtn.addEventListener('click', async () => {
+    saveMsg.classList.add('hidden');
+    saveBtn.disabled = true; saveBtn.textContent = 'A guardar...';
+
+    const payload = {
+      id: 1,
+      cor_electric: corElectric.value,
+      cor_energy: corEnergy.value,
+      cor_neon: corNeon.value,
+      font_display: fontSelect.value
+    };
+    document.querySelectorAll('[data-cms]').forEach(el => {
+      payload[el.getAttribute('data-cms')] = el.innerText.trim();
+    });
+
+    const { error } = await supabase.from('site_config').upsert(payload);
+    saveBtn.disabled = false; saveBtn.textContent = 'Guardar alterações';
+    saveMsg.classList.remove('hidden');
+    if (error) {
+      saveMsg.textContent = 'Erro ao guardar: ' + error.message;
+      saveMsg.className = 'text-xs text-red-400';
+    } else {
+      saveMsg.textContent = 'Guardado! As alterações já estão no ar.';
+      saveMsg.className = 'text-xs text-neon';
+    }
+  });
+
+  // Carrega valores atuais nos controlos do toolbar (para partir do estado guardado)
+  async function carregarControlosAtuais() {
+    const { data } = await supabase.from('site_config').select('*').limit(1).single();
+    if (!data) return;
+    if (data.cor_electric) corElectric.value = data.cor_electric;
+    if (data.cor_energy) corEnergy.value = data.cor_energy;
+    if (data.cor_neon) corNeon.value = data.cor_neon;
+    if (data.font_display) fontSelect.value = data.font_display;
+  }
+
+  checkSession();
+  carregarControlosAtuais();
 </script>
 </body>
 </html>
