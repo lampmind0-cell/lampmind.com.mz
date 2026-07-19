@@ -88,11 +88,26 @@ export const SUPABASE_ANON_KEY = "sb_publishable_xxxxxxxxxxxxxxxxxxxx";
 
 4. Faz commit da alteração no GitHub
 
-## 5. Nova funcionalidade: Modo de Edição ao Vivo
+## 5. Nova funcionalidade: Modo de Edição ao Vivo (completo)
 
-Agora também dá para editar o site diretamente na página pública, sem ires ao `admin.html` — aparece um botão flutuante **"Editar Site"** no canto do ecrã. Ao tocares, pedes login; depois disso, os textos do Hero e da secção Sobre ficam editáveis ali mesmo, com um seletor de tipo de letra e das 3 cores ao lado.
+Agora o Modo de Edição cobre o site inteiro: um lápis aparece no canto de cada texto editável, e um botão de upload aparece no canto de cada imagem/ilustração (Sobre, Projetos, Blog, Mapa de Contacto). Também há uma **barra de pesquisa** no cabeçalho do site.
 
-Como a tua tabela `site_config` já existe, falta só adicionar uma coluna nova. Corre isto no SQL Editor:
+Isto usa uma tabela nova, mais flexível, chamada `site_content` (guarda pares chave/valor, por isso não precisa de mais alterações à tabela cada vez que adicionamos um novo texto ou imagem editável). Corre isto no SQL Editor:
+
+```sql
+create table site_content (
+  chave text primary key,
+  valor text,
+  atualizado_em timestamp with time zone default now()
+);
+
+alter table site_content enable row level security;
+
+create policy leitura_publica_conteudo on site_content for select using (true);
+create policy escrita_autenticada_conteudo on site_content for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+```
+
+Também precisas da coluna `font_display` na tabela `site_config` (se ainda não a tiveres criado):
 
 ```sql
 alter table site_config add column if not exists font_display text;
@@ -100,11 +115,18 @@ alter table site_config add column if not exists font_display text;
 
 ## 6. Usar
 
+**No admin.html (upload de materiais):**
 - Para carregar um ebook ou vídeo novo: abre `https://teudominio.com/admin.html`, faz login, na aba **Materiais** preenche título/descrição/categoria, escolhe **Gratuito** ou **Pago**, escolhe o ficheiro, clica **Publicar no site**
 - Se marcares **Pago**, preenche o preço e um link de pagamento (Stripe Payment Link, PayPal.me, ou um link de WhatsApp/M-Pesa) — o site mostra o preço e um botão "Comprar"
 - Vídeos (.mp4, .webm) aparecem com pré-visualização direta no site
-- Na aba **Personalização do Site** podes mudar as 3 cores da marca, os textos do Hero e a imagem de fundo — depois clica em **Guardar alterações no site**
 - Para remover um material, usa o botão **Remover** na lista dentro do `admin.html`
+
+**No site público (Modo de Edição ao Vivo):**
+- Toca no botão flutuante **"Editar Site"** no canto do ecrã do site público (não do `admin.html`) e faz login
+- Cada texto editável mostra um pequeno lápis ✎ no canto — clica no próprio texto (não no lápis) para o editares diretamente
+- Cada imagem/ilustração editável mostra um botão de upload no canto — toca nele para escolheres uma imagem nova do teu telemóvel; ela é enviada e aplicada de imediato (não precisas de guardar depois, as imagens ficam logo publicadas)
+- Os textos, cores e tipo de letra só ficam publicados depois de tocares em **"Guardar alterações"** na barra flutuante
+- A **barra de pesquisa** (ícone de lupa no cabeçalho) procura por qualquer palavra em qualquer secção do site e leva-te lá diretamente
 
 ## Notas de segurança
 

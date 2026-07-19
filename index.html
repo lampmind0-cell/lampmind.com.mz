@@ -197,11 +197,33 @@
     display:flex; flex-direction:column; gap:12px;
   }
   body.editing [data-cms]{
-    outline:1.5px dashed rgba(0,229,255,.5); outline-offset:4px; border-radius:6px;
-    cursor:text; transition:outline-color .2s ease;
+    outline:1.5px dashed rgba(0,229,255,.4); outline-offset:4px; border-radius:6px;
+    cursor:text; transition:outline-color .2s ease; position:relative;
   }
   body.editing [data-cms]:hover{ outline-color:var(--neon); }
   body.editing [data-cms]:focus{ outline:2px solid var(--neon); background:rgba(0,229,255,.05); }
+
+  body.editing [data-cms-img]{ position:relative !important; }
+  body.editing [data-cms-img]::after{
+    content:''; position:absolute; inset:0; border:1.5px dashed rgba(255,193,7,.5);
+    border-radius:inherit; pointer-events:none;
+  }
+  .img-edit-btn{
+    position:absolute; top:8px; right:8px; z-index:20;
+    background:rgba(5,5,5,.75); border:1px solid var(--hair); color:#fff;
+    width:32px; height:32px; border-radius:999px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; backdrop-filter:blur(4px);
+  }
+  .img-edit-btn:hover{ background:var(--energy); color:#000; }
+  .cms-pencil{
+    position:absolute; top:-10px; left:-10px; z-index:20;
+    background:var(--neon); color:#000; width:22px; height:22px; border-radius:999px;
+    display:flex; align-items:center; justify-content:center; font-size:11px;
+    box-shadow:0 2px 8px rgba(0,0,0,.4); pointer-events:none;
+  }
+
+  #search-results .search-item{ padding:8px 10px; border-radius:8px; cursor:pointer; color:var(--mute); }
+  #search-results .search-item:hover{ background:rgba(255,255,255,.06); color:var(--ink); }
 </style>
 <style id="dynamic-theme"></style>
 </head>
@@ -233,6 +255,14 @@
     </nav>
 
     <div class="flex items-center gap-3">
+      <div class="relative flex items-center">
+        <button id="search-toggle" class="text-mute hover:text-ink transition" aria-label="Pesquisar no site">
+          <i data-lucide="search" class="w-5 h-5"></i>
+        </button>
+        <input id="search-input" type="text" placeholder="Pesquisar no site..."
+          class="hidden absolute right-8 top-1/2 -translate-y-1/2 w-48 sm:w-56 bg-card border border-hair rounded-lg px-3 py-1.5 text-sm text-ink">
+        <div id="search-results" class="hidden absolute right-8 top-full mt-2 w-64 max-h-72 overflow-y-auto bg-card border border-hair rounded-xl p-2 text-sm z-50"></div>
+      </div>
       <a href="admin.html" class="hidden sm:inline-block btn-ghost rounded-lg px-4 py-2 text-sm font-medium">Entrar</a>
       <button id="menu-btn" class="md:hidden text-ink" aria-label="Abrir menu">
         <i data-lucide="menu" class="w-6 h-6"></i>
@@ -351,7 +381,7 @@
 <section id="sobre" class="relative py-28">
   <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
     <div class="relative reveal" data-reveal>
-      <div class="aspect-square rounded-3xl border border-hair overflow-hidden relative"
+      <div class="aspect-square rounded-3xl border border-hair overflow-hidden relative" data-cms-img="sobre_img"
            style="background: radial-gradient(circle at 30% 20%, rgba(10,132,255,.25), transparent 60%), radial-gradient(circle at 80% 80%, rgba(255,193,7,.15), transparent 55%), #0B0C0E;">
         <div class="absolute inset-0 circuit-grid opacity-60"></div>
         <div class="absolute inset-0 flex items-center justify-center">
@@ -381,11 +411,11 @@
       <div class="grid sm:grid-cols-2 gap-5 mt-10">
         <div class="card-lift rounded-2xl border border-hair bg-card p-6 reveal" data-reveal>
           <p class="eyebrow">Missão</p>
-          <p class="font-display text-lg mt-2">Transformar conhecimento em inovação.</p>
+          <p class="font-display text-lg mt-2" data-cms="missao_texto">Transformar conhecimento em inovação.</p>
         </div>
         <div class="card-lift rounded-2xl border border-hair bg-card p-6 reveal" data-reveal>
           <p class="eyebrow">Visão</p>
-          <p class="font-display text-lg mt-2">Ser uma referência mundial em tecnologia e educação.</p>
+          <p class="font-display text-lg mt-2" data-cms="visao_texto">Ser uma referência mundial em tecnologia e educação.</p>
         </div>
       </div>
 
@@ -409,7 +439,7 @@
   <div class="max-w-6xl mx-auto px-6">
     <div class="text-center max-w-2xl mx-auto reveal" data-reveal>
       <p class="eyebrow">Áreas de Atuação</p>
-      <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4">Um ecossistema técnico, ponta a ponta</h2>
+      <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4" data-cms="areas_titulo">Um ecossistema técnico, ponta a ponta</h2>
     </div>
 
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-14">
@@ -469,73 +499,73 @@
     <div class="flex flex-wrap items-end justify-between gap-6 reveal" data-reveal>
       <div>
         <p class="eyebrow">Projetos</p>
-        <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4">Da ideia ao protótipo funcional</h2>
+        <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4" data-cms="projetos_titulo">Da ideia ao protótipo funcional</h2>
       </div>
     </div>
 
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-14">
       <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
-        <div class="proj-img h-48" style="background:linear-gradient(135deg,#0A84FF33,#05050500),#0F1114;">
+        <div class="proj-img h-48" data-cms-img="proj_smarthouse_img" style="background:linear-gradient(135deg,#0A84FF33,#05050500),#0F1114;">
           <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="home" class="w-10 h-10 text-electric/70"></i></div>
         </div>
         <div class="p-6">
-          <p class="font-display text-lg">Smart House</p>
-          <p class="text-mute text-sm mt-2">Automação residencial com controlo remoto e sensores integrados.</p>
+          <p class="font-display text-lg" data-cms="proj_smarthouse_titulo">Smart House</p>
+          <p class="text-mute text-sm mt-2" data-cms="proj_smarthouse_desc">Automação residencial com controlo remoto e sensores integrados.</p>
           <a href="#" class="inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></a>
         </div>
       </article>
 
       <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
-        <div class="proj-img h-48" style="background:linear-gradient(135deg,#FFC10733,#05050500),#0F1114;">
+        <div class="proj-img h-48" data-cms-img="proj_smartcity_img" style="background:linear-gradient(135deg,#FFC10733,#05050500),#0F1114;">
           <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="building-2" class="w-10 h-10 text-energy/70"></i></div>
         </div>
         <div class="p-6">
-          <p class="font-display text-lg">Smart City</p>
-          <p class="text-mute text-sm mt-2">Gestão inteligente de semáforos com painel em tempo real.</p>
+          <p class="font-display text-lg" data-cms="proj_smartcity_titulo">Smart City</p>
+          <p class="text-mute text-sm mt-2" data-cms="proj_smartcity_desc">Gestão inteligente de semáforos com painel em tempo real.</p>
           <a href="#" class="inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></a>
         </div>
       </article>
 
       <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
-        <div class="proj-img h-48" style="background:linear-gradient(135deg,#00E5FF33,#05050500),#0F1114;">
+        <div class="proj-img h-48" data-cms-img="proj_smartkitchen_img" style="background:linear-gradient(135deg,#00E5FF33,#05050500),#0F1114;">
           <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="chef-hat" class="w-10 h-10 text-neon/70"></i></div>
         </div>
         <div class="p-6">
-          <p class="font-display text-lg">Smart Kitchen</p>
-          <p class="text-mute text-sm mt-2">Monitorização inteligente de eletrodomésticos e consumo.</p>
+          <p class="font-display text-lg" data-cms="proj_smartkitchen_titulo">Smart Kitchen</p>
+          <p class="text-mute text-sm mt-2" data-cms="proj_smartkitchen_desc">Monitorização inteligente de eletrodomésticos e consumo.</p>
           <a href="#" class="inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></a>
         </div>
       </article>
 
       <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
-        <div class="proj-img h-48" style="background:linear-gradient(135deg,#0A84FF33,#05050500),#0F1114;">
+        <div class="proj-img h-48" data-cms-img="proj_assistente_img" style="background:linear-gradient(135deg,#0A84FF33,#05050500),#0F1114;">
           <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="message-circle" class="w-10 h-10 text-electric/70"></i></div>
         </div>
         <div class="p-6">
-          <p class="font-display text-lg">Assistente IA</p>
-          <p class="text-mute text-sm mt-2">Tutor virtual conversacional para apoio técnico e educativo.</p>
+          <p class="font-display text-lg" data-cms="proj_assistente_titulo">Assistente IA</p>
+          <p class="text-mute text-sm mt-2" data-cms="proj_assistente_desc">Tutor virtual conversacional para apoio técnico e educativo.</p>
           <a href="#" class="inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></a>
         </div>
       </article>
 
       <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
-        <div class="proj-img h-48" style="background:linear-gradient(135deg,#FFC10733,#05050500),#0F1114;">
+        <div class="proj-img h-48" data-cms-img="proj_manutencao_img" style="background:linear-gradient(135deg,#FFC10733,#05050500),#0F1114;">
           <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="wrench" class="w-10 h-10 text-energy/70"></i></div>
         </div>
         <div class="p-6">
-          <p class="font-display text-lg">Sistema de Manutenção Inteligente</p>
-          <p class="text-mute text-sm mt-2">Diagnóstico preditivo de falhas em equipamentos elétricos.</p>
+          <p class="font-display text-lg" data-cms="proj_manutencao_titulo">Sistema de Manutenção Inteligente</p>
+          <p class="text-mute text-sm mt-2" data-cms="proj_manutencao_desc">Diagnóstico preditivo de falhas em equipamentos elétricos.</p>
           <a href="#" class="inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></a>
         </div>
       </article>
 
       <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
-        <div class="proj-img h-48" style="background:linear-gradient(135deg,#00E5FF33,#05050500),#0F1114;">
+        <div class="proj-img h-48" data-cms-img="proj_eletroqi_img" style="background:linear-gradient(135deg,#00E5FF33,#05050500),#0F1114;">
           <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="graduation-cap" class="w-10 h-10 text-neon/70"></i></div>
         </div>
         <div class="p-6">
-          <p class="font-display text-lg">EletroQI</p>
-          <p class="text-mute text-sm mt-2">Professor virtual inteligente para ensino de eletricidade.</p>
+          <p class="font-display text-lg" data-cms="proj_eletroqi_titulo">EletroQI</p>
+          <p class="text-mute text-sm mt-2" data-cms="proj_eletroqi_desc">Professor virtual inteligente para ensino de eletricidade.</p>
           <a href="#" class="inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></a>
         </div>
       </article>
@@ -547,7 +577,7 @@
 <section id="cursos" class="relative py-28 bg-panel border-y border-hair">
   <div class="max-w-6xl mx-auto px-6 text-center">
     <p class="eyebrow reveal" data-reveal>Cursos</p>
-    <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 reveal" data-reveal>O catálogo está a ser construído</h2>
+    <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 reveal" data-reveal data-cms="cursos_titulo">O catálogo está a ser construído</h2>
     <p class="text-mute mt-4 max-w-xl mx-auto reveal" data-reveal>Estamos a preparar trilhas completas em engenharia, IA e automação. Entra na lista de espera para seres avisado em primeira mão.</p>
 
     <div class="grid sm:grid-cols-3 gap-5 mt-14 text-left">
@@ -607,34 +637,34 @@
 <section id="blog" class="relative py-28 bg-panel border-y border-hair">
   <div class="max-w-6xl mx-auto px-6">
     <p class="eyebrow reveal" data-reveal>Blog</p>
-    <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 reveal" data-reveal>Ideias, pesquisa e engenharia aplicada</h2>
+    <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 reveal" data-reveal data-cms="blog_titulo">Ideias, pesquisa e engenharia aplicada</h2>
 
     <div class="grid md:grid-cols-3 gap-6 mt-14">
       <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
-        <div class="h-40" style="background:linear-gradient(135deg,#0A84FF2a,transparent),#0F1114;"></div>
+        <div class="h-40 relative" data-cms-img="blog1_img" style="background:linear-gradient(135deg,#0A84FF2a,transparent),#0F1114;"></div>
         <div class="p-6">
           <span class="eyebrow">Inteligência Artificial</span>
-          <p class="font-display text-lg mt-3">O papel da IA na manutenção elétrica preditiva</p>
+          <p class="font-display text-lg mt-3" data-cms="blog1_titulo">O papel da IA na manutenção elétrica preditiva</p>
           <div class="flex items-center gap-3 text-xs text-mute mt-4 font-mono">
             <span>5 min</span><span>·</span><span>Equipa LampMind</span>
           </div>
         </div>
       </article>
       <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
-        <div class="h-40" style="background:linear-gradient(135deg,#FFC1072a,transparent),#0F1114;"></div>
+        <div class="h-40 relative" data-cms-img="blog2_img" style="background:linear-gradient(135deg,#FFC1072a,transparent),#0F1114;"></div>
         <div class="p-6">
           <span class="eyebrow">Educação</span>
-          <p class="font-display text-lg mt-3">Como tutores virtuais aceleram a aprendizagem técnica</p>
+          <p class="font-display text-lg mt-3" data-cms="blog2_titulo">Como tutores virtuais aceleram a aprendizagem técnica</p>
           <div class="flex items-center gap-3 text-xs text-mute mt-4 font-mono">
             <span>4 min</span><span>·</span><span>Equipa LampMind</span>
           </div>
         </div>
       </article>
       <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
-        <div class="h-40" style="background:linear-gradient(135deg,#00E5FF2a,transparent),#0F1114;"></div>
+        <div class="h-40 relative" data-cms-img="blog3_img" style="background:linear-gradient(135deg,#00E5FF2a,transparent),#0F1114;"></div>
         <div class="p-6">
           <span class="eyebrow">Energia</span>
-          <p class="font-display text-lg mt-3">Redes inteligentes: o futuro da distribuição elétrica</p>
+          <p class="font-display text-lg mt-3" data-cms="blog3_titulo">Redes inteligentes: o futuro da distribuição elétrica</p>
           <div class="flex items-center gap-3 text-xs text-mute mt-4 font-mono">
             <span>6 min</span><span>·</span><span>Equipa LampMind</span>
           </div>
@@ -648,7 +678,7 @@
 <section id="comunidade" class="relative py-28">
   <div class="max-w-6xl mx-auto px-6">
     <p class="eyebrow reveal" data-reveal>Comunidade</p>
-    <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 reveal" data-reveal>Aprender é melhor em conjunto</h2>
+    <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 reveal" data-reveal data-cms="comunidade_titulo">Aprender é melhor em conjunto</h2>
 
     <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-5 mt-14">
       <div class="card-lift rounded-2xl border border-hair bg-card p-6 text-center reveal" data-reveal>
@@ -708,7 +738,7 @@
   <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-14">
     <div class="reveal" data-reveal>
       <p class="eyebrow">Contato</p>
-      <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4">Vamos construir algo juntos</h2>
+      <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4" data-cms="contato_titulo">Vamos construir algo juntos</h2>
       <div class="space-y-5 mt-10">
         <a href="mailto:contato@lampmind.tech" class="flex items-center gap-3 text-mute hover:text-ink transition">
           <i data-lucide="mail" class="w-5 h-5 text-electric"></i> contato@lampmind.tech
@@ -728,7 +758,7 @@
       </div>
     </div>
 
-    <div class="rounded-2xl border border-hair overflow-hidden h-72 lg:h-full min-h-[280px] reveal" data-reveal
+    <div class="rounded-2xl border border-hair overflow-hidden h-72 lg:h-full min-h-[280px] reveal relative" data-reveal data-cms-img="contato_mapa_img"
          style="background: radial-gradient(circle at 40% 40%, rgba(10,132,255,.18), transparent 60%), #0B0C0E;">
       <div class="w-full h-full flex items-center justify-center text-mute text-sm gap-2">
         <i data-lucide="map-pin" class="w-5 h-5 text-electric"></i> Songo, Moçambique
@@ -1009,15 +1039,30 @@
         `;
       }
 
-      document.querySelectorAll('[data-cms]').forEach(el => {
-        const key = el.getAttribute('data-cms');
-        if (data[key]) el.textContent = data[key];
-      });
-
       if (data.hero_bg_url) {
         const layer = document.getElementById('hero-bg-layer');
         layer.style.backgroundImage = `linear-gradient(rgba(5,5,5,.75), rgba(5,5,5,.9)), url('${data.hero_bg_url}')`;
         layer.style.opacity = '1';
+      }
+
+      const { data: conteudo } = await supabase.from('site_content').select('*');
+      if (conteudo && conteudo.length) {
+        const mapa = {};
+        conteudo.forEach(row => { mapa[row.chave] = row.valor; });
+
+        document.querySelectorAll('[data-cms]').forEach(el => {
+          const key = el.getAttribute('data-cms');
+          if (mapa[key]) el.textContent = mapa[key];
+        });
+
+        document.querySelectorAll('[data-cms-img]').forEach(el => {
+          const key = el.getAttribute('data-cms-img');
+          if (mapa[key]) {
+            el.style.backgroundImage = `url('${mapa[key]}')`;
+            el.style.backgroundSize = 'cover';
+            el.style.backgroundPosition = 'center';
+          }
+        });
       }
     } catch (err) {
       // sem configuração personalizada ainda — mantém o visual padrão
@@ -1085,7 +1130,37 @@
     document.body.classList.add('editing');
     toolbar.classList.remove('hidden');
     fabLabel.textContent = 'Fechar Edição';
-    document.querySelectorAll('[data-cms]').forEach(el => el.setAttribute('contenteditable', 'true'));
+
+    document.querySelectorAll('[data-cms]').forEach(el => {
+      el.setAttribute('contenteditable', 'true');
+      if (!el.querySelector(':scope > .cms-pencil')) {
+        const badge = document.createElement('span');
+        badge.className = 'cms-pencil';
+        badge.innerHTML = '✎';
+        el.style.position = el.style.position || 'relative';
+        el.appendChild(badge);
+      }
+    });
+
+    document.querySelectorAll('[data-cms-img]').forEach(el => {
+      if (el.querySelector(':scope > .img-edit-btn')) return;
+      const key = el.getAttribute('data-cms-img');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'img-edit-btn';
+      btn.innerHTML = '<i data-lucide="upload" class="w-4 h-4"></i>';
+      btn.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        const input = document.createElement('input');
+        input.type = 'file'; input.accept = 'image/*';
+        input.addEventListener('change', () => {
+          if (input.files[0]) uploadImagemPara(key, el, input.files[0]);
+        });
+        input.click();
+      });
+      el.appendChild(btn);
+      if (window.lucide) lucide.createIcons();
+    });
   }
 
   function desativarEdicao() {
@@ -1094,6 +1169,25 @@
     toolbar.classList.add('hidden');
     fabLabel.textContent = 'Editar Site';
     document.querySelectorAll('[data-cms]').forEach(el => el.removeAttribute('contenteditable'));
+  }
+
+  async function uploadImagemPara(chave, elemento, file) {
+    try {
+      const path = `site/${chave}-${Date.now()}-${file.name}`;
+      const { error: upErr } = await supabase.storage.from('materiais').upload(path, file);
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('materiais').getPublicUrl(path);
+      const url = data.publicUrl;
+
+      elemento.style.backgroundImage = `url('${url}')`;
+      elemento.style.backgroundSize = 'cover';
+      elemento.style.backgroundPosition = 'center';
+
+      const { error: saveErr } = await supabase.from('site_content').upsert({ chave, valor: url });
+      if (saveErr) throw saveErr;
+    } catch (err) {
+      alert('Erro ao carregar imagem: ' + err.message);
+    }
   }
 
   fab.addEventListener('click', () => {
@@ -1136,22 +1230,28 @@
     saveMsg.classList.add('hidden');
     saveBtn.disabled = true; saveBtn.textContent = 'A guardar...';
 
-    const payload = {
+    const configPayload = {
       id: 1,
       cor_electric: corElectric.value,
       cor_energy: corEnergy.value,
       cor_neon: corNeon.value,
       font_display: fontSelect.value
     };
+
+    const textos = [];
     document.querySelectorAll('[data-cms]').forEach(el => {
-      payload[el.getAttribute('data-cms')] = el.innerText.trim();
+      const clone = el.cloneNode(true);
+      clone.querySelectorAll('.cms-pencil').forEach(b => b.remove());
+      textos.push({ chave: el.getAttribute('data-cms'), valor: clone.innerText.trim() });
     });
 
-    const { error } = await supabase.from('site_config').upsert(payload);
+    const { error: errConfig } = await supabase.from('site_config').upsert(configPayload);
+    const { error: errTextos } = await supabase.from('site_content').upsert(textos);
+
     saveBtn.disabled = false; saveBtn.textContent = 'Guardar alterações';
     saveMsg.classList.remove('hidden');
-    if (error) {
-      saveMsg.textContent = 'Erro ao guardar: ' + error.message;
+    if (errConfig || errTextos) {
+      saveMsg.textContent = 'Erro ao guardar: ' + (errConfig || errTextos).message;
       saveMsg.className = 'text-xs text-red-400';
     } else {
       saveMsg.textContent = 'Guardado! As alterações já estão no ar.';
@@ -1171,6 +1271,76 @@
 
   checkSession();
   carregarControlosAtuais();
+</script>
+
+<!-- Barra de pesquisa do site -->
+<script>
+  const searchToggle = document.getElementById('search-toggle');
+  const searchInput = document.getElementById('search-input');
+  const searchResults = document.getElementById('search-results');
+
+  function fecharPesquisa() {
+    searchInput.classList.add('hidden');
+    searchResults.classList.add('hidden');
+    searchInput.value = '';
+  }
+
+  searchToggle.addEventListener('click', () => {
+    const aberto = !searchInput.classList.contains('hidden');
+    if (aberto) { fecharPesquisa(); return; }
+    searchInput.classList.remove('hidden');
+    searchInput.focus();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#search-toggle') && !e.target.closest('#search-input') && !e.target.closest('#search-results')) {
+      fecharPesquisa();
+    }
+  });
+
+  function normalizar(txt) {
+    return txt.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
+  searchInput.addEventListener('input', () => {
+    const termo = normalizar(searchInput.value.trim());
+    if (termo.length < 2) { searchResults.classList.add('hidden'); searchResults.innerHTML = ''; return; }
+
+    const secoes = document.querySelectorAll('section[id]');
+    const encontrados = [];
+    secoes.forEach(sec => {
+      const titulo = sec.querySelector('h2, h1');
+      const tituloTexto = titulo ? titulo.textContent.trim() : sec.id;
+      if (normalizar(sec.innerText).includes(termo)) {
+        encontrados.push({ id: sec.id, titulo: tituloTexto });
+      }
+    });
+
+    if (!encontrados.length) {
+      searchResults.innerHTML = '<div class="search-item">Sem resultados.</div>';
+    } else {
+      searchResults.innerHTML = encontrados.map(r =>
+        `<div class="search-item" data-target="${r.id}">${r.titulo}</div>`
+      ).join('');
+      searchResults.querySelectorAll('.search-item[data-target]').forEach(item => {
+        item.addEventListener('click', () => {
+          const alvo = document.getElementById(item.dataset.target);
+          if (alvo) {
+            alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            alvo.style.transition = 'box-shadow .3s ease';
+            alvo.style.boxShadow = 'inset 0 0 0 2px rgba(0,229,255,.5)';
+            setTimeout(() => { alvo.style.boxShadow = 'none'; }, 1500);
+          }
+          fecharPesquisa();
+        });
+      });
+    }
+    searchResults.classList.remove('hidden');
+  });
+
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') fecharPesquisa();
+  });
 </script>
 </body>
 </html>
