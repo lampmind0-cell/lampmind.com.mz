@@ -113,13 +113,43 @@ Também precisas da coluna `font_display` na tabela `site_config` (se ainda não
 alter table site_config add column if not exists font_display text;
 ```
 
-## 6. Usar
+## 6. Nova funcionalidade: Secção "Equipa" (fim da página)
+
+Para os membros da equipa (além do CEO/Fundador, que se edita diretamente no site através do "Editar Site") precisas de mais uma tabela. Corre isto no SQL Editor:
+
+```sql
+create table equipe (
+  id uuid default gen_random_uuid() primary key,
+  nome text not null,
+  cargo text,
+  foto_url text,
+  ordem int default 0,
+  criado_em timestamp with time zone default now()
+);
+
+alter table equipe enable row level security;
+
+create policy "Leitura publica equipe" on equipe for select using (true);
+create policy "Insercao autenticada equipe" on equipe for insert with check (auth.role() = 'authenticated');
+create policy "Delete autenticada equipe" on equipe for delete using (auth.role() = 'authenticated');
+```
+
+As fotos dos membros usam o mesmo bucket `materiais` já criado no passo 2 — não precisas de criar outro bucket.
+
+## 7. Usar
 
 **No admin.html (upload de materiais):**
 - Para carregar um ebook ou vídeo novo: abre `https://teudominio.com/admin.html`, faz login, na aba **Materiais** preenche título/descrição/categoria, escolhe **Gratuito** ou **Pago**, escolhe o ficheiro, clica **Publicar no site**
 - Se marcares **Pago**, preenche o preço e um link de pagamento (Stripe Payment Link, PayPal.me, ou um link de WhatsApp/M-Pesa) — o site mostra o preço e um botão "Comprar"
 - Vídeos (.mp4, .webm) aparecem com pré-visualização direta no site
 - Para remover um material, usa o botão **Remover** na lista dentro do `admin.html`
+
+**No admin.html (aba Equipa):**
+- Preenche nome e cargo, escolhe uma foto, clica **Adicionar à equipa** — o membro aparece de imediato na secção "Equipa" do site, a seguir ao CEO/Fundador
+- Para remover um membro, usa o botão **Remover** na lista
+
+**Foto e texto do CEO/Fundador:**
+- Não é na aba Equipa — é diretamente no site público: toca em **"Editar Site"**, faz login, e no fundo da página (secção Equipa) toca na foto redonda do CEO para carregares a tua, e no texto "CEO — Aires Lampião" / "Founded by Aires Lampião" para os editares
 
 **No site público (Modo de Edição ao Vivo):**
 - Toca no botão flutuante **"Editar Site"** no canto do ecrã do site público (não do `admin.html`) e faz login

@@ -224,6 +224,11 @@
 
   #search-results .search-item{ padding:8px 10px; border-radius:8px; cursor:pointer; color:var(--mute); }
   #search-results .search-item:hover{ background:rgba(255,255,255,.06); color:var(--ink); }
+
+  /* garante que .hidden esconde mesmo com as regras de #edit-fab / #edit-toolbar acima
+     (seletores por ID têm mais prioridade que a classe .hidden do Tailwind, por isso
+     sem esta regra o painel de edição ficava sempre visível, mesmo sem login) */
+  #edit-fab.hidden, #edit-toolbar.hidden, #edit-login-modal.hidden{ display:none !important; }
 </style>
 <style id="dynamic-theme"></style>
 </head>
@@ -251,6 +256,7 @@
       <a href="#biblioteca" class="nav-link">Biblioteca</a>
       <a href="#blog" class="nav-link">Blog</a>
       <a href="#youtube" class="nav-link">YouTube</a>
+      <a href="#equipe" class="nav-link">Equipa</a>
       <a href="#contato" class="nav-link">Contato</a>
     </nav>
 
@@ -279,6 +285,7 @@
     <a href="#biblioteca" class="nav-link">Biblioteca</a>
     <a href="#blog" class="nav-link">Blog</a>
     <a href="#youtube" class="nav-link">YouTube</a>
+    <a href="#equipe" class="nav-link">Equipa</a>
     <a href="#contato" class="nav-link">Contato</a>
     <a href="admin.html" class="btn-ghost rounded-lg px-4 py-2 text-center font-medium">Entrar</a>
   </div>
@@ -767,6 +774,28 @@
   </div>
 </section>
 
+<!-- ================= EQUIPA ================= -->
+<section id="equipe" class="relative py-28 bg-panel border-y border-hair">
+  <div class="max-w-6xl mx-auto px-6">
+    <p class="eyebrow reveal" data-reveal>Equipa</p>
+    <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 reveal" data-reveal data-cms="equipe_titulo">Quem está por trás da LampMind</h2>
+
+    <!-- CEO / Fundador -->
+    <div class="mt-14 flex flex-col items-center text-center reveal" data-reveal>
+      <div class="w-36 h-36 rounded-full overflow-hidden border-2 border-hair relative bg-card flex items-center justify-center" data-cms-img="ceo_foto">
+        <i data-lucide="user" class="w-12 h-12 text-mute"></i>
+      </div>
+      <p class="font-display text-lg mt-5" data-cms="ceo_cargo">CEO — Aires Lampião</p>
+      <p class="text-mute text-sm mt-1" data-cms="ceo_founded">Founded by Aires Lampião</p>
+    </div>
+
+    <!-- Restantes membros da equipa (geridos pelo admin.html) -->
+    <div id="equipe-lista" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
+      <p class="text-mute text-sm col-span-full text-center">A carregar equipa...</p>
+    </div>
+  </div>
+</section>
+
 <!-- ================= FOOTER ================= -->
 <footer class="relative border-t border-hair py-14">
   <div class="max-w-6xl mx-auto px-6">
@@ -785,6 +814,7 @@
         <a href="#sobre" class="hover:text-ink transition">Sobre</a>
         <a href="#projetos" class="hover:text-ink transition">Projetos</a>
         <a href="#cursos" class="hover:text-ink transition">Cursos</a>
+        <a href="#equipe" class="hover:text-ink transition">Equipa</a>
         <a href="#" class="hover:text-ink transition">Política de Privacidade</a>
         <a href="#" class="hover:text-ink transition">Termos de Uso</a>
       </div>
@@ -1008,6 +1038,39 @@
     }
   }
 
+  const equipeContainer = document.getElementById('equipe-lista');
+
+  async function carregarEquipe() {
+    try {
+      const { data, error } = await supabase
+        .from('equipe')
+        .select('*')
+        .order('ordem', { ascending: true });
+
+      if (error) throw error;
+
+      if (!data || !data.length) {
+        equipeContainer.innerHTML = '';
+        return;
+      }
+
+      equipeContainer.innerHTML = '';
+      data.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'card-lift rounded-2xl border border-hair bg-card p-6 text-center reveal';
+        card.innerHTML = `
+          <div class="w-24 h-24 rounded-full overflow-hidden mx-auto bg-panel bg-cover bg-center border border-hair" style="background-image:url('${item.foto_url || ''}')"></div>
+          <p class="font-display text-base mt-4">${item.nome}</p>
+          <p class="text-mute text-xs mt-1">${item.cargo || ''}</p>
+        `;
+        equipeContainer.appendChild(card);
+      });
+      gsap.to('#equipe-lista .reveal', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', stagger: 0.06 });
+    } catch (err) {
+      equipeContainer.innerHTML = '';
+    }
+  }
+
   function hexToRgb(hex) {
     const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
     return m ? `${parseInt(m[1],16)} ${parseInt(m[2],16)} ${parseInt(m[3],16)}` : null;
@@ -1071,6 +1134,7 @@
 
   aplicarPersonalizacao();
   carregarBiblioteca();
+  carregarEquipe();
 </script>
 
 <!-- Modo de Edição ao Vivo (login + edição inline + guardar) -->

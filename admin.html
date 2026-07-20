@@ -52,6 +52,7 @@
 
     <div class="flex gap-8 border-b border-white/10 mb-10">
       <div class="tab active" data-tab="materiais">Materiais</div>
+      <div class="tab" data-tab="equipa">Equipa</div>
       <div class="tab" data-tab="personalizacao">Personalização do Site</div>
     </div>
 
@@ -93,6 +94,27 @@
       <div class="card rounded-2xl p-8">
         <p class="font-display text-xl mb-6">Materiais publicados</p>
         <div id="lista" class="space-y-3 text-sm"></div>
+      </div>
+    </div>
+
+    <!-- ABA: EQUIPA -->
+    <div id="tab-equipa" class="hidden">
+      <div class="card rounded-2xl p-8 mb-10">
+        <p class="font-display text-xl mb-2">Adicionar membro à equipa</p>
+        <p class="text-sm text-gray-400 mb-6">Aparece na secção "Equipa" do site, a seguir ao CEO/Fundador (que se edita diretamente no site, no botão "Editar Site").</p>
+        <form id="equipa-form" class="space-y-4">
+          <input required type="text" id="equipa-nome" placeholder="Nome do membro" class="w-full rounded-lg px-4 py-3 text-sm">
+          <input type="text" id="equipa-cargo" placeholder="Cargo / função (ex: Engenheiro de Software)" class="w-full rounded-lg px-4 py-3 text-sm">
+          <input required type="file" id="equipa-foto" accept="image/*" class="w-full rounded-lg px-4 py-3 text-sm">
+          <p class="text-xs text-gray-500">A foto é carregada e aparece de imediato no site.</p>
+          <button type="submit" id="equipa-btn" class="btn w-full rounded-lg py-3 text-sm">Adicionar à equipa</button>
+          <p id="equipa-msg" class="text-sm hidden"></p>
+        </form>
+      </div>
+
+      <div class="card rounded-2xl p-8">
+        <p class="font-display text-xl mb-6">Membros da equipa</p>
+        <div id="equipa-lista-admin" class="space-y-3 text-sm"></div>
       </div>
     </div>
 
@@ -171,6 +193,7 @@
       panel.classList.remove('hidden');
       userEmailEl.textContent = session.user.email;
       carregarLista();
+      carregarEquipa();
       carregarConfig();
     } else {
       loginBox.classList.remove('hidden');
@@ -203,6 +226,7 @@
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById('tab-materiais').classList.toggle('hidden', tab.dataset.tab !== 'materiais');
+      document.getElementById('tab-equipa').classList.toggle('hidden', tab.dataset.tab !== 'equipa');
       document.getElementById('tab-personalizacao').classList.toggle('hidden', tab.dataset.tab !== 'personalizacao');
     });
   });
@@ -283,6 +307,78 @@
         if (!confirm('Remover este material do site?')) return;
         await supabase.from(TABLE).delete().eq('id', b.dataset.id);
         carregarLista();
+      });
+    });
+  }
+
+  /* ---------- Equipa: adicionar membro ---------- */
+  const EQUIPA_TABLE = 'equipe';
+
+  document.getElementById('equipa-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('equipa-btn');
+    const msg = document.getElementById('equipa-msg');
+    btn.disabled = true; btn.textContent = 'A carregar...';
+
+    const nome = document.getElementById('equipa-nome').value;
+    const cargo = document.getElementById('equipa-cargo').value;
+    const file = document.getElementById('equipa-foto').files[0];
+
+    try {
+      const path = `equipe/${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file);
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+
+      const { error: insertError } = await supabase.from(EQUIPA_TABLE).insert({
+        nome, cargo, foto_url: publicUrlData.publicUrl
+      });
+      if (insertError) throw insertError;
+
+      msg.textContent = 'Membro adicionado com sucesso!';
+      msg.className = 'text-sm text-green-400';
+      msg.classList.remove('hidden');
+      e.target.reset();
+      carregarEquipa();
+    } catch (err) {
+      msg.textContent = 'Erro: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Adicionar à equipa';
+    }
+  });
+
+  async function carregarEquipa() {
+    const lista = document.getElementById('equipa-lista-admin');
+    lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+    const { data, error } = await supabase.from(EQUIPA_TABLE).select('*').order('criado_em', { ascending: false });
+    if (error) { lista.innerHTML = '<p class="text-red-400">Erro ao carregar: ' + error.message + '</p>'; return; }
+    if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não há membros adicionados.</p>'; return; }
+
+    lista.innerHTML = '';
+    data.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between border-b border-white/5 pb-3';
+      row.innerHTML = `
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-cover bg-center border border-white/10" style="background-image:url('${item.foto_url || ''}')"></div>
+          <div>
+            <p class="font-medium">${item.nome}</p>
+            <p class="text-gray-500 text-xs">${item.cargo || ''}</p>
+          </div>
+        </div>
+        <button data-id="${item.id}" class="del-equipa-btn btn-danger rounded-lg px-3 py-1.5 text-xs">Remover</button>
+      `;
+      lista.appendChild(row);
+    });
+
+    document.querySelectorAll('.del-equipa-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (!confirm('Remover este membro da equipa?')) return;
+        await supabase.from(EQUIPA_TABLE).delete().eq('id', b.dataset.id);
+        carregarEquipa();
       });
     });
   }
