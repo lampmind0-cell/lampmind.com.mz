@@ -180,13 +180,6 @@
   }
 
   /* ---------- Modo de Edição ao vivo ---------- */
-  #edit-fab{
-    position:fixed; bottom:22px; right:22px; z-index:200;
-    background:linear-gradient(100deg,var(--electric),#1c66ff); color:#fff; font-weight:600;
-    border:none; border-radius:999px; padding:12px 20px; font-size:.85rem;
-    box-shadow:0 10px 30px -8px rgba(10,132,255,.6); cursor:pointer;
-    display:flex; align-items:center; gap:8px;
-  }
   #edit-login-modal, #edit-toolbar{
     position:fixed; z-index:210; background:rgba(15,17,20,.92); backdrop-filter:blur(14px);
     border:1px solid var(--hair); border-radius:16px; padding:22px;
@@ -225,10 +218,10 @@
   #search-results .search-item{ padding:8px 10px; border-radius:8px; cursor:pointer; color:var(--mute); }
   #search-results .search-item:hover{ background:rgba(255,255,255,.06); color:var(--ink); }
 
-  /* garante que .hidden esconde mesmo com as regras de #edit-fab / #edit-toolbar acima
-     (seletores por ID têm mais prioridade que a classe .hidden do Tailwind, por isso
+  /* garante que .hidden esconde mesmo com a regra de #edit-toolbar acima
+     (o seletor por ID tinha mais prioridade que a classe .hidden do Tailwind, por isso
      sem esta regra o painel de edição ficava sempre visível, mesmo sem login) */
-  #edit-fab.hidden, #edit-toolbar.hidden, #edit-login-modal.hidden{ display:none !important; }
+  #edit-toolbar.hidden, #edit-login-modal.hidden{ display:none !important; }
 </style>
 <style id="dynamic-theme"></style>
 </head>
@@ -240,12 +233,14 @@
 <header id="site-header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-500">
   <div class="glass mx-auto mt-3 max-w-6xl rounded-2xl px-5 py-3 flex items-center justify-between">
     <a href="#top" class="flex items-center gap-2.5 group">
-      <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
-        <path d="M27 3 L11 26H21L17 45L37 20H26L27 3Z" fill="#FFC107" stroke="#FFC107" stroke-width="1" stroke-linejoin="round"/>
-        <path d="M32 8c6 2 10 8 10 14 0 8-6 14-14 14-1.5 0-3-.2-4.3-.6" stroke="#0A84FF" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55"/>
-        <circle cx="42" cy="22" r="1.6" fill="#00E5FF"/>
-      </svg>
-      <span class="font-display font-semibold text-lg tracking-tight">Lamp<span class="text-gradient">Mind</span></span>
+      <span class="w-[30px] h-[30px] rounded-md overflow-hidden bg-cover bg-center flex items-center justify-center shrink-0" data-cms-img="site_logo">
+        <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
+          <path d="M27 3 L11 26H21L17 45L37 20H26L27 3Z" fill="#FFC107" stroke="#FFC107" stroke-width="1" stroke-linejoin="round"/>
+          <path d="M32 8c6 2 10 8 10 14 0 8-6 14-14 14-1.5 0-3-.2-4.3-.6" stroke="#0A84FF" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55"/>
+          <circle cx="42" cy="22" r="1.6" fill="#00E5FF"/>
+        </svg>
+      </span>
+      <span class="font-display font-semibold text-lg tracking-tight" data-cms="site_nome">Lamp<span class="text-gradient">Mind</span></span>
     </a>
 
     <nav class="hidden md:flex items-center gap-7 text-sm">
@@ -270,6 +265,9 @@
         <div id="search-results" class="hidden absolute right-8 top-full mt-2 w-64 max-h-72 overflow-y-auto bg-card border border-hair rounded-xl p-2 text-sm z-50"></div>
       </div>
       <a href="admin.html" class="hidden sm:inline-block btn-ghost rounded-lg px-4 py-2 text-sm font-medium">Entrar</a>
+      <button class="edit-fab-btn hidden sm:inline-flex items-center gap-1.5 btn-ghost rounded-lg px-4 py-2 text-sm font-medium">
+        <i data-lucide="pencil" class="w-3.5 h-3.5"></i> <span class="edit-fab-label">Editar Site</span>
+      </button>
       <button id="menu-btn" class="md:hidden text-ink" aria-label="Abrir menu">
         <i data-lucide="menu" class="w-6 h-6"></i>
       </button>
@@ -288,6 +286,9 @@
     <a href="#equipe" class="nav-link">Equipa</a>
     <a href="#contato" class="nav-link">Contato</a>
     <a href="admin.html" class="btn-ghost rounded-lg px-4 py-2 text-center font-medium">Entrar</a>
+    <button class="edit-fab-btn btn-ghost rounded-lg px-4 py-2 text-center font-medium flex items-center justify-center gap-2">
+      <i data-lucide="pencil" class="w-4 h-4"></i> <span class="edit-fab-label">Editar Site</span>
+    </button>
   </div>
 </header>
 
@@ -747,11 +748,11 @@
       <p class="eyebrow">Contato</p>
       <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4" data-cms="contato_titulo">Vamos construir algo juntos</h2>
       <div class="space-y-5 mt-10">
-        <a href="mailto:contato@lampmind.tech" class="flex items-center gap-3 text-mute hover:text-ink transition">
-          <i data-lucide="mail" class="w-5 h-5 text-electric"></i> contato@lampmind.tech
+        <a id="contato-email-link" href="mailto:contato@lampmind.tech" class="flex items-center gap-3 text-mute hover:text-ink transition">
+          <i data-lucide="mail" class="w-5 h-5 text-electric"></i> <span data-cms="contato_email" data-cms-sync-href="mailto:">contato@lampmind.tech</span>
         </a>
-        <a href="tel:+258840000000" class="flex items-center gap-3 text-mute hover:text-ink transition">
-          <i data-lucide="phone" class="w-5 h-5 text-electric"></i> +258 84 000 0000
+        <a id="contato-tel-link" href="tel:+258840000000" class="flex items-center gap-3 text-mute hover:text-ink transition">
+          <i data-lucide="phone" class="w-5 h-5 text-electric"></i> <span data-cms="contato_telefone" data-cms-sync-href="tel:">+258 84 000 0000</span>
         </a>
         <a href="https://wa.me/258840000000" class="flex items-center gap-3 text-mute hover:text-ink transition">
           <i data-lucide="message-circle" class="w-5 h-5 text-electric"></i> WhatsApp
@@ -802,10 +803,12 @@
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
       <div>
         <div class="flex items-center gap-2">
-          <svg width="24" height="24" viewBox="0 0 48 48" fill="none">
-            <path d="M27 3 L11 26H21L17 45L37 20H26L27 3Z" fill="#FFC107"/>
-          </svg>
-          <span class="font-display font-semibold">Lamp<span class="text-gradient">Mind</span></span>
+          <span class="w-6 h-6 rounded-md overflow-hidden bg-cover bg-center flex items-center justify-center shrink-0" data-cms-img="site_logo">
+            <svg width="24" height="24" viewBox="0 0 48 48" fill="none">
+              <path d="M27 3 L11 26H21L17 45L37 20H26L27 3Z" fill="#FFC107"/>
+            </svg>
+          </span>
+          <span class="font-display font-semibold" data-cms="site_nome">Lamp<span class="text-gradient">Mind</span></span>
         </div>
         <p class="text-mute text-sm mt-2">Inteligência para Criar o Futuro.</p>
       </div>
@@ -835,10 +838,6 @@
 </footer>
 
 <!-- ================= MODO DE EDIÇÃO AO VIVO (só para admin) ================= -->
-<button id="edit-fab" class="hidden">
-  <i data-lucide="pencil" class="w-4 h-4"></i> <span id="edit-fab-label">Editar Site</span>
-</button>
-
 <div id="edit-login-modal" class="hidden">
   <p class="font-display text-lg mb-1">Entrar como admin</p>
   <p class="text-mute text-xs mb-5">Só a equipa LampMind pode editar o site.</p>
@@ -1115,7 +1114,14 @@
 
         document.querySelectorAll('[data-cms]').forEach(el => {
           const key = el.getAttribute('data-cms');
-          if (mapa[key]) el.textContent = mapa[key];
+          if (mapa[key]) {
+            el.textContent = mapa[key];
+            const prefixo = el.getAttribute('data-cms-sync-href');
+            if (prefixo) {
+              const link = el.closest('a');
+              if (link) link.href = prefixo === 'tel:' ? prefixo + mapa[key].replace(/[^0-9+]/g, '') : prefixo + mapa[key];
+            }
+          }
         });
 
         document.querySelectorAll('[data-cms-img]').forEach(el => {
@@ -1124,6 +1130,7 @@
             el.style.backgroundImage = `url('${mapa[key]}')`;
             el.style.backgroundSize = 'cover';
             el.style.backgroundPosition = 'center';
+            Array.from(el.children).forEach(child => { if (!child.classList.contains('img-edit-btn')) child.style.display = 'none'; });
           }
         });
       }
@@ -1144,8 +1151,8 @@
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const fab = document.getElementById('edit-fab');
-  const fabLabel = document.getElementById('edit-fab-label');
+  const fabBtns = document.querySelectorAll('.edit-fab-btn');
+  const fabLabels = document.querySelectorAll('.edit-fab-label');
   const loginModal = document.getElementById('edit-login-modal');
   const loginForm = document.getElementById('edit-login-form');
   const loginError = document.getElementById('edit-login-error');
@@ -1186,14 +1193,13 @@
   async function checkSession() {
     const { data: { session } } = await supabase.auth.getSession();
     logado = !!session;
-    fab.classList.remove('hidden');
   }
 
   function ativarEdicao() {
     editando = true;
     document.body.classList.add('editing');
     toolbar.classList.remove('hidden');
-    fabLabel.textContent = 'Fechar Edição';
+    fabLabels.forEach(l => l.textContent = 'Fechar Edição');
 
     document.querySelectorAll('[data-cms]').forEach(el => {
       el.setAttribute('contenteditable', 'true');
@@ -1203,6 +1209,16 @@
         badge.innerHTML = '✎';
         el.style.position = el.style.position || 'relative';
         el.appendChild(badge);
+      }
+      const prefixo = el.getAttribute('data-cms-sync-href');
+      if (prefixo && !el.dataset.syncBound) {
+        el.dataset.syncBound = '1';
+        el.addEventListener('input', () => {
+          const link = el.closest('a');
+          if (!link) return;
+          const valor = el.textContent.trim();
+          link.href = prefixo === 'tel:' ? prefixo + valor.replace(/[^0-9+]/g, '') : prefixo + valor;
+        });
       }
     });
 
@@ -1231,7 +1247,7 @@
     editando = false;
     document.body.classList.remove('editing');
     toolbar.classList.add('hidden');
-    fabLabel.textContent = 'Editar Site';
+    fabLabels.forEach(l => l.textContent = 'Editar Site');
     document.querySelectorAll('[data-cms]').forEach(el => el.removeAttribute('contenteditable'));
   }
 
@@ -1246,6 +1262,7 @@
       elemento.style.backgroundImage = `url('${url}')`;
       elemento.style.backgroundSize = 'cover';
       elemento.style.backgroundPosition = 'center';
+      Array.from(elemento.children).forEach(child => { if (!child.classList.contains('img-edit-btn')) child.style.display = 'none'; });
 
       const { error: saveErr } = await supabase.from('site_content').upsert({ chave, valor: url });
       if (saveErr) throw saveErr;
@@ -1254,12 +1271,15 @@
     }
   }
 
-  fab.addEventListener('click', () => {
-    if (!logado) {
-      loginModal.classList.remove('hidden');
-      return;
-    }
-    editando ? desativarEdicao() : ativarEdicao();
+  fabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('mobile-menu')?.classList.add('hidden');
+      if (!logado) {
+        loginModal.classList.remove('hidden');
+        return;
+      }
+      editando ? desativarEdicao() : ativarEdicao();
+    });
   });
 
   document.getElementById('edit-login-cancel').addEventListener('click', () => {
