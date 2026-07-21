@@ -1322,12 +1322,13 @@
       font_display: fontSelect.value
     };
 
-    const textos = [];
+    const textosMapa = {};
     document.querySelectorAll('[data-cms]').forEach(el => {
       const clone = el.cloneNode(true);
       clone.querySelectorAll('.cms-pencil').forEach(b => b.remove());
-      textos.push({ chave: el.getAttribute('data-cms'), valor: clone.innerText.trim() });
+      textosMapa[el.getAttribute('data-cms')] = clone.innerText.trim();
     });
+    const textos = Object.entries(textosMapa).map(([chave, valor]) => ({ chave, valor }));
 
     const { error: errConfig } = await supabase.from('site_config').upsert(configPayload);
     const { error: errTextos } = await supabase.from('site_content').upsert(textos);
