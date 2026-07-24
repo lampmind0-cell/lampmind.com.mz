@@ -180,6 +180,13 @@
   }
 
   /* ---------- Modo de Edição ao vivo ---------- */
+  #edit-fab{
+    position:fixed; bottom:22px; right:22px; z-index:200;
+    background:linear-gradient(100deg,var(--electric),#1c66ff); color:#fff; font-weight:600;
+    border:none; border-radius:999px; padding:12px 20px; font-size:.85rem;
+    box-shadow:0 10px 30px -8px rgba(10,132,255,.6); cursor:pointer;
+    display:flex; align-items:center; gap:8px;
+  }
   #edit-login-modal, #edit-toolbar{
     position:fixed; z-index:210; background:rgba(15,17,20,.92); backdrop-filter:blur(14px);
     border:1px solid var(--hair); border-radius:16px; padding:22px;
@@ -217,11 +224,6 @@
 
   #search-results .search-item{ padding:8px 10px; border-radius:8px; cursor:pointer; color:var(--mute); }
   #search-results .search-item:hover{ background:rgba(255,255,255,.06); color:var(--ink); }
-
-  /* garante que .hidden esconde mesmo com a regra de #edit-toolbar acima
-     (o seletor por ID tinha mais prioridade que a classe .hidden do Tailwind, por isso
-     sem esta regra o painel de edição ficava sempre visível, mesmo sem login) */
-  #edit-toolbar.hidden, #edit-login-modal.hidden{ display:none !important; }
 </style>
 <style id="dynamic-theme"></style>
 </head>
@@ -233,14 +235,12 @@
 <header id="site-header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-500">
   <div class="glass mx-auto mt-3 max-w-6xl rounded-2xl px-5 py-3 flex items-center justify-between">
     <a href="#top" class="flex items-center gap-2.5 group">
-      <span class="w-[30px] h-[30px] rounded-md overflow-hidden bg-cover bg-center flex items-center justify-center shrink-0" data-cms-img="site_logo">
-        <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
-          <path d="M27 3 L11 26H21L17 45L37 20H26L27 3Z" fill="#FFC107" stroke="#FFC107" stroke-width="1" stroke-linejoin="round"/>
-          <path d="M32 8c6 2 10 8 10 14 0 8-6 14-14 14-1.5 0-3-.2-4.3-.6" stroke="#0A84FF" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55"/>
-          <circle cx="42" cy="22" r="1.6" fill="#00E5FF"/>
-        </svg>
-      </span>
-      <span class="font-display font-semibold text-lg tracking-tight" data-cms="site_nome">Lamp<span class="text-gradient">Mind</span></span>
+      <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
+        <path d="M27 3 L11 26H21L17 45L37 20H26L27 3Z" fill="#FFC107" stroke="#FFC107" stroke-width="1" stroke-linejoin="round"/>
+        <path d="M32 8c6 2 10 8 10 14 0 8-6 14-14 14-1.5 0-3-.2-4.3-.6" stroke="#0A84FF" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55"/>
+        <circle cx="42" cy="22" r="1.6" fill="#00E5FF"/>
+      </svg>
+      <span class="font-display font-semibold text-lg tracking-tight">Lamp<span class="text-gradient">Mind</span></span>
     </a>
 
     <nav class="hidden md:flex items-center gap-7 text-sm">
@@ -251,7 +251,6 @@
       <a href="#biblioteca" class="nav-link">Biblioteca</a>
       <a href="#blog" class="nav-link">Blog</a>
       <a href="#youtube" class="nav-link">YouTube</a>
-      <a href="#equipe" class="nav-link">Equipa</a>
       <a href="#contato" class="nav-link">Contato</a>
     </nav>
 
@@ -265,9 +264,6 @@
         <div id="search-results" class="hidden absolute right-8 top-full mt-2 w-64 max-h-72 overflow-y-auto bg-card border border-hair rounded-xl p-2 text-sm z-50"></div>
       </div>
       <a href="admin.html" class="hidden sm:inline-block btn-ghost rounded-lg px-4 py-2 text-sm font-medium">Entrar</a>
-      <button class="edit-fab-btn hidden sm:inline-flex items-center gap-1.5 btn-ghost rounded-lg px-4 py-2 text-sm font-medium">
-        <i data-lucide="pencil" class="w-3.5 h-3.5"></i> <span class="edit-fab-label">Editar Site</span>
-      </button>
       <button id="menu-btn" class="md:hidden text-ink" aria-label="Abrir menu">
         <i data-lucide="menu" class="w-6 h-6"></i>
       </button>
@@ -283,12 +279,8 @@
     <a href="#biblioteca" class="nav-link">Biblioteca</a>
     <a href="#blog" class="nav-link">Blog</a>
     <a href="#youtube" class="nav-link">YouTube</a>
-    <a href="#equipe" class="nav-link">Equipa</a>
     <a href="#contato" class="nav-link">Contato</a>
     <a href="admin.html" class="btn-ghost rounded-lg px-4 py-2 text-center font-medium">Entrar</a>
-    <button class="edit-fab-btn btn-ghost rounded-lg px-4 py-2 text-center font-medium flex items-center justify-center gap-2">
-      <i data-lucide="pencil" class="w-4 h-4"></i> <span class="edit-fab-label">Editar Site</span>
-    </button>
   </div>
 </header>
 
@@ -713,6 +705,36 @@
   </div>
 </section>
 
+<!-- ================= FEEDBACK E AVALIAÇÃO ================= -->
+<section id="feedback" class="relative py-28">
+  <div class="max-w-3xl mx-auto px-6 text-center">
+    <p class="eyebrow reveal" data-reveal>A tua opinião</p>
+    <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 reveal" data-reveal>Ajuda-nos a melhorar</h2>
+    <p class="text-mute mt-4 reveal" data-reveal>Gostas do LampMind? Deixa o teu like, ou envia uma reclamação, sugestão ou elogio.</p>
+
+    <div class="flex items-center justify-center gap-3 mt-8 reveal" data-reveal>
+      <button id="like-btn" class="flex items-center gap-2 rounded-full border border-hair bg-card px-6 py-3 hover:border-energy transition">
+        <i data-lucide="heart" class="w-5 h-5 text-energy"></i>
+        <span id="like-count" class="font-display">—</span>
+      </button>
+    </div>
+
+    <form id="feedback-form" class="mt-10 text-left space-y-4 max-w-lg mx-auto reveal" data-reveal>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <input type="text" id="feedback-nome" placeholder="Nome (opcional)" class="rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+        <select id="feedback-tipo" class="rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+          <option value="Sugestão">Sugestão</option>
+          <option value="Reclamação">Reclamação</option>
+          <option value="Elogio">Elogio</option>
+        </select>
+      </div>
+      <textarea required id="feedback-mensagem" rows="4" placeholder="A tua mensagem..." class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink"></textarea>
+      <button type="submit" class="btn-primary rounded-xl px-6 py-3 text-sm w-full sm:w-auto">Enviar</button>
+      <p id="feedback-msg" class="text-sm hidden"></p>
+    </form>
+  </div>
+</section>
+
 <!-- ================= BIBLIOTECA / MATERIAIS ================= -->
 <section id="biblioteca" class="relative py-28 bg-panel border-y border-hair">
   <div class="max-w-6xl mx-auto px-6">
@@ -748,11 +770,11 @@
       <p class="eyebrow">Contato</p>
       <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4" data-cms="contato_titulo">Vamos construir algo juntos</h2>
       <div class="space-y-5 mt-10">
-        <a id="contato-email-link" href="mailto:contato@lampmind.tech" class="flex items-center gap-3 text-mute hover:text-ink transition">
-          <i data-lucide="mail" class="w-5 h-5 text-electric"></i> <span data-cms="contato_email" data-cms-sync-href="mailto:">contato@lampmind.tech</span>
+        <a href="mailto:contato@lampmind.tech" class="flex items-center gap-3 text-mute hover:text-ink transition">
+          <i data-lucide="mail" class="w-5 h-5 text-electric"></i> contato@lampmind.tech
         </a>
-        <a id="contato-tel-link" href="tel:+258840000000" class="flex items-center gap-3 text-mute hover:text-ink transition">
-          <i data-lucide="phone" class="w-5 h-5 text-electric"></i> <span data-cms="contato_telefone" data-cms-sync-href="tel:">+258 84 000 0000</span>
+        <a href="tel:+258840000000" class="flex items-center gap-3 text-mute hover:text-ink transition">
+          <i data-lucide="phone" class="w-5 h-5 text-electric"></i> +258 84 000 0000
         </a>
         <a href="https://wa.me/258840000000" class="flex items-center gap-3 text-mute hover:text-ink transition">
           <i data-lucide="message-circle" class="w-5 h-5 text-electric"></i> WhatsApp
@@ -776,23 +798,31 @@
 </section>
 
 <!-- ================= EQUIPA ================= -->
-<section id="equipe" class="relative py-28 bg-panel border-y border-hair">
+<section id="equipa" class="relative py-28 bg-panel border-y border-hair">
   <div class="max-w-6xl mx-auto px-6">
     <p class="eyebrow reveal" data-reveal>Equipa</p>
-    <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 reveal" data-reveal data-cms="equipe_titulo">Quem está por trás da LampMind</h2>
+    <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 reveal" data-reveal>Quem está por trás da LampMind</h2>
 
-    <!-- CEO / Fundador -->
-    <div class="mt-14 flex flex-col items-center text-center reveal" data-reveal>
-      <div class="w-36 h-36 rounded-full overflow-hidden border-2 border-hair relative bg-card flex items-center justify-center" data-cms-img="ceo_foto">
-        <i data-lucide="user" class="w-12 h-12 text-mute"></i>
+    <div id="equipa-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-14">
+      <!-- Fundador (fixo) -->
+      <div class="text-center reveal" data-reveal>
+        <div class="w-28 h-28 mx-auto rounded-full border border-hair overflow-hidden relative bg-card" data-cms-img="ceo_foto"
+             style="background:radial-gradient(circle at 35% 30%, rgba(10,132,255,.3), transparent 60%), #0F1114;">
+          <div class="absolute inset-0 flex items-center justify-center text-mute">
+            <i data-lucide="user" class="w-10 h-10"></i>
+          </div>
+        </div>
+        <p class="font-display text-base mt-4" data-cms="ceo_nome">CEO — Aires Lampião</p>
+        <p class="text-mute text-xs mt-1" data-cms="ceo_founded">Founded by Aires Lampião</p>
       </div>
-      <p class="font-display text-lg mt-5" data-cms="ceo_cargo">CEO — Aires Lampião</p>
-      <p class="text-mute text-sm mt-1" data-cms="ceo_founded">Founded by Aires Lampião</p>
-    </div>
 
-    <!-- Restantes membros da equipa (geridos pelo admin.html) -->
-    <div id="equipe-lista" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
-      <p class="text-mute text-sm col-span-full text-center">A carregar equipa...</p>
+      <div id="equipa-extra-lista" class="contents"></div>
+
+      <!-- Cartão para adicionar novo membro (só visível em modo de edição) -->
+      <button id="equipa-add-card" style="display:none;" class="flex-col items-center justify-center gap-2 border border-dashed border-hair rounded-2xl py-8 text-mute hover:text-neon hover:border-neon transition">
+        <i data-lucide="user-plus" class="w-7 h-7"></i>
+        <span class="text-xs">Adicionar Membro</span>
+      </button>
     </div>
   </div>
 </section>
@@ -803,12 +833,10 @@
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
       <div>
         <div class="flex items-center gap-2">
-          <span class="w-6 h-6 rounded-md overflow-hidden bg-cover bg-center flex items-center justify-center shrink-0" data-cms-img="site_logo">
-            <svg width="24" height="24" viewBox="0 0 48 48" fill="none">
-              <path d="M27 3 L11 26H21L17 45L37 20H26L27 3Z" fill="#FFC107"/>
-            </svg>
-          </span>
-          <span class="font-display font-semibold" data-cms="site_nome">Lamp<span class="text-gradient">Mind</span></span>
+          <svg width="24" height="24" viewBox="0 0 48 48" fill="none">
+            <path d="M27 3 L11 26H21L17 45L37 20H26L27 3Z" fill="#FFC107"/>
+          </svg>
+          <span class="font-display font-semibold">Lamp<span class="text-gradient">Mind</span></span>
         </div>
         <p class="text-mute text-sm mt-2">Inteligência para Criar o Futuro.</p>
       </div>
@@ -817,7 +845,6 @@
         <a href="#sobre" class="hover:text-ink transition">Sobre</a>
         <a href="#projetos" class="hover:text-ink transition">Projetos</a>
         <a href="#cursos" class="hover:text-ink transition">Cursos</a>
-        <a href="#equipe" class="hover:text-ink transition">Equipa</a>
         <a href="#" class="hover:text-ink transition">Política de Privacidade</a>
         <a href="#" class="hover:text-ink transition">Termos de Uso</a>
       </div>
@@ -838,6 +865,10 @@
 </footer>
 
 <!-- ================= MODO DE EDIÇÃO AO VIVO (só para admin) ================= -->
+<button id="edit-fab" class="hidden">
+  <i data-lucide="pencil" class="w-4 h-4"></i> <span id="edit-fab-label">Editar Site</span>
+</button>
+
 <div id="edit-login-modal" class="hidden">
   <p class="font-display text-lg mb-1">Entrar como admin</p>
   <p class="text-mute text-xs mb-5">Só a equipa LampMind pode editar o site.</p>
@@ -1037,39 +1068,6 @@
     }
   }
 
-  const equipeContainer = document.getElementById('equipe-lista');
-
-  async function carregarEquipe() {
-    try {
-      const { data, error } = await supabase
-        .from('equipe')
-        .select('*')
-        .order('ordem', { ascending: true });
-
-      if (error) throw error;
-
-      if (!data || !data.length) {
-        equipeContainer.innerHTML = '';
-        return;
-      }
-
-      equipeContainer.innerHTML = '';
-      data.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'card-lift rounded-2xl border border-hair bg-card p-6 text-center reveal';
-        card.innerHTML = `
-          <div class="w-24 h-24 rounded-full overflow-hidden mx-auto bg-panel bg-cover bg-center border border-hair" style="background-image:url('${item.foto_url || ''}')"></div>
-          <p class="font-display text-base mt-4">${item.nome}</p>
-          <p class="text-mute text-xs mt-1">${item.cargo || ''}</p>
-        `;
-        equipeContainer.appendChild(card);
-      });
-      gsap.to('#equipe-lista .reveal', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', stagger: 0.06 });
-    } catch (err) {
-      equipeContainer.innerHTML = '';
-    }
-  }
-
   function hexToRgb(hex) {
     const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
     return m ? `${parseInt(m[1],16)} ${parseInt(m[2],16)} ${parseInt(m[3],16)}` : null;
@@ -1114,14 +1112,7 @@
 
         document.querySelectorAll('[data-cms]').forEach(el => {
           const key = el.getAttribute('data-cms');
-          if (mapa[key]) {
-            el.textContent = mapa[key];
-            const prefixo = el.getAttribute('data-cms-sync-href');
-            if (prefixo) {
-              const link = el.closest('a');
-              if (link) link.href = prefixo === 'tel:' ? prefixo + mapa[key].replace(/[^0-9+]/g, '') : prefixo + mapa[key];
-            }
-          }
+          if (mapa[key]) el.textContent = mapa[key];
         });
 
         document.querySelectorAll('[data-cms-img]').forEach(el => {
@@ -1130,7 +1121,6 @@
             el.style.backgroundImage = `url('${mapa[key]}')`;
             el.style.backgroundSize = 'cover';
             el.style.backgroundPosition = 'center';
-            Array.from(el.children).forEach(child => { if (!child.classList.contains('img-edit-btn')) child.style.display = 'none'; });
           }
         });
       }
@@ -1139,9 +1129,63 @@
     }
   }
 
+  /* ---------- Like ---------- */
+  async function carregarLikes() {
+    const el = document.getElementById('like-count');
+    try {
+      const { count } = await supabase.from('curtidas').select('*', { count: 'exact', head: true });
+      el.textContent = count ?? 0;
+    } catch (err) {
+      el.textContent = '0';
+    }
+  }
+
+  document.getElementById('like-btn').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    if (localStorage.getItem('lampmind_ja_gostou')) return;
+    btn.disabled = true;
+    try {
+      await supabase.from('curtidas').insert({});
+      localStorage.setItem('lampmind_ja_gostou', '1');
+      carregarLikes();
+    } catch (err) {
+      btn.disabled = false;
+    }
+  });
+
+  /* ---------- Feedback (reclamações/sugestões) ---------- */
+  document.getElementById('feedback-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('feedback-msg');
+    const nome = document.getElementById('feedback-nome').value;
+    const tipo = document.getElementById('feedback-tipo').value;
+    const mensagem = document.getElementById('feedback-mensagem').value;
+
+    const { error } = await supabase.from('feedback').insert({ nome, tipo, mensagem });
+    msg.classList.remove('hidden');
+    if (error) {
+      msg.textContent = 'Erro ao enviar: ' + error.message;
+      msg.className = 'text-sm text-red-400';
+    } else {
+      msg.textContent = 'Obrigado! A tua mensagem foi enviada à equipa LampMind.';
+      msg.className = 'text-sm text-neon';
+      e.target.reset();
+    }
+  });
+
+  /* ---------- Registo de visitas (silencioso) ---------- */
+  async function registarVisita() {
+    try {
+      await supabase.from('visitas').insert({ pagina: 'home' });
+    } catch (err) {
+      // falha silenciosa — não deve afetar a experiência do visitante
+    }
+  }
+
   aplicarPersonalizacao();
   carregarBiblioteca();
-  carregarEquipe();
+  carregarLikes();
+  registarVisita();
 </script>
 
 <!-- Modo de Edição ao Vivo (login + edição inline + guardar) -->
@@ -1151,8 +1195,8 @@
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const fabBtns = document.querySelectorAll('.edit-fab-btn');
-  const fabLabels = document.querySelectorAll('.edit-fab-label');
+  const fab = document.getElementById('edit-fab');
+  const fabLabel = document.getElementById('edit-fab-label');
   const loginModal = document.getElementById('edit-login-modal');
   const loginForm = document.getElementById('edit-login-form');
   const loginError = document.getElementById('edit-login-error');
@@ -1190,16 +1234,94 @@
     `;
   }
 
+  let equipaExtra = [];
+
+  function renderizarEquipaExtra() {
+    const container = document.getElementById('equipa-extra-lista');
+    container.innerHTML = '';
+    equipaExtra.forEach((membro, i) => {
+      const card = document.createElement('div');
+      card.className = 'text-center relative';
+      card.dataset.index = i;
+      card.innerHTML = `
+        <div class="w-28 h-28 mx-auto rounded-full border border-hair overflow-hidden relative bg-card membro-foto"
+             style="${membro.foto ? `background-image:url('${membro.foto}');background-size:cover;background-position:center;` : 'background:#0F1114;'}">
+          ${membro.foto ? '' : '<div class="absolute inset-0 flex items-center justify-center text-mute"><i data-lucide="user" class="w-10 h-10"></i></div>'}
+        </div>
+        <p class="font-display text-base mt-4 membro-nome" ${editando ? 'contenteditable="true"' : ''}>${membro.nome}</p>
+        <p class="text-mute text-xs mt-1 membro-cargo" ${editando ? 'contenteditable="true"' : ''}>${membro.cargo}</p>
+      `;
+
+      if (editando) {
+        const fotoDiv = card.querySelector('.membro-foto');
+        const uploadBtn = document.createElement('button');
+        uploadBtn.type = 'button';
+        uploadBtn.className = 'img-edit-btn';
+        uploadBtn.innerHTML = '<i data-lucide="upload" class="w-4 h-4"></i>';
+        uploadBtn.addEventListener('click', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          const input = document.createElement('input');
+          input.type = 'file'; input.accept = 'image/*';
+          input.addEventListener('change', async () => {
+            if (!input.files[0]) return;
+            const file = input.files[0];
+            const path = `site/equipa-${Date.now()}-${file.name}`;
+            const { error } = await supabase.storage.from('materiais').upload(path, file);
+            if (error) { alert('Erro ao carregar foto: ' + error.message); return; }
+            const { data } = supabase.storage.from('materiais').getPublicUrl(path);
+            equipaExtra[i].foto = data.publicUrl;
+            renderizarEquipaExtra();
+          });
+          input.click();
+        });
+        fotoDiv.appendChild(uploadBtn);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white text-xs flex items-center justify-center';
+        removeBtn.innerHTML = '✕';
+        removeBtn.addEventListener('click', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          equipaExtra.splice(i, 1);
+          renderizarEquipaExtra();
+        });
+        card.appendChild(removeBtn);
+      }
+
+      container.appendChild(card);
+    });
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function lerEquipaExtraDoDOM() {
+    document.querySelectorAll('#equipa-extra-lista > div').forEach(card => {
+      const i = +card.dataset.index;
+      const nomeEl = card.querySelector('.membro-nome');
+      const cargoEl = card.querySelector('.membro-cargo');
+      if (equipaExtra[i]) {
+        if (nomeEl) equipaExtra[i].nome = nomeEl.innerText.trim();
+        if (cargoEl) equipaExtra[i].cargo = cargoEl.innerText.trim();
+      }
+    });
+    return equipaExtra;
+  }
+
+  document.getElementById('equipa-add-card').addEventListener('click', () => {
+    equipaExtra.push({ nome: 'Novo Membro', cargo: 'Cargo na equipa', foto: null });
+    renderizarEquipaExtra();
+  });
+
   async function checkSession() {
     const { data: { session } } = await supabase.auth.getSession();
     logado = !!session;
+    fab.classList.remove('hidden');
   }
 
   function ativarEdicao() {
     editando = true;
     document.body.classList.add('editing');
     toolbar.classList.remove('hidden');
-    fabLabels.forEach(l => l.textContent = 'Fechar Edição');
+    fabLabel.textContent = 'Fechar Edição';
 
     document.querySelectorAll('[data-cms]').forEach(el => {
       el.setAttribute('contenteditable', 'true');
@@ -1209,16 +1331,6 @@
         badge.innerHTML = '✎';
         el.style.position = el.style.position || 'relative';
         el.appendChild(badge);
-      }
-      const prefixo = el.getAttribute('data-cms-sync-href');
-      if (prefixo && !el.dataset.syncBound) {
-        el.dataset.syncBound = '1';
-        el.addEventListener('input', () => {
-          const link = el.closest('a');
-          if (!link) return;
-          const valor = el.textContent.trim();
-          link.href = prefixo === 'tel:' ? prefixo + valor.replace(/[^0-9+]/g, '') : prefixo + valor;
-        });
       }
     });
 
@@ -1241,15 +1353,22 @@
       el.appendChild(btn);
       if (window.lucide) lucide.createIcons();
     });
+
+    document.getElementById('equipa-add-card').style.display = 'flex';
+    renderizarEquipaExtra();
   }
 
   function desativarEdicao() {
     editando = false;
     document.body.classList.remove('editing');
     toolbar.classList.add('hidden');
-    fabLabels.forEach(l => l.textContent = 'Editar Site');
+    fabLabel.textContent = 'Editar Site';
     document.querySelectorAll('[data-cms]').forEach(el => el.removeAttribute('contenteditable'));
+    document.getElementById('equipa-add-card').style.display = 'none';
+    renderizarEquipaExtra();
   }
+
+  const imagensPendentes = {};
 
   async function uploadImagemPara(chave, elemento, file) {
     try {
@@ -1262,24 +1381,22 @@
       elemento.style.backgroundImage = `url('${url}')`;
       elemento.style.backgroundSize = 'cover';
       elemento.style.backgroundPosition = 'center';
-      Array.from(elemento.children).forEach(child => { if (!child.classList.contains('img-edit-btn')) child.style.display = 'none'; });
 
-      const { error: saveErr } = await supabase.from('site_content').upsert({ chave, valor: url });
-      if (saveErr) throw saveErr;
+      imagensPendentes[chave] = url;
+      saveMsg.classList.remove('hidden');
+      saveMsg.textContent = 'Imagem pronta — toca em "Guardar alterações" para publicar.';
+      saveMsg.className = 'text-xs text-energy';
     } catch (err) {
       alert('Erro ao carregar imagem: ' + err.message);
     }
   }
 
-  fabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.getElementById('mobile-menu')?.classList.add('hidden');
-      if (!logado) {
-        loginModal.classList.remove('hidden');
-        return;
-      }
-      editando ? desativarEdicao() : ativarEdicao();
-    });
+  fab.addEventListener('click', () => {
+    if (!logado) {
+      loginModal.classList.remove('hidden');
+      return;
+    }
+    editando ? desativarEdicao() : ativarEdicao();
   });
 
   document.getElementById('edit-login-cancel').addEventListener('click', () => {
@@ -1322,13 +1439,19 @@
       font_display: fontSelect.value
     };
 
-    const textosMapa = {};
+    const textos = [];
     document.querySelectorAll('[data-cms]').forEach(el => {
       const clone = el.cloneNode(true);
       clone.querySelectorAll('.cms-pencil').forEach(b => b.remove());
-      textosMapa[el.getAttribute('data-cms')] = clone.innerText.trim();
+      textos.push({ chave: el.getAttribute('data-cms'), valor: clone.innerText.trim() });
     });
-    const textos = Object.entries(textosMapa).map(([chave, valor]) => ({ chave, valor }));
+
+    Object.keys(imagensPendentes).forEach(chave => {
+      textos.push({ chave, valor: imagensPendentes[chave] });
+    });
+
+    const membros = lerEquipaExtraDoDOM();
+    textos.push({ chave: 'equipa_extra', valor: JSON.stringify(membros) });
 
     const { error: errConfig } = await supabase.from('site_config').upsert(configPayload);
     const { error: errTextos } = await supabase.from('site_content').upsert(textos);
@@ -1341,6 +1464,7 @@
     } else {
       saveMsg.textContent = 'Guardado! As alterações já estão no ar.';
       saveMsg.className = 'text-xs text-neon';
+      Object.keys(imagensPendentes).forEach(k => delete imagensPendentes[k]);
     }
   });
 
@@ -1354,8 +1478,21 @@
     if (data.font_display) fontSelect.value = data.font_display;
   }
 
+  async function carregarEquipaExtra() {
+    try {
+      const { data } = await supabase.from('site_content').select('valor').eq('chave', 'equipa_extra').single();
+      if (data && data.valor) {
+        equipaExtra = JSON.parse(data.valor);
+        renderizarEquipaExtra();
+      }
+    } catch (err) {
+      // ainda não há membros extra guardados
+    }
+  }
+
   checkSession();
   carregarControlosAtuais();
+  carregarEquipaExtra();
 </script>
 
 <!-- Barra de pesquisa do site -->

@@ -52,8 +52,9 @@
 
     <div class="flex gap-8 border-b border-white/10 mb-10">
       <div class="tab active" data-tab="materiais">Materiais</div>
-      <div class="tab" data-tab="equipa">Equipa</div>
       <div class="tab" data-tab="personalizacao">Personalização do Site</div>
+      <div class="tab" data-tab="feedback">Feedback</div>
+      <div class="tab" data-tab="estatisticas">Estatísticas</div>
     </div>
 
     <!-- ABA: MATERIAIS -->
@@ -94,27 +95,6 @@
       <div class="card rounded-2xl p-8">
         <p class="font-display text-xl mb-6">Materiais publicados</p>
         <div id="lista" class="space-y-3 text-sm"></div>
-      </div>
-    </div>
-
-    <!-- ABA: EQUIPA -->
-    <div id="tab-equipa" class="hidden">
-      <div class="card rounded-2xl p-8 mb-10">
-        <p class="font-display text-xl mb-2">Adicionar membro à equipa</p>
-        <p class="text-sm text-gray-400 mb-6">Aparece na secção "Equipa" do site, a seguir ao CEO/Fundador (que se edita diretamente no site, no botão "Editar Site").</p>
-        <form id="equipa-form" class="space-y-4">
-          <input required type="text" id="equipa-nome" placeholder="Nome do membro" class="w-full rounded-lg px-4 py-3 text-sm">
-          <input type="text" id="equipa-cargo" placeholder="Cargo / função (ex: Engenheiro de Software)" class="w-full rounded-lg px-4 py-3 text-sm">
-          <input required type="file" id="equipa-foto" accept="image/*" class="w-full rounded-lg px-4 py-3 text-sm">
-          <p class="text-xs text-gray-500">A foto é carregada e aparece de imediato no site.</p>
-          <button type="submit" id="equipa-btn" class="btn w-full rounded-lg py-3 text-sm">Adicionar à equipa</button>
-          <p id="equipa-msg" class="text-sm hidden"></p>
-        </form>
-      </div>
-
-      <div class="card rounded-2xl p-8">
-        <p class="font-display text-xl mb-6">Membros da equipa</p>
-        <div id="equipa-lista-admin" class="space-y-3 text-sm"></div>
       </div>
     </div>
 
@@ -167,6 +147,39 @@
       <button id="salvar-config-btn" class="btn rounded-lg px-6 py-3 text-sm">Guardar alterações no site</button>
       <p id="config-msg" class="text-sm mt-3 hidden"></p>
     </div>
+
+    <!-- ABA: FEEDBACK -->
+    <div id="tab-feedback" class="hidden">
+      <div class="card rounded-2xl p-8">
+        <div class="flex items-center justify-between mb-6">
+          <p class="font-display text-xl">Reclamações, sugestões e elogios</p>
+          <button id="refresh-feedback-btn" class="text-xs text-gray-400 hover:text-white underline">Atualizar</button>
+        </div>
+        <div id="feedback-lista" class="space-y-3 text-sm"></div>
+      </div>
+    </div>
+
+    <!-- ABA: ESTATÍSTICAS -->
+    <div id="tab-estatisticas" class="hidden">
+      <div class="grid sm:grid-cols-3 gap-4 mb-8">
+        <div class="card rounded-2xl p-6">
+          <p class="text-xs text-gray-400">Total de visitas</p>
+          <p class="font-display text-3xl mt-2" id="stat-total">—</p>
+        </div>
+        <div class="card rounded-2xl p-6">
+          <p class="text-xs text-gray-400">Hoje</p>
+          <p class="font-display text-3xl mt-2" id="stat-hoje">—</p>
+        </div>
+        <div class="card rounded-2xl p-6">
+          <p class="text-xs text-gray-400">Últimos 7 dias</p>
+          <p class="font-display text-3xl mt-2" id="stat-semana">—</p>
+        </div>
+      </div>
+      <div class="card rounded-2xl p-8">
+        <p class="font-display text-lg mb-6">Visitas por dia (últimos 7 dias)</p>
+        <div id="stat-grafico" class="flex items-end gap-3 h-40"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -193,7 +206,6 @@
       panel.classList.remove('hidden');
       userEmailEl.textContent = session.user.email;
       carregarLista();
-      carregarEquipa();
       carregarConfig();
     } else {
       loginBox.classList.remove('hidden');
@@ -226,8 +238,11 @@
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById('tab-materiais').classList.toggle('hidden', tab.dataset.tab !== 'materiais');
-      document.getElementById('tab-equipa').classList.toggle('hidden', tab.dataset.tab !== 'equipa');
       document.getElementById('tab-personalizacao').classList.toggle('hidden', tab.dataset.tab !== 'personalizacao');
+      document.getElementById('tab-feedback').classList.toggle('hidden', tab.dataset.tab !== 'feedback');
+      document.getElementById('tab-estatisticas').classList.toggle('hidden', tab.dataset.tab !== 'estatisticas');
+      if (tab.dataset.tab === 'feedback') carregarFeedback();
+      if (tab.dataset.tab === 'estatisticas') carregarEstatisticas();
     });
   });
 
@@ -311,78 +326,6 @@
     });
   }
 
-  /* ---------- Equipa: adicionar membro ---------- */
-  const EQUIPA_TABLE = 'equipe';
-
-  document.getElementById('equipa-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('equipa-btn');
-    const msg = document.getElementById('equipa-msg');
-    btn.disabled = true; btn.textContent = 'A carregar...';
-
-    const nome = document.getElementById('equipa-nome').value;
-    const cargo = document.getElementById('equipa-cargo').value;
-    const file = document.getElementById('equipa-foto').files[0];
-
-    try {
-      const path = `equipe/${Date.now()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file);
-      if (uploadError) throw uploadError;
-
-      const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
-
-      const { error: insertError } = await supabase.from(EQUIPA_TABLE).insert({
-        nome, cargo, foto_url: publicUrlData.publicUrl
-      });
-      if (insertError) throw insertError;
-
-      msg.textContent = 'Membro adicionado com sucesso!';
-      msg.className = 'text-sm text-green-400';
-      msg.classList.remove('hidden');
-      e.target.reset();
-      carregarEquipa();
-    } catch (err) {
-      msg.textContent = 'Erro: ' + err.message;
-      msg.className = 'text-sm text-red-400';
-      msg.classList.remove('hidden');
-    } finally {
-      btn.disabled = false; btn.textContent = 'Adicionar à equipa';
-    }
-  });
-
-  async function carregarEquipa() {
-    const lista = document.getElementById('equipa-lista-admin');
-    lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
-    const { data, error } = await supabase.from(EQUIPA_TABLE).select('*').order('criado_em', { ascending: false });
-    if (error) { lista.innerHTML = '<p class="text-red-400">Erro ao carregar: ' + error.message + '</p>'; return; }
-    if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não há membros adicionados.</p>'; return; }
-
-    lista.innerHTML = '';
-    data.forEach(item => {
-      const row = document.createElement('div');
-      row.className = 'flex items-center justify-between border-b border-white/5 pb-3';
-      row.innerHTML = `
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-cover bg-center border border-white/10" style="background-image:url('${item.foto_url || ''}')"></div>
-          <div>
-            <p class="font-medium">${item.nome}</p>
-            <p class="text-gray-500 text-xs">${item.cargo || ''}</p>
-          </div>
-        </div>
-        <button data-id="${item.id}" class="del-equipa-btn btn-danger rounded-lg px-3 py-1.5 text-xs">Remover</button>
-      `;
-      lista.appendChild(row);
-    });
-
-    document.querySelectorAll('.del-equipa-btn').forEach(b => {
-      b.addEventListener('click', async () => {
-        if (!confirm('Remover este membro da equipa?')) return;
-        await supabase.from(EQUIPA_TABLE).delete().eq('id', b.dataset.id);
-        carregarEquipa();
-      });
-    });
-  }
-
   /* ---------- Personalização do site ---------- */
   let heroBgUrlPendente = null;
 
@@ -437,6 +380,63 @@
       msg.className = 'text-sm mt-3 text-green-400';
     }
   });
+
+  /* ---------- Feedback ---------- */
+  async function carregarFeedback() {
+    const lista = document.getElementById('feedback-lista');
+    lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+    const { data, error } = await supabase.from('feedback').select('*').order('criado_em', { ascending: false });
+    if (error) { lista.innerHTML = '<p class="text-red-400">Erro ao carregar: ' + error.message + '</p>'; return; }
+    if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não há mensagens.</p>'; return; }
+
+    lista.innerHTML = data.map(item => `
+      <div class="border-b border-white/5 pb-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs px-2 py-0.5 rounded-full border border-white/10 text-gray-300">${item.tipo || 'Sugestão'}</span>
+          <span class="text-xs text-gray-500">${new Date(item.criado_em).toLocaleString('pt-PT')}</span>
+        </div>
+        <p class="mt-2">${item.mensagem}</p>
+        ${item.nome ? `<p class="text-xs text-gray-500 mt-1">— ${item.nome}</p>` : ''}
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('refresh-feedback-btn').addEventListener('click', carregarFeedback);
+
+  /* ---------- Estatísticas ---------- */
+  async function carregarEstatisticas() {
+    const { count: total } = await supabase.from('visitas').select('*', { count: 'exact', head: true });
+    document.getElementById('stat-total').textContent = total ?? 0;
+
+    const inicioHoje = new Date(); inicioHoje.setHours(0, 0, 0, 0);
+    const { count: hoje } = await supabase.from('visitas').select('*', { count: 'exact', head: true }).gte('criado_em', inicioHoje.toISOString());
+    document.getElementById('stat-hoje').textContent = hoje ?? 0;
+
+    const seteDiasAtras = new Date(); seteDiasAtras.setDate(seteDiasAtras.getDate() - 7); seteDiasAtras.setHours(0, 0, 0, 0);
+    const { data: registos } = await supabase.from('visitas').select('criado_em').gte('criado_em', seteDiasAtras.toISOString());
+    document.getElementById('stat-semana').textContent = registos ? registos.length : 0;
+
+    const dias = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i); d.setHours(0, 0, 0, 0);
+      dias.push({ data: d, total: 0, label: d.toLocaleDateString('pt-PT', { weekday: 'short' }) });
+    }
+    (registos || []).forEach(r => {
+      const dataRegisto = new Date(r.criado_em); dataRegisto.setHours(0, 0, 0, 0);
+      const dia = dias.find(d => d.data.getTime() === dataRegisto.getTime());
+      if (dia) dia.total++;
+    });
+
+    const max = Math.max(1, ...dias.map(d => d.total));
+    const grafico = document.getElementById('stat-grafico');
+    grafico.innerHTML = dias.map(d => `
+      <div class="flex-1 flex flex-col items-center gap-2">
+        <div class="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-md" style="height:${(d.total / max) * 100}%; min-height:4px;"></div>
+        <span class="text-xs text-gray-500">${d.label}</span>
+        <span class="text-xs text-gray-300">${d.total}</span>
+      </div>
+    `).join('');
+  }
 
   checkSession();
 </script>
