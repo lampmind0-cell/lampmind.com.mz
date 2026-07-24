@@ -741,6 +741,36 @@
   </div>
 </section>
 
+<!-- ================= FEEDBACK E AVALIAÇÃO ================= -->
+<section id="feedback" class="relative py-28">
+  <div class="max-w-3xl mx-auto px-6 text-center">
+    <p class="eyebrow reveal" data-reveal>A tua opinião</p>
+    <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 reveal" data-reveal>Ajuda-nos a melhorar</h2>
+    <p class="text-mute mt-4 reveal" data-reveal>Gostas do LampMind? Deixa o teu like, ou envia uma reclamação, sugestão ou elogio.</p>
+
+    <div class="flex items-center justify-center gap-3 mt-8 reveal" data-reveal>
+      <button id="like-btn" class="flex items-center gap-2 rounded-full border border-hair bg-card px-6 py-3 hover:border-energy transition">
+        <i data-lucide="heart" class="w-5 h-5 text-energy"></i>
+        <span id="like-count" class="font-display">—</span>
+      </button>
+    </div>
+
+    <form id="feedback-form" class="mt-10 text-left space-y-4 max-w-lg mx-auto reveal" data-reveal>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <input type="text" id="feedback-nome" placeholder="Nome (opcional)" class="rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+        <select id="feedback-tipo" class="rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+          <option value="Sugestão">Sugestão</option>
+          <option value="Reclamação">Reclamação</option>
+          <option value="Elogio">Elogio</option>
+        </select>
+      </div>
+      <textarea required id="feedback-mensagem" rows="4" placeholder="A tua mensagem..." class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink"></textarea>
+      <button type="submit" class="btn-primary rounded-xl px-6 py-3 text-sm w-full sm:w-auto">Enviar</button>
+      <p id="feedback-msg" class="text-sm hidden"></p>
+    </form>
+  </div>
+</section>
+
 <!-- ================= CONTATO ================= -->
 <section id="contato" class="relative py-28">
   <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-14">
@@ -1139,9 +1169,64 @@
     }
   }
 
+  /* ---------- Like ---------- */
+  async function carregarLikes() {
+    const el = document.getElementById('like-count');
+    try {
+      const { count } = await supabase.from('curtidas').select('*', { count: 'exact', head: true });
+      el.textContent = count ?? 0;
+    } catch (err) {
+      el.textContent = '0';
+    }
+  }
+
+  document.getElementById('like-btn').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    if (localStorage.getItem('lampmind_ja_gostou')) return;
+    btn.disabled = true;
+    try {
+      await supabase.from('curtidas').insert({});
+      localStorage.setItem('lampmind_ja_gostou', '1');
+      carregarLikes();
+    } catch (err) {
+      btn.disabled = false;
+    }
+  });
+
+  /* ---------- Feedback (reclamações/sugestões) ---------- */
+  document.getElementById('feedback-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('feedback-msg');
+    const nome = document.getElementById('feedback-nome').value;
+    const tipo = document.getElementById('feedback-tipo').value;
+    const mensagem = document.getElementById('feedback-mensagem').value;
+
+    const { error } = await supabase.from('feedback').insert({ nome, tipo, mensagem });
+    msg.classList.remove('hidden');
+    if (error) {
+      msg.textContent = 'Erro ao enviar: ' + error.message;
+      msg.className = 'text-sm text-red-400';
+    } else {
+      msg.textContent = 'Obrigado! A tua mensagem foi enviada à equipa LampMind.';
+      msg.className = 'text-sm text-neon';
+      e.target.reset();
+    }
+  });
+
+  /* ---------- Registo de visitas (silencioso) ---------- */
+  async function registarVisita() {
+    try {
+      await supabase.from('visitas').insert({ pagina: 'home' });
+    } catch (err) {
+      // falha silenciosa — não deve afetar a experiência do visitante
+    }
+  }
+
   aplicarPersonalizacao();
   carregarBiblioteca();
   carregarEquipe();
+  carregarLikes();
+  registarVisita();
 </script>
 
 <!-- Modo de Edição ao Vivo (login + edição inline + guardar) -->
