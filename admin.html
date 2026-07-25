@@ -262,6 +262,20 @@
     <!-- ABA: PERSONALIZAÇÃO -->
     <div id="tab-personalizacao" class="hidden">
       <div class="card rounded-2xl p-8 mb-10">
+        <p class="font-display text-xl mb-2">Redes sociais</p>
+        <p class="text-sm text-gray-400 mb-6">Aparecem no rodapé e na secção de Contacto do site. Deixa em branco o que ainda não tiveres.</p>
+        <form id="social-form" class="space-y-4">
+          <input type="url" id="social_github" placeholder="Link do GitHub" class="w-full rounded-lg px-4 py-3 text-sm">
+          <input type="url" id="social_linkedin" placeholder="Link do LinkedIn" class="w-full rounded-lg px-4 py-3 text-sm">
+          <input type="url" id="social_tiktok" placeholder="Link do TikTok" class="w-full rounded-lg px-4 py-3 text-sm">
+          <input type="url" id="social_instagram" placeholder="Link do Instagram" class="w-full rounded-lg px-4 py-3 text-sm">
+          <p class="text-xs text-gray-500">O link do YouTube edita-se na aba "YouTube".</p>
+          <button type="submit" class="btn w-full rounded-lg py-3 text-sm">Guardar redes sociais</button>
+          <p id="social-msg" class="text-sm hidden"></p>
+        </form>
+      </div>
+
+      <div class="card rounded-2xl p-8 mb-10">
         <p class="font-display text-xl mb-2">Cores da marca</p>
         <p class="text-sm text-gray-400 mb-6">Alteram botões, links, ícones e destaques em todo o site.</p>
         <div class="grid sm:grid-cols-3 gap-4">
@@ -368,6 +382,7 @@
       userEmailEl.textContent = session.user.email;
       carregarLista();
       carregarConfig();
+      carregarSocialLinks();
     } else {
       loginBox.classList.remove('hidden');
       panel.classList.add('hidden');
@@ -924,6 +939,34 @@
       status.textContent = 'Imagem carregada — clica em "Guardar alterações" para aplicar.';
     } catch (err) {
       status.textContent = 'Erro ao carregar imagem: ' + err.message;
+    }
+  });
+
+  /* ---------- Redes sociais ---------- */
+  const SOCIAL_KEYS = ['social_github', 'social_linkedin', 'social_tiktok', 'social_instagram'];
+
+  async function carregarSocialLinks() {
+    const { data } = await supabase.from('site_content').select('*').in('chave', SOCIAL_KEYS);
+    (data || []).forEach(row => {
+      const el = document.getElementById(row.chave);
+      if (el) el.value = row.valor || '';
+    });
+  }
+
+  document.getElementById('social-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('social-msg');
+    try {
+      const linhas = SOCIAL_KEYS.map(chave => ({ chave, valor: document.getElementById(chave).value }));
+      const { error } = await supabase.from('site_content').upsert(linhas);
+      if (error) throw error;
+      msg.textContent = 'Redes sociais guardadas!';
+      msg.className = 'text-sm text-green-400';
+      msg.classList.remove('hidden');
+    } catch (err) {
+      msg.textContent = 'Erro: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
     }
   });
 

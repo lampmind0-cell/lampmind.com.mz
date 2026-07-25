@@ -268,7 +268,7 @@
 
 <!-- ================= HEADER ================= -->
 <header id="site-header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-500">
-  <div class="glass mx-auto mt-3 max-w-6xl rounded-2xl px-5 py-3 flex items-center justify-between">
+  <div class="glass mx-auto mt-3 max-w-7xl rounded-2xl px-5 py-3 flex items-center justify-between">
     <a href="#top" class="flex items-center gap-2.5 group">
       <span class="w-[30px] h-[30px] rounded-md overflow-hidden bg-cover bg-center flex items-center justify-center shrink-0" data-cms-img="site_logo">
         <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
@@ -280,7 +280,7 @@
       <span class="font-display font-semibold text-lg tracking-tight" data-cms="site_nome">Lamp<span class="text-gradient">Mind</span></span>
     </a>
 
-    <nav class="hidden md:flex items-center gap-7 text-sm">
+    <nav class="hidden lg:flex items-center gap-5 text-[13px] xl:text-sm xl:gap-6">
       <a href="#top" class="nav-link">Home</a>
       <a href="#sobre" class="nav-link">Sobre</a>
       <a href="#projetos" class="nav-link">Projetos</a>
@@ -289,7 +289,7 @@
       <a href="#blog" class="nav-link">Blog</a>
       <a href="#youtube" class="nav-link">YouTube</a>
       <a href="#equipe" class="nav-link">Equipa</a>
-      <a href="#feedback" class="nav-link">Ajuda-nos a melhorar</a>
+      <a href="#feedback" class="nav-link">Feedback</a>
       <a href="#contato" class="nav-link">Contato</a>
     </nav>
 
@@ -302,18 +302,18 @@
           class="hidden absolute right-8 top-1/2 -translate-y-1/2 w-48 sm:w-56 bg-card border border-hair rounded-lg px-3 py-1.5 text-sm text-ink">
         <div id="search-results" class="hidden absolute right-8 top-full mt-2 w-64 max-h-72 overflow-y-auto bg-card border border-hair rounded-xl p-2 text-sm z-50"></div>
       </div>
-      <a href="admin.html" class="hidden sm:inline-block btn-ghost rounded-lg px-4 py-2 text-sm font-medium">Entrar</a>
-      <button class="edit-fab-btn hidden sm:inline-flex items-center gap-1.5 btn-ghost rounded-lg px-4 py-2 text-sm font-medium">
+      <a href="admin.html" class="hidden lg:inline-block btn-ghost rounded-lg px-4 py-2 text-sm font-medium">Entrar</a>
+      <button class="edit-fab-btn hidden lg:inline-flex items-center gap-1.5 btn-ghost rounded-lg px-4 py-2 text-sm font-medium">
         <i data-lucide="pencil" class="w-3.5 h-3.5"></i> <span class="edit-fab-label">Editar Site</span>
       </button>
-      <button id="menu-btn" class="md:hidden text-ink" aria-label="Abrir menu">
+      <button id="menu-btn" class="lg:hidden text-ink" aria-label="Abrir menu">
         <i data-lucide="menu" class="w-6 h-6"></i>
       </button>
     </div>
   </div>
 
   <!-- mobile menu -->
-  <div id="mobile-menu" class="hidden md:hidden glass mx-3 mt-2 rounded-2xl px-5 py-4 flex flex-col gap-4 text-sm">
+  <div id="mobile-menu" class="hidden lg:hidden glass mx-3 mt-2 rounded-2xl px-5 py-4 flex flex-col gap-4 text-sm">
     <a href="#top" class="nav-link">Home</a>
     <a href="#sobre" class="nav-link">Sobre</a>
     <a href="#projetos" class="nav-link">Projetos</a>
@@ -824,10 +824,11 @@
         </a>
       </div>
       <div class="flex gap-4 mt-8">
-        <a href="#" aria-label="GitHub" class="w-10 h-10 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="github" class="w-4 h-4"></i></a>
-        <a href="#" aria-label="LinkedIn" class="w-10 h-10 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="linkedin" class="w-4 h-4"></i></a>
-        <a href="#" aria-label="Instagram" class="w-10 h-10 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="instagram" class="w-4 h-4"></i></a>
-        <a href="#" aria-label="YouTube" class="w-10 h-10 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="youtube" class="w-4 h-4"></i></a>
+        <a href="#" data-social="github" aria-label="GitHub" class="w-10 h-10 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="github" class="w-4 h-4"></i></a>
+        <a href="#" data-social="linkedin" aria-label="LinkedIn" class="w-10 h-10 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="linkedin" class="w-4 h-4"></i></a>
+        <a href="#" data-social="tiktok" aria-label="TikTok" class="w-10 h-10 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="music-2" class="w-4 h-4"></i></a>
+        <a href="#" data-social="instagram" aria-label="Instagram" class="w-10 h-10 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="instagram" class="w-4 h-4"></i></a>
+        <a href="#" data-social="youtube" aria-label="YouTube" class="w-10 h-10 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="youtube" class="w-4 h-4"></i></a>
       </div>
     </div>
 
@@ -888,11 +889,11 @@
       </div>
 
       <div class="flex gap-3">
-        <a href="#" aria-label="GitHub" class="w-9 h-9 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="github" class="w-4 h-4"></i></a>
-        <a href="#" aria-label="LinkedIn" class="w-9 h-9 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="linkedin" class="w-4 h-4"></i></a>
-        <a href="#" aria-label="TikTok" class="w-9 h-9 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="music-2" class="w-4 h-4"></i></a>
-        <a href="#" aria-label="Instagram" class="w-9 h-9 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="instagram" class="w-4 h-4"></i></a>
-        <a href="#" aria-label="YouTube" class="w-9 h-9 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="youtube" class="w-4 h-4"></i></a>
+        <a href="#" data-social="github" aria-label="GitHub" class="w-9 h-9 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="github" class="w-4 h-4"></i></a>
+        <a href="#" data-social="linkedin" aria-label="LinkedIn" class="w-9 h-9 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="linkedin" class="w-4 h-4"></i></a>
+        <a href="#" data-social="tiktok" aria-label="TikTok" class="w-9 h-9 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="music-2" class="w-4 h-4"></i></a>
+        <a href="#" data-social="instagram" aria-label="Instagram" class="w-9 h-9 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="instagram" class="w-4 h-4"></i></a>
+        <a href="#" data-social="youtube" aria-label="YouTube" class="w-9 h-9 rounded-full border border-hair flex items-center justify-center hover:border-electric transition"><i data-lucide="youtube" class="w-4 h-4"></i></a>
       </div>
     </div>
 
@@ -1074,27 +1075,7 @@
     });
   });
 
-  /* ---------- Faça parte da LampMind (formulário rápido) ---------- */
-  document.getElementById('newsletter-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const nome = document.getElementById('newsletter-nome').value;
-    const email = document.getElementById('newsletter-email').value;
-    const msg = document.getElementById('newsletter-msg');
-    try {
-      const { error } = await supabase.from('interessados').insert({ nome, email });
-      if (error) throw error;
-      msg.textContent = 'Obrigado! Em breve receberá novidades da LampMind.';
-      msg.className = 'text-neon text-sm mt-4';
-      msg.classList.remove('hidden');
-      e.target.reset();
-    } catch (err) {
-      msg.textContent = 'Não foi possível enviar agora. Tenta novamente.';
-      msg.className = 'text-red-400 text-sm mt-4';
-      msg.classList.remove('hidden');
-    }
-  });
-
-  /* ---------- Questionário completo (candidatura à equipa) ---------- */
+  /* ---------- Questionário completo (candidatura à equipa): abrir/fechar painel ---------- */
   const candidaturaModal = document.getElementById('candidatura-modal');
   document.getElementById('abrir-candidatura-btn').addEventListener('click', () => {
     candidaturaModal.classList.remove('hidden');
@@ -1105,33 +1086,6 @@
   });
   document.getElementById('candidatura-modal-backdrop').addEventListener('click', () => {
     candidaturaModal.classList.add('hidden');
-  });
-
-  document.getElementById('candidatura-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const msg = document.getElementById('candidatura-msg');
-    const payload = {
-      nome: document.getElementById('cand-nome').value,
-      email: document.getElementById('cand-email').value,
-      telefone: document.getElementById('cand-telefone').value,
-      area_atuacao: document.getElementById('cand-area').value,
-      nivel_academico: document.getElementById('cand-nivel').value,
-      area_estudo: document.getElementById('cand-estudo').value,
-      motivacao: document.getElementById('cand-motivacao').value,
-      como_conheceu: document.getElementById('cand-conheceu').value
-    };
-    try {
-      const { error } = await supabase.from('candidaturas').insert(payload);
-      if (error) throw error;
-      msg.textContent = 'Candidatura enviada! A equipa LampMind vai analisar e entrar em contacto.';
-      msg.className = 'text-sm text-neon';
-      msg.classList.remove('hidden');
-      e.target.reset();
-    } catch (err) {
-      msg.textContent = 'Erro ao enviar: ' + err.message;
-      msg.className = 'text-sm text-red-400';
-      msg.classList.remove('hidden');
-    }
   });
 
   /* particle background */
@@ -1438,7 +1392,83 @@
     }
   });
 
-  /* ---------- Registo de visitas (silencioso) ---------- */
+  /* ---------- Faça parte da LampMind (formulário rápido) ---------- */
+  document.getElementById('newsletter-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nome = document.getElementById('newsletter-nome').value;
+    const email = document.getElementById('newsletter-email').value;
+    const msg = document.getElementById('newsletter-msg');
+    try {
+      const { error } = await supabase.from('interessados').insert({ nome, email });
+      if (error) throw error;
+      msg.textContent = 'Obrigado! Em breve receberá novidades da LampMind.';
+      msg.className = 'text-neon text-sm mt-4';
+      msg.classList.remove('hidden');
+      e.target.reset();
+    } catch (err) {
+      msg.textContent = 'Não foi possível enviar agora: ' + (err.message || 'erro desconhecido') + '.';
+      msg.className = 'text-red-400 text-sm mt-4';
+      msg.classList.remove('hidden');
+      console.error('Erro ao gravar interessado:', err);
+    }
+  });
+
+  /* ---------- Questionário completo (candidatura à equipa): envio ---------- */
+  document.getElementById('candidatura-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('candidatura-msg');
+    const payload = {
+      nome: document.getElementById('cand-nome').value,
+      email: document.getElementById('cand-email').value,
+      telefone: document.getElementById('cand-telefone').value,
+      area_atuacao: document.getElementById('cand-area').value,
+      nivel_academico: document.getElementById('cand-nivel').value,
+      area_estudo: document.getElementById('cand-estudo').value,
+      motivacao: document.getElementById('cand-motivacao').value,
+      como_conheceu: document.getElementById('cand-conheceu').value
+    };
+    try {
+      const { error } = await supabase.from('candidaturas').insert(payload);
+      if (error) throw error;
+      msg.textContent = 'Candidatura enviada! A equipa LampMind vai analisar e entrar em contacto.';
+      msg.className = 'text-sm text-neon';
+      msg.classList.remove('hidden');
+      e.target.reset();
+    } catch (err) {
+      msg.textContent = 'Erro ao enviar: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    }
+  });
+
+  /* ---------- Redes sociais (rodapé e secção de contacto) ---------- */
+  async function aplicarLinksSociais() {
+    try {
+      const { data } = await supabase.from('site_content').select('*').in('chave', [
+        'social_github', 'social_linkedin', 'social_tiktok', 'social_instagram', 'youtube_inscreva_link'
+      ]);
+      const mapa = {};
+      (data || []).forEach(r => { mapa[r.chave] = r.valor; });
+
+      const aplicar = (plataforma, chave) => {
+        const valor = mapa[chave];
+        if (!valor) return;
+        document.querySelectorAll(`[data-social="${plataforma}"]`).forEach(el => {
+          el.href = valor;
+          el.target = '_blank';
+          el.rel = 'noopener';
+        });
+      };
+      aplicar('github', 'social_github');
+      aplicar('linkedin', 'social_linkedin');
+      aplicar('tiktok', 'social_tiktok');
+      aplicar('instagram', 'social_instagram');
+      aplicar('youtube', 'youtube_inscreva_link');
+    } catch (err) {
+      // mantém os links por preencher se não for possível carregar
+    }
+  }
+
   async function registarVisita() {
     try {
       await supabase.from('visitas').insert({ pagina: 'home' });
@@ -1498,6 +1528,7 @@
   registarVisita();
   carregarProjetosExtra();
   carregarYoutube();
+  aplicarLinksSociais();
 </script>
 
 <!-- Modo de Edição ao Vivo (login + edição inline + guardar) -->
