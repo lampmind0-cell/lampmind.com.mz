@@ -53,6 +53,8 @@
     <div class="flex gap-8 border-b border-white/10 mb-10">
       <div class="tab active" data-tab="materiais">Materiais</div>
       <div class="tab" data-tab="projetos">Projetos</div>
+      <div class="tab" data-tab="youtube">YouTube</div>
+      <div class="tab" data-tab="comunidade">Comunidade</div>
       <div class="tab" data-tab="personalizacao">Personalização do Site</div>
       <div class="tab" data-tab="feedback">Feedback</div>
       <div class="tab" data-tab="estatisticas">Estatísticas</div>
@@ -100,9 +102,54 @@
           </div>
 
           <input required type="file" id="ficheiro" class="w-full rounded-lg px-4 py-3 text-sm">
-          <p class="text-xs text-gray-500">Aceita PDF, imagens e vídeos (mp4, webm). Ficheiros grandes podem demorar a carregar.</p>
+          <p class="text-xs text-gray-500">Aceita PDF, imagens e vídeos (mp4, webm). Ficheiros grandes podem demorar a carregar. Se for imagem de capa: idealmente 1200×675px (formato 16:9).</p>
           <button type="submit" id="upload-btn" class="btn w-full rounded-lg py-3 text-sm">Publicar no site</button>
           <p id="upload-msg" class="text-sm hidden"></p>
+        </form>
+      </div>
+
+      <div class="card rounded-2xl p-8" id="editar-material-card" style="display:none;">
+        <div class="flex items-center justify-between mb-6">
+          <p class="font-display text-xl">Editar material</p>
+          <button type="button" id="editar-material-voltar" class="text-xs text-gray-400 hover:text-white">← Voltar</button>
+        </div>
+        <form id="editar-material-form" class="space-y-4">
+          <input type="hidden" id="edit-mat-id">
+          <input required type="text" id="edit-mat-titulo" placeholder="Título" class="w-full rounded-lg px-4 py-3 text-sm">
+          <textarea id="edit-mat-descricao" placeholder="Descrição curta" rows="2" class="w-full rounded-lg px-4 py-3 text-sm"></textarea>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <select id="edit-mat-categoria" class="w-full rounded-lg px-4 py-3 text-sm">
+              <option value="Ebook">Ebook</option>
+              <option value="Vídeo">Vídeo</option>
+              <option value="Artigo Científico">Artigo Científico</option>
+              <option value="Apresentação">Apresentação</option>
+              <option value="Código / Projeto">Código / Projeto</option>
+              <option value="Outro">Outro</option>
+            </select>
+            <select id="edit-mat-tipo" class="w-full rounded-lg px-4 py-3 text-sm">
+              <option value="Gratuito">Gratuito (download livre)</option>
+              <option value="Pago">Pago (mostra preço + link de compra)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 block mb-1">Onde vai ser publicado</label>
+            <select id="edit-mat-destino" class="w-full rounded-lg px-4 py-3 text-sm">
+              <option value="biblioteca">Biblioteca (secção pública de materiais)</option>
+              <option value="projeto_smarthouse">Projeto — Smart House</option>
+              <option value="projeto_smartcity">Projeto — Smart City</option>
+              <option value="projeto_smartkitchen">Projeto — Smart Kitchen</option>
+              <option value="projeto_assistente">Projeto — Assistente IA</option>
+              <option value="projeto_manutencao">Projeto — Sistema de Manutenção Inteligente</option>
+              <option value="projeto_eletroqi">Projeto — EletroQI</option>
+            </select>
+          </div>
+          <div id="edit-campos-pago" class="grid sm:grid-cols-2 gap-4 hidden">
+            <input type="text" id="edit-mat-preco" placeholder="Preço (ex: 500 MT)" class="w-full rounded-lg px-4 py-3 text-sm">
+            <input type="url" id="edit-mat-link_pagamento" placeholder="Link de pagamento" class="w-full rounded-lg px-4 py-3 text-sm">
+          </div>
+          <p class="text-xs text-gray-500">Para trocar o ficheiro, remove este material e publica-o de novo — aqui só editas o texto.</p>
+          <button type="submit" class="btn w-full rounded-lg py-3 text-sm">Guardar alterações</button>
+          <p id="editar-material-msg" class="text-sm hidden"></p>
         </form>
       </div>
 
@@ -121,15 +168,94 @@
           <input required type="text" id="projeto-titulo" placeholder="Título do projeto" class="w-full rounded-lg px-4 py-3 text-sm">
           <textarea id="projeto-descricao" placeholder="Descrição curta" rows="2" class="w-full rounded-lg px-4 py-3 text-sm"></textarea>
           <input type="file" id="projeto-imagem" accept="image/*" class="w-full rounded-lg px-4 py-3 text-sm">
-          <p class="text-xs text-gray-500">A imagem é opcional — se não escolheres nenhuma, mostra um ícone genérico.</p>
+          <p class="text-xs text-gray-500">A imagem é opcional. Medida ideal: 800×450px (formato 16:9), como uma miniatura de vídeo — evita fotos muito verticais ou muito grandes (acima de 5MB).</p>
           <button type="submit" id="projeto-btn" class="btn w-full rounded-lg py-3 text-sm">Adicionar projeto</button>
           <p id="projeto-msg" class="text-sm hidden"></p>
+        </form>
+      </div>
+
+      <div class="card rounded-2xl p-8 mb-10" id="editar-projeto-card" style="display:none;">
+        <div class="flex items-center justify-between mb-6">
+          <p class="font-display text-xl">Editar projeto</p>
+          <button type="button" id="editar-projeto-voltar" class="text-xs text-gray-400 hover:text-white">← Voltar</button>
+        </div>
+        <form id="editar-projeto-form" class="space-y-4">
+          <input type="hidden" id="edit-proj-id">
+          <input required type="text" id="edit-proj-titulo" placeholder="Título do projeto" class="w-full rounded-lg px-4 py-3 text-sm">
+          <textarea id="edit-proj-descricao" placeholder="Descrição curta" rows="2" class="w-full rounded-lg px-4 py-3 text-sm"></textarea>
+          <input type="file" id="edit-proj-imagem" accept="image/*" class="w-full rounded-lg px-4 py-3 text-sm">
+          <p class="text-xs text-gray-500">Só escolhe um ficheiro se quiseres trocar a imagem atual. Medida ideal: 800×450px.</p>
+          <button type="submit" class="btn w-full rounded-lg py-3 text-sm">Guardar alterações</button>
+          <p id="editar-projeto-msg" class="text-sm hidden"></p>
         </form>
       </div>
 
       <div class="card rounded-2xl p-8">
         <p class="font-display text-xl mb-6">Projetos adicionados</p>
         <div id="projetos-lista" class="space-y-3 text-sm"></div>
+      </div>
+    </div>
+
+    <!-- ABA: YOUTUBE -->
+    <div id="tab-youtube" class="hidden">
+      <div class="card rounded-2xl p-8 mb-10">
+        <p class="font-display text-xl mb-2">Botão "Inscreva-se"</p>
+        <p class="text-sm text-gray-400 mb-6">Link do teu canal — usado no botão vermelho da secção YouTube do site.</p>
+        <form id="youtube-link-form" class="flex flex-col sm:flex-row gap-3">
+          <input type="url" id="youtube-link-input" placeholder="https://youtube.com/@teucanal" class="flex-1 rounded-lg px-4 py-3 text-sm">
+          <button type="submit" class="btn rounded-lg px-6 py-3 text-sm whitespace-nowrap">Guardar link</button>
+        </form>
+        <p id="youtube-link-msg" class="text-sm hidden mt-2"></p>
+      </div>
+
+      <div class="card rounded-2xl p-8 mb-10">
+        <p class="font-display text-xl mb-2">Adicionar vídeo</p>
+        <p class="text-sm text-gray-400 mb-6">Aparece na secção "YouTube" do site.</p>
+        <form id="youtube-form" class="space-y-4">
+          <input required type="text" id="youtube-titulo" placeholder="Título do vídeo" class="w-full rounded-lg px-4 py-3 text-sm">
+          <input type="url" id="youtube-url" placeholder="Link do vídeo no YouTube" class="w-full rounded-lg px-4 py-3 text-sm">
+          <p class="text-xs text-gray-500">Se colares um link do YouTube, a miniatura é gerada automaticamente — não precisas de carregar imagem.</p>
+          <input type="file" id="youtube-thumb" accept="image/*" class="w-full rounded-lg px-4 py-3 text-sm">
+          <p class="text-xs text-gray-500">Miniatura manual (opcional). Medida ideal: 1280×720px (16:9), igual à miniatura de um vídeo do YouTube.</p>
+          <button type="submit" id="youtube-btn" class="btn w-full rounded-lg py-3 text-sm">Adicionar vídeo</button>
+          <p id="youtube-msg" class="text-sm hidden"></p>
+        </form>
+      </div>
+
+      <div class="card rounded-2xl p-8 mb-10" id="editar-youtube-card" style="display:none;">
+        <div class="flex items-center justify-between mb-6">
+          <p class="font-display text-xl">Editar vídeo</p>
+          <button type="button" id="editar-youtube-voltar" class="text-xs text-gray-400 hover:text-white">← Voltar</button>
+        </div>
+        <form id="editar-youtube-form" class="space-y-4">
+          <input type="hidden" id="edit-yt-id">
+          <input required type="text" id="edit-yt-titulo" placeholder="Título do vídeo" class="w-full rounded-lg px-4 py-3 text-sm">
+          <input type="url" id="edit-yt-url" placeholder="Link do vídeo no YouTube" class="w-full rounded-lg px-4 py-3 text-sm">
+          <input type="file" id="edit-yt-thumb" accept="image/*" class="w-full rounded-lg px-4 py-3 text-sm">
+          <p class="text-xs text-gray-500">Só escolhe um ficheiro se quiseres trocar a miniatura atual.</p>
+          <button type="submit" class="btn w-full rounded-lg py-3 text-sm">Guardar alterações</button>
+          <p id="editar-youtube-msg" class="text-sm hidden"></p>
+        </form>
+      </div>
+
+      <div class="card rounded-2xl p-8">
+        <p class="font-display text-xl mb-6">Vídeos publicados</p>
+        <div id="youtube-lista-admin" class="space-y-3 text-sm"></div>
+      </div>
+    </div>
+
+    <!-- ABA: COMUNIDADE -->
+    <div id="tab-comunidade" class="hidden">
+      <div class="card rounded-2xl p-8 mb-10">
+        <p class="font-display text-xl mb-2">Candidaturas para a equipa</p>
+        <p class="text-sm text-gray-400 mb-6">Pessoas que preencheram o questionário completo "Fazer parte da equipa" no site.</p>
+        <div id="candidaturas-lista" class="space-y-4 text-sm"></div>
+      </div>
+
+      <div class="card rounded-2xl p-8">
+        <p class="font-display text-xl mb-2">Interessados (formulário rápido)</p>
+        <p class="text-sm text-gray-400 mb-6">Nome e email de quem se inscreveu em "Faça parte da LampMind".</p>
+        <div id="interessados-lista" class="space-y-3 text-sm"></div>
       </div>
     </div>
 
@@ -274,10 +400,14 @@
       tab.classList.add('active');
       document.getElementById('tab-materiais').classList.toggle('hidden', tab.dataset.tab !== 'materiais');
       document.getElementById('tab-projetos').classList.toggle('hidden', tab.dataset.tab !== 'projetos');
+      document.getElementById('tab-youtube').classList.toggle('hidden', tab.dataset.tab !== 'youtube');
+      document.getElementById('tab-comunidade').classList.toggle('hidden', tab.dataset.tab !== 'comunidade');
       document.getElementById('tab-personalizacao').classList.toggle('hidden', tab.dataset.tab !== 'personalizacao');
       document.getElementById('tab-feedback').classList.toggle('hidden', tab.dataset.tab !== 'feedback');
       document.getElementById('tab-estatisticas').classList.toggle('hidden', tab.dataset.tab !== 'estatisticas');
       if (tab.dataset.tab === 'projetos') carregarProjetosExtra();
+      if (tab.dataset.tab === 'youtube') { carregarYoutubeAdmin(); carregarYoutubeLinkAtual(); }
+      if (tab.dataset.tab === 'comunidade') { carregarCandidaturas(); carregarInteressados(); }
       if (tab.dataset.tab === 'feedback') carregarFeedback();
       if (tab.dataset.tab === 'estatisticas') carregarEstatisticas();
     });
@@ -288,6 +418,12 @@
   const camposPago = document.getElementById('campos-pago');
   tipoSelect.addEventListener('change', () => {
     camposPago.classList.toggle('hidden', tipoSelect.value !== 'Pago');
+  });
+
+  const editTipoSelect = document.getElementById('edit-mat-tipo');
+  const editCamposPago = document.getElementById('edit-campos-pago');
+  editTipoSelect.addEventListener('change', () => {
+    editCamposPago.classList.toggle('hidden', editTipoSelect.value !== 'Pago');
   });
 
   /* ---------- Upload de material ---------- */
@@ -331,6 +467,55 @@
       msg.classList.remove('hidden');
     } finally {
       btn.disabled = false; btn.textContent = 'Publicar no site';
+    }
+  });
+
+  /* ---------- Materiais: editar ---------- */
+  const editarMaterialCard = document.getElementById('editar-material-card');
+
+  function abrirEdicaoMaterial(item) {
+    document.getElementById('edit-mat-id').value = item.id;
+    document.getElementById('edit-mat-titulo').value = item.titulo || '';
+    document.getElementById('edit-mat-descricao').value = item.descricao || '';
+    document.getElementById('edit-mat-categoria').value = item.categoria || 'Ebook';
+    document.getElementById('edit-mat-tipo').value = item.tipo || 'Gratuito';
+    document.getElementById('edit-mat-destino').value = item.destino || 'biblioteca';
+    document.getElementById('edit-mat-preco').value = item.preco || '';
+    document.getElementById('edit-mat-link_pagamento').value = item.link_pagamento || '';
+    editCamposPago.classList.toggle('hidden', (item.tipo || 'Gratuito') !== 'Pago');
+    editarMaterialCard.style.display = 'block';
+    editarMaterialCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.getElementById('editar-material-voltar').addEventListener('click', () => {
+    editarMaterialCard.style.display = 'none';
+  });
+
+  document.getElementById('editar-material-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('editar-material-msg');
+    const id = document.getElementById('edit-mat-id').value;
+    const payload = {
+      titulo: document.getElementById('edit-mat-titulo').value,
+      descricao: document.getElementById('edit-mat-descricao').value,
+      categoria: document.getElementById('edit-mat-categoria').value,
+      tipo: document.getElementById('edit-mat-tipo').value,
+      destino: document.getElementById('edit-mat-destino').value,
+      preco: document.getElementById('edit-mat-preco').value,
+      link_pagamento: document.getElementById('edit-mat-link_pagamento').value
+    };
+    try {
+      const { error } = await supabase.from(TABLE).update(payload).eq('id', id);
+      if (error) throw error;
+      msg.textContent = 'Alterações guardadas!';
+      msg.className = 'text-sm text-green-400';
+      msg.classList.remove('hidden');
+      editarMaterialCard.style.display = 'none';
+      carregarLista();
+    } catch (err) {
+      msg.textContent = 'Erro: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
     }
   });
 
@@ -392,15 +577,25 @@
     lista.innerHTML = '';
     data.forEach(item => {
       const row = document.createElement('div');
-      row.className = 'flex items-center justify-between border-b border-white/5 pb-3';
+      row.className = 'flex items-center justify-between border-b border-white/5 pb-3 gap-3';
       row.innerHTML = `
         <div>
           <p class="font-medium">${item.titulo}</p>
           <p class="text-gray-500 text-xs">${item.descricao || ''}</p>
         </div>
-        <button data-id="${item.id}" class="del-projeto-btn btn-danger rounded-lg px-3 py-1.5 text-xs">Remover</button>
+        <div class="flex gap-2 shrink-0">
+          <button data-id="${item.id}" class="edit-projeto-btn rounded-lg px-3 py-1.5 text-xs border border-white/10 hover:border-white/30">Editar</button>
+          <button data-id="${item.id}" class="del-projeto-btn btn-danger rounded-lg px-3 py-1.5 text-xs">Remover</button>
+        </div>
       `;
       lista.appendChild(row);
+    });
+
+    document.querySelectorAll('.edit-projeto-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        const item = data.find(d => d.id === b.dataset.id);
+        if (item) abrirEdicaoProjeto(item);
+      });
     });
 
     document.querySelectorAll('.del-projeto-btn').forEach(b => {
@@ -408,6 +603,266 @@
         if (!confirm('Remover este projeto do site?')) return;
         await supabase.from('projetos_extra').delete().eq('id', b.dataset.id);
         carregarProjetosExtra();
+      });
+    });
+  }
+
+  /* ---------- Projetos: editar ---------- */
+  const editarProjetoCard = document.getElementById('editar-projeto-card');
+
+  function abrirEdicaoProjeto(item) {
+    document.getElementById('edit-proj-id').value = item.id;
+    document.getElementById('edit-proj-titulo').value = item.titulo || '';
+    document.getElementById('edit-proj-descricao').value = item.descricao || '';
+    document.getElementById('edit-proj-imagem').value = '';
+    editarProjetoCard.style.display = 'block';
+    editarProjetoCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.getElementById('editar-projeto-voltar').addEventListener('click', () => {
+    editarProjetoCard.style.display = 'none';
+  });
+
+  document.getElementById('editar-projeto-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('editar-projeto-msg');
+    const id = document.getElementById('edit-proj-id').value;
+    const file = document.getElementById('edit-proj-imagem').files[0];
+    const payload = {
+      titulo: document.getElementById('edit-proj-titulo').value,
+      descricao: document.getElementById('edit-proj-descricao').value
+    };
+    try {
+      if (file) {
+        const path = `projetos-extra/${Date.now()}-${file.name}`;
+        const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file);
+        if (uploadError) throw uploadError;
+        const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+        payload.imagem_url = publicUrlData.publicUrl;
+      }
+      const { error } = await supabase.from('projetos_extra').update(payload).eq('id', id);
+      if (error) throw error;
+      msg.textContent = 'Alterações guardadas!';
+      msg.className = 'text-sm text-green-400';
+      msg.classList.remove('hidden');
+      editarProjetoCard.style.display = 'none';
+      carregarProjetosExtra();
+    } catch (err) {
+      msg.textContent = 'Erro: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    }
+  });
+
+  /* ---------- YouTube: link de inscrição ---------- */
+  async function carregarYoutubeLinkAtual() {
+    const { data } = await supabase.from('site_content').select('valor').eq('chave', 'youtube_inscreva_link').maybeSingle();
+    document.getElementById('youtube-link-input').value = (data && data.valor) || '';
+  }
+
+  document.getElementById('youtube-link-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('youtube-link-msg');
+    const valor = document.getElementById('youtube-link-input').value;
+    try {
+      const { error } = await supabase.from('site_content').upsert({ chave: 'youtube_inscreva_link', valor });
+      if (error) throw error;
+      msg.textContent = 'Link guardado!';
+      msg.className = 'text-sm text-green-400';
+      msg.classList.remove('hidden');
+    } catch (err) {
+      msg.textContent = 'Erro: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    }
+  });
+
+  /* ---------- YouTube: adicionar vídeo ---------- */
+  document.getElementById('youtube-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('youtube-btn');
+    const msg = document.getElementById('youtube-msg');
+    btn.disabled = true; btn.textContent = 'A adicionar...';
+
+    const titulo = document.getElementById('youtube-titulo').value;
+    const url_video = document.getElementById('youtube-url').value;
+    const file = document.getElementById('youtube-thumb').files[0];
+
+    try {
+      let thumbnail_url = null;
+      if (file) {
+        const path = `youtube/${Date.now()}-${file.name}`;
+        const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file);
+        if (uploadError) throw uploadError;
+        const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+        thumbnail_url = publicUrlData.publicUrl;
+      }
+      const { error } = await supabase.from('youtube_videos').insert({ titulo, url_video, thumbnail_url });
+      if (error) throw error;
+      msg.textContent = 'Vídeo adicionado!';
+      msg.className = 'text-sm text-green-400';
+      msg.classList.remove('hidden');
+      e.target.reset();
+      carregarYoutubeAdmin();
+    } catch (err) {
+      msg.textContent = 'Erro: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Adicionar vídeo';
+    }
+  });
+
+  /* ---------- YouTube: editar vídeo ---------- */
+  const editarYoutubeCard = document.getElementById('editar-youtube-card');
+
+  function abrirEdicaoYoutube(item) {
+    document.getElementById('edit-yt-id').value = item.id;
+    document.getElementById('edit-yt-titulo').value = item.titulo || '';
+    document.getElementById('edit-yt-url').value = item.url_video || '';
+    document.getElementById('edit-yt-thumb').value = '';
+    editarYoutubeCard.style.display = 'block';
+    editarYoutubeCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.getElementById('editar-youtube-voltar').addEventListener('click', () => {
+    editarYoutubeCard.style.display = 'none';
+  });
+
+  document.getElementById('editar-youtube-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('editar-youtube-msg');
+    const id = document.getElementById('edit-yt-id').value;
+    const file = document.getElementById('edit-yt-thumb').files[0];
+    const payload = {
+      titulo: document.getElementById('edit-yt-titulo').value,
+      url_video: document.getElementById('edit-yt-url').value
+    };
+    try {
+      if (file) {
+        const path = `youtube/${Date.now()}-${file.name}`;
+        const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file);
+        if (uploadError) throw uploadError;
+        const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+        payload.thumbnail_url = publicUrlData.publicUrl;
+      }
+      const { error } = await supabase.from('youtube_videos').update(payload).eq('id', id);
+      if (error) throw error;
+      msg.textContent = 'Alterações guardadas!';
+      msg.className = 'text-sm text-green-400';
+      msg.classList.remove('hidden');
+      editarYoutubeCard.style.display = 'none';
+      carregarYoutubeAdmin();
+    } catch (err) {
+      msg.textContent = 'Erro: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    }
+  });
+
+  async function carregarYoutubeAdmin() {
+    const lista = document.getElementById('youtube-lista-admin');
+    lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+    const { data, error } = await supabase.from('youtube_videos').select('*').order('criado_em', { ascending: false });
+    if (error) { lista.innerHTML = '<p class="text-red-400">Erro ao carregar: ' + error.message + '</p>'; return; }
+    if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não foram adicionados vídeos.</p>'; return; }
+
+    lista.innerHTML = '';
+    data.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between border-b border-white/5 pb-3 gap-3';
+      row.innerHTML = `
+        <div>
+          <p class="font-medium">${item.titulo}</p>
+          <p class="text-gray-500 text-xs">${item.url_video || 'sem link'}</p>
+        </div>
+        <div class="flex gap-2 shrink-0">
+          <button data-id="${item.id}" class="edit-yt-btn rounded-lg px-3 py-1.5 text-xs border border-white/10 hover:border-white/30">Editar</button>
+          <button data-id="${item.id}" class="del-yt-btn btn-danger rounded-lg px-3 py-1.5 text-xs">Remover</button>
+        </div>
+      `;
+      lista.appendChild(row);
+    });
+
+    document.querySelectorAll('.edit-yt-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        const item = data.find(d => d.id === b.dataset.id);
+        if (item) abrirEdicaoYoutube(item);
+      });
+    });
+
+    document.querySelectorAll('.del-yt-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (!confirm('Remover este vídeo do site?')) return;
+        await supabase.from('youtube_videos').delete().eq('id', b.dataset.id);
+        carregarYoutubeAdmin();
+      });
+    });
+  }
+
+  /* ---------- Comunidade: candidaturas e interessados ---------- */
+  async function carregarCandidaturas() {
+    const lista = document.getElementById('candidaturas-lista');
+    lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+    const { data, error } = await supabase.from('candidaturas').select('*').order('criado_em', { ascending: false });
+    if (error) { lista.innerHTML = '<p class="text-red-400">Erro ao carregar: ' + error.message + '</p>'; return; }
+    if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não há candidaturas.</p>'; return; }
+
+    lista.innerHTML = '';
+    data.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'border border-white/10 rounded-xl p-4';
+      row.innerHTML = `
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="font-medium">${item.nome} <span class="text-gray-500 font-normal">· ${item.email}</span></p>
+            ${item.telefone ? `<p class="text-gray-500 text-xs mt-1">${item.telefone}</p>` : ''}
+          </div>
+          <button data-id="${item.id}" class="del-cand-btn btn-danger rounded-lg px-3 py-1.5 text-xs shrink-0">Remover</button>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-2 mt-3 text-xs text-gray-400">
+          <p><span class="text-gray-500">Área:</span> ${item.area_atuacao || '—'}</p>
+          <p><span class="text-gray-500">Nível académico:</span> ${item.nivel_academico || '—'}</p>
+          <p><span class="text-gray-500">Estudo:</span> ${item.area_estudo || '—'}</p>
+          <p><span class="text-gray-500">Como conheceu:</span> ${item.como_conheceu || '—'}</p>
+        </div>
+        ${item.motivacao ? `<p class="text-xs text-gray-400 mt-3"><span class="text-gray-500">Motivação:</span> ${item.motivacao}</p>` : ''}
+      `;
+      lista.appendChild(row);
+    });
+
+    document.querySelectorAll('.del-cand-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (!confirm('Remover esta candidatura?')) return;
+        await supabase.from('candidaturas').delete().eq('id', b.dataset.id);
+        carregarCandidaturas();
+      });
+    });
+  }
+
+  async function carregarInteressados() {
+    const lista = document.getElementById('interessados-lista');
+    lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+    const { data, error } = await supabase.from('interessados').select('*').order('criado_em', { ascending: false });
+    if (error) { lista.innerHTML = '<p class="text-red-400">Erro ao carregar: ' + error.message + '</p>'; return; }
+    if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não há interessados.</p>'; return; }
+
+    lista.innerHTML = '';
+    data.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between border-b border-white/5 pb-3 gap-3';
+      row.innerHTML = `
+        <p class="font-medium">${item.nome} <span class="text-gray-500 font-normal text-xs">· ${item.email}</span></p>
+        <button data-id="${item.id}" class="del-int-btn btn-danger rounded-lg px-3 py-1.5 text-xs shrink-0">Remover</button>
+      `;
+      lista.appendChild(row);
+    });
+
+    document.querySelectorAll('.del-int-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (!confirm('Remover este interessado?')) return;
+        await supabase.from('interessados').delete().eq('id', b.dataset.id);
+        carregarInteressados();
       });
     });
   }
@@ -422,15 +877,25 @@
     lista.innerHTML = '';
     data.forEach(item => {
       const row = document.createElement('div');
-      row.className = 'flex items-center justify-between border-b border-white/5 pb-3';
+      row.className = 'flex items-center justify-between border-b border-white/5 pb-3 gap-3';
       row.innerHTML = `
         <div>
           <p class="font-medium">${item.titulo}</p>
           <p class="text-gray-500 text-xs">${item.categoria || ''} · ${item.tipo || 'Gratuito'}${item.tipo === 'Pago' && item.preco ? ' · ' + item.preco : ''} · ${DESTINO_LABELS[item.destino] || 'Biblioteca'}</p>
         </div>
-        <button data-id="${item.id}" class="del-btn btn-danger rounded-lg px-3 py-1.5 text-xs">Remover</button>
+        <div class="flex gap-2 shrink-0">
+          <button data-id="${item.id}" class="edit-btn rounded-lg px-3 py-1.5 text-xs border border-white/10 hover:border-white/30">Editar</button>
+          <button data-id="${item.id}" class="del-btn btn-danger rounded-lg px-3 py-1.5 text-xs">Remover</button>
+        </div>
       `;
       lista.appendChild(row);
+    });
+
+    document.querySelectorAll('.edit-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        const item = data.find(d => d.id === b.dataset.id);
+        if (item) abrirEdicaoMaterial(item);
+      });
     });
 
     document.querySelectorAll('.del-btn').forEach(b => {

@@ -241,6 +241,20 @@
     border:1px dashed var(--hair); border-radius:12px; padding:14px; margin-top:12px;
   }
 
+  /* ---------- Painel de candidatura (Fazer parte da equipa) ---------- */
+  #candidatura-modal{ position:fixed; inset:0; z-index:230; display:flex; align-items:center; justify-content:center; padding:20px; }
+  #candidatura-modal.hidden{ display:none !important; }
+  #candidatura-modal-backdrop{ position:absolute; inset:0; background:rgba(5,5,5,.78); backdrop-filter:blur(6px); }
+  #candidatura-modal-panel{
+    position:relative; z-index:2; width:100%; max-width:580px; max-height:86vh; overflow-y:auto;
+    background:#0F1114; border:1px solid var(--hair); border-radius:20px; padding:26px;
+  }
+  #candidatura-modal-voltar{
+    display:inline-flex; align-items:center; gap:6px; color:var(--mute); font-size:.8rem;
+    background:none; border:none; cursor:pointer; padding:0;
+  }
+  #candidatura-modal-voltar:hover{ color:var(--ink); }
+
   /* garante que .hidden esconde mesmo com a regra de #edit-toolbar acima
      (o seletor por ID tinha mais prioridade que a classe .hidden do Tailwind, por isso
      sem esta regra o painel de edição ficava sempre visível, mesmo sem login) */
@@ -275,6 +289,7 @@
       <a href="#blog" class="nav-link">Blog</a>
       <a href="#youtube" class="nav-link">YouTube</a>
       <a href="#equipe" class="nav-link">Equipa</a>
+      <a href="#feedback" class="nav-link">Ajuda-nos a melhorar</a>
       <a href="#contato" class="nav-link">Contato</a>
     </nav>
 
@@ -307,6 +322,7 @@
     <a href="#blog" class="nav-link">Blog</a>
     <a href="#youtube" class="nav-link">YouTube</a>
     <a href="#equipe" class="nav-link">Equipa</a>
+    <a href="#feedback" class="nav-link">Ajuda-nos a melhorar</a>
     <a href="#contato" class="nav-link">Contato</a>
     <a href="admin.html" class="btn-ghost rounded-lg px-4 py-2 text-center font-medium">Entrar</a>
     <button class="edit-fab-btn btn-ghost rounded-lg px-4 py-2 text-center font-medium flex items-center justify-center gap-2">
@@ -644,24 +660,13 @@
         <p class="eyebrow">Canal no YouTube</p>
         <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4">Engenharia explicada, em vídeo</h2>
       </div>
-      <a href="#" class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 transition rounded-xl px-6 py-3 text-sm font-semibold">
+      <a id="youtube-inscreva-link" href="https://youtube.com/@lampmind" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 transition rounded-xl px-6 py-3 text-sm font-semibold">
         <i data-lucide="youtube" class="w-4 h-4"></i> Inscreva-se
       </a>
     </div>
 
-    <div class="grid sm:grid-cols-3 gap-5 mt-14">
-      <div class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
-        <div class="aspect-video bg-[#0d0d0f] flex items-center justify-center"><i data-lucide="play-circle" class="w-10 h-10 text-red-500"></i></div>
-        <p class="p-4 text-sm">Como funciona um diagnóstico de falhas elétricas</p>
-      </div>
-      <div class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
-        <div class="aspect-video bg-[#0d0d0f] flex items-center justify-center"><i data-lucide="play-circle" class="w-10 h-10 text-red-500"></i></div>
-        <p class="p-4 text-sm">Construindo um assistente de IA do zero</p>
-      </div>
-      <div class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
-        <div class="aspect-video bg-[#0d0d0f] flex items-center justify-center"><i data-lucide="play-circle" class="w-10 h-10 text-red-500"></i></div>
-        <p class="p-4 text-sm">IoT na prática: sensores e automação</p>
-      </div>
+    <div id="youtube-lista" class="grid sm:grid-cols-3 gap-5 mt-14">
+      <p class="text-mute text-sm col-span-full">A carregar vídeos...</p>
     </div>
   </div>
 </section>
@@ -758,11 +763,15 @@
     <p class="text-mute mt-4">Novidades sobre projetos, cursos e pesquisa — direto na sua caixa de entrada.</p>
 
     <form id="newsletter-form" class="flex flex-col sm:flex-row gap-3 mt-8 max-w-lg mx-auto">
-      <input required type="text" placeholder="Nome" class="flex-1 rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
-      <input required type="email" placeholder="Email" class="flex-1 rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+      <input required type="text" id="newsletter-nome" placeholder="Nome" class="flex-1 rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+      <input required type="email" id="newsletter-email" placeholder="Email" class="flex-1 rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
       <button type="submit" class="btn-primary rounded-xl px-6 py-3 text-sm whitespace-nowrap w-full sm:w-auto shrink-0">Quero Aprender</button>
     </form>
     <p id="newsletter-msg" class="text-neon text-sm mt-4 hidden">Obrigado! Em breve receberá novidades da LampMind.</p>
+
+    <button id="abrir-candidatura-btn" type="button" class="text-xs text-mute hover:text-ink underline mt-6">
+      Queres fazer parte da equipa? Preenche o questionário completo →
+    </button>
   </div>
 </section>
 
@@ -779,6 +788,7 @@
         <span id="like-count" class="font-display hidden">—</span>
       </button>
     </div>
+    <p id="like-msg" class="text-xs text-mute mt-3 hidden">Já demonstraste o teu apoio — obrigado!</p>
 
     <form id="feedback-form" class="mt-10 text-left space-y-4 max-w-lg mx-auto reveal" data-reveal>
       <div class="grid sm:grid-cols-2 gap-4">
@@ -924,6 +934,43 @@
   </div>
 </div>
 
+<!-- ================= PAINEL: QUESTIONÁRIO "FAZER PARTE DA EQUIPA" ================= -->
+<div id="candidatura-modal" class="hidden">
+  <div id="candidatura-modal-backdrop"></div>
+  <div id="candidatura-modal-panel">
+    <button id="candidatura-modal-voltar" type="button">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar
+    </button>
+
+    <p class="font-display text-2xl mt-5">Faz parte da equipa LampMind</p>
+    <p class="text-mute text-sm mt-2">Conta-nos um pouco sobre ti — a nossa equipa vai analisar a tua candidatura.</p>
+
+    <form id="candidatura-form" class="mt-6 space-y-4 text-left">
+      <div class="grid sm:grid-cols-2 gap-4">
+        <input required type="text" id="cand-nome" placeholder="Nome completo" class="rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+        <input required type="email" id="cand-email" placeholder="Email" class="rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+      </div>
+      <input type="tel" id="cand-telefone" placeholder="Telefone / WhatsApp (opcional)" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <input required type="text" id="cand-area" placeholder="Área em que atuas (ex: elétrica, programação)" class="rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+        <select id="cand-nivel" class="rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+          <option value="Estudante">Sou estudante</option>
+          <option value="Profissional">Já sou profissional</option>
+          <option value="Ambos">Estudante e a trabalhar</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <input type="text" id="cand-estudo" placeholder="Curso / área de estudo (se aplicável)" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+      <textarea id="cand-motivacao" rows="3" placeholder="O que te apaixona e porque queres fazer parte da LampMind?" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink"></textarea>
+      <input type="text" id="cand-conheceu" placeholder="Como conheceste a LampMind?" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+
+      <button type="submit" class="btn-primary rounded-xl px-6 py-3 text-sm w-full">Enviar candidatura</button>
+      <p id="candidatura-msg" class="text-sm hidden"></p>
+    </form>
+  </div>
+</div>
+
 <!-- ================= MODO DE EDIÇÃO AO VIVO (só para admin) ================= -->
 <div id="edit-login-modal" class="hidden">
   <p class="font-display text-lg mb-1">Entrar como admin</p>
@@ -1027,11 +1074,64 @@
     });
   });
 
-  /* newsletter form (demo) */
-  document.getElementById('newsletter-form').addEventListener('submit', (e) => {
+  /* ---------- Faça parte da LampMind (formulário rápido) ---------- */
+  document.getElementById('newsletter-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    document.getElementById('newsletter-msg').classList.remove('hidden');
-    e.target.reset();
+    const nome = document.getElementById('newsletter-nome').value;
+    const email = document.getElementById('newsletter-email').value;
+    const msg = document.getElementById('newsletter-msg');
+    try {
+      const { error } = await supabase.from('interessados').insert({ nome, email });
+      if (error) throw error;
+      msg.textContent = 'Obrigado! Em breve receberá novidades da LampMind.';
+      msg.className = 'text-neon text-sm mt-4';
+      msg.classList.remove('hidden');
+      e.target.reset();
+    } catch (err) {
+      msg.textContent = 'Não foi possível enviar agora. Tenta novamente.';
+      msg.className = 'text-red-400 text-sm mt-4';
+      msg.classList.remove('hidden');
+    }
+  });
+
+  /* ---------- Questionário completo (candidatura à equipa) ---------- */
+  const candidaturaModal = document.getElementById('candidatura-modal');
+  document.getElementById('abrir-candidatura-btn').addEventListener('click', () => {
+    candidaturaModal.classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+  });
+  document.getElementById('candidatura-modal-voltar').addEventListener('click', () => {
+    candidaturaModal.classList.add('hidden');
+  });
+  document.getElementById('candidatura-modal-backdrop').addEventListener('click', () => {
+    candidaturaModal.classList.add('hidden');
+  });
+
+  document.getElementById('candidatura-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('candidatura-msg');
+    const payload = {
+      nome: document.getElementById('cand-nome').value,
+      email: document.getElementById('cand-email').value,
+      telefone: document.getElementById('cand-telefone').value,
+      area_atuacao: document.getElementById('cand-area').value,
+      nivel_academico: document.getElementById('cand-nivel').value,
+      area_estudo: document.getElementById('cand-estudo').value,
+      motivacao: document.getElementById('cand-motivacao').value,
+      como_conheceu: document.getElementById('cand-conheceu').value
+    };
+    try {
+      const { error } = await supabase.from('candidaturas').insert(payload);
+      if (error) throw error;
+      msg.textContent = 'Candidatura enviada! A equipa LampMind vai analisar e entrar em contacto.';
+      msg.className = 'text-sm text-neon';
+      msg.classList.remove('hidden');
+      e.target.reset();
+    } catch (err) {
+      msg.textContent = 'Erro ao enviar: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    }
   });
 
   /* particle background */
@@ -1081,6 +1181,48 @@
 
   function isVideo(url) {
     return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url || '');
+  }
+
+  /* ---------- Vídeos do YouTube ---------- */
+  function youtubeThumbUrl(url) {
+    if (!url) return null;
+    const m = url.match(/(?:youtu\.be\/|v=|embed\/)([\w-]{6,})/);
+    return m ? `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` : null;
+  }
+
+  async function carregarYoutube() {
+    const el = document.getElementById('youtube-lista');
+    try {
+      const { data: linkRow } = await supabase.from('site_content').select('valor').eq('chave', 'youtube_inscreva_link').maybeSingle();
+      if (linkRow && linkRow.valor) {
+        document.getElementById('youtube-inscreva-link').href = linkRow.valor;
+      }
+
+      const { data, error } = await supabase.from('youtube_videos').select('*').order('ordem', { ascending: true }).order('criado_em', { ascending: false });
+      if (error) throw error;
+      if (!data || !data.length) {
+        el.innerHTML = '<p class="text-mute text-sm col-span-full">Em breve, novos vídeos por aqui.</p>';
+        return;
+      }
+      el.innerHTML = '';
+      data.forEach(v => {
+        const thumb = v.thumbnail_url || youtubeThumbUrl(v.url_video);
+        const card = document.createElement(v.url_video ? 'a' : 'div');
+        if (v.url_video) { card.href = v.url_video; card.target = '_blank'; card.rel = 'noopener'; }
+        card.className = 'card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal';
+        card.innerHTML = `
+          <div class="aspect-video bg-[#0d0d0f] flex items-center justify-center bg-cover bg-center" style="${thumb ? `background-image:url('${thumb}')` : ''}">
+            ${thumb ? '' : '<i data-lucide="play-circle" class="w-10 h-10 text-red-500"></i>'}
+          </div>
+          <p class="p-4 text-sm">${v.titulo}</p>
+        `;
+        el.appendChild(card);
+      });
+      if (window.lucide) lucide.createIcons();
+      gsap.to('#youtube-lista .reveal', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', stagger: 0.06 });
+    } catch (err) {
+      el.innerHTML = '<p class="text-mute text-sm col-span-full">Não foi possível carregar os vídeos.</p>';
+    }
   }
 
   async function carregarBiblioteca() {
@@ -1238,15 +1380,40 @@
     }
   }
 
-  document.getElementById('like-btn').addEventListener('click', async (e) => {
+  async function atualizarVisibilidadeLikes() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      document.getElementById('like-count').classList.toggle('hidden', !session);
+    } catch (err) {
+      // mantém escondido se não for possível confirmar a sessão
+    }
+  }
+
+  const likeBtn = document.getElementById('like-btn');
+  const likeMsg = document.getElementById('like-msg');
+  if (localStorage.getItem('lampmind_ja_gostou')) {
+    likeBtn.classList.add('opacity-70');
+    likeMsg.classList.remove('hidden');
+  }
+
+  likeBtn.addEventListener('click', async (e) => {
     const btn = e.currentTarget;
-    if (localStorage.getItem('lampmind_ja_gostou')) return;
+    if (localStorage.getItem('lampmind_ja_gostou')) {
+      likeMsg.classList.remove('hidden');
+      return;
+    }
     btn.disabled = true;
     try {
-      await supabase.from('curtidas').insert({});
+      const { error } = await supabase.from('curtidas').insert({});
+      if (error) throw error;
       localStorage.setItem('lampmind_ja_gostou', '1');
+      btn.classList.add('opacity-70');
+      likeMsg.classList.remove('hidden');
       carregarLikes();
     } catch (err) {
+      likeMsg.textContent = 'Não foi possível registar o teu like. Tenta novamente.';
+      likeMsg.classList.remove('hidden');
+    } finally {
       btn.disabled = false;
     }
   });
@@ -1327,8 +1494,10 @@
   carregarBiblioteca();
   carregarEquipe();
   carregarLikes();
+  atualizarVisibilidadeLikes();
   registarVisita();
   carregarProjetosExtra();
+  carregarYoutube();
 </script>
 
 <!-- Modo de Edição ao Vivo (login + edição inline + guardar) -->
@@ -1380,7 +1549,6 @@
   async function checkSession() {
     const { data: { session } } = await supabase.auth.getSession();
     logado = !!session;
-    document.getElementById('like-count').classList.toggle('hidden', !logado);
   }
 
   function ativarEdicao() {
