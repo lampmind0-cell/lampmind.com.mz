@@ -80,6 +80,19 @@
             </select>
           </div>
 
+          <div>
+            <label class="text-xs text-gray-500 block mb-1">Onde vai ser publicado</label>
+            <select id="destino" class="w-full rounded-lg px-4 py-3 text-sm">
+              <option value="biblioteca">Biblioteca (secção pública de materiais)</option>
+              <option value="projeto_smarthouse">Projeto — Smart House</option>
+              <option value="projeto_smartcity">Projeto — Smart City</option>
+              <option value="projeto_smartkitchen">Projeto — Smart Kitchen</option>
+              <option value="projeto_assistente">Projeto — Assistente IA</option>
+              <option value="projeto_manutencao">Projeto — Sistema de Manutenção Inteligente</option>
+              <option value="projeto_eletroqi">Projeto — EletroQI</option>
+            </select>
+          </div>
+
           <div id="campos-pago" class="grid sm:grid-cols-2 gap-4 hidden">
             <input type="text" id="preco" placeholder="Preço (ex: 500 MT)" class="w-full rounded-lg px-4 py-3 text-sm">
             <input type="url" id="link_pagamento" placeholder="Link de pagamento (Stripe, PayPal, etc.)" class="w-full rounded-lg px-4 py-3 text-sm">
@@ -266,6 +279,7 @@
     const tipo = document.getElementById('tipo').value;
     const preco = document.getElementById('preco').value;
     const link_pagamento = document.getElementById('link_pagamento').value;
+    const destino = document.getElementById('destino').value;
     const file = document.getElementById('ficheiro').files[0];
 
     try {
@@ -276,7 +290,7 @@
       const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
 
       const { error: insertError } = await supabase.from(TABLE).insert({
-        titulo, descricao, categoria, tipo, preco, link_pagamento,
+        titulo, descricao, categoria, tipo, preco, link_pagamento, destino,
         url: publicUrlData.publicUrl
       });
       if (insertError) throw insertError;
@@ -296,6 +310,16 @@
     }
   });
 
+  const DESTINO_LABELS = {
+    biblioteca: 'Biblioteca',
+    projeto_smarthouse: 'Projeto: Smart House',
+    projeto_smartcity: 'Projeto: Smart City',
+    projeto_smartkitchen: 'Projeto: Smart Kitchen',
+    projeto_assistente: 'Projeto: Assistente IA',
+    projeto_manutencao: 'Projeto: Manutenção Inteligente',
+    projeto_eletroqi: 'Projeto: EletroQI'
+  };
+
   async function carregarLista() {
     const lista = document.getElementById('lista');
     lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
@@ -310,7 +334,7 @@
       row.innerHTML = `
         <div>
           <p class="font-medium">${item.titulo}</p>
-          <p class="text-gray-500 text-xs">${item.categoria || ''} · ${item.tipo || 'Gratuito'}${item.tipo === 'Pago' && item.preco ? ' · ' + item.preco : ''}</p>
+          <p class="text-gray-500 text-xs">${item.categoria || ''} · ${item.tipo || 'Gratuito'}${item.tipo === 'Pago' && item.preco ? ' · ' + item.preco : ''} · ${DESTINO_LABELS[item.destino] || 'Biblioteca'}</p>
         </div>
         <button data-id="${item.id}" class="del-btn btn-danger rounded-lg px-3 py-1.5 text-xs">Remover</button>
       `;

@@ -218,6 +218,29 @@
   #search-results .search-item{ padding:8px 10px; border-radius:8px; cursor:pointer; color:var(--mute); }
   #search-results .search-item:hover{ background:rgba(255,255,255,.06); color:var(--ink); }
 
+  /* ---------- Painel de detalhes do projeto ---------- */
+  #projeto-modal{ position:fixed; inset:0; z-index:230; display:flex; align-items:center; justify-content:center; padding:20px; }
+  #projeto-modal.hidden{ display:none !important; }
+  #projeto-modal-backdrop{ position:absolute; inset:0; background:rgba(5,5,5,.78); backdrop-filter:blur(6px); }
+  #projeto-modal-panel{
+    position:relative; z-index:2; width:100%; max-width:580px; max-height:86vh; overflow-y:auto;
+    background:#0F1114; border:1px solid var(--hair); border-radius:20px; padding:26px;
+  }
+  #projeto-modal-voltar{
+    display:inline-flex; align-items:center; gap:6px; color:var(--mute); font-size:.8rem;
+    background:none; border:none; cursor:pointer; padding:0;
+  }
+  #projeto-modal-voltar:hover{ color:var(--ink); }
+  #projeto-modal-img{ height:180px; border-radius:14px; background-size:cover; background-position:center; margin-top:16px; }
+  body.editing .projeto-extra{ outline:1.5px dashed rgba(0,229,255,.4); outline-offset:4px; border-radius:6px; cursor:text; }
+  .projeto-ficheiro{
+    display:flex; align-items:center; justify-content:between; gap:10px; padding:10px 12px;
+    border:1px solid var(--hair); border-radius:10px; margin-bottom:8px;
+  }
+  #projeto-modal-upload-wrap{
+    border:1px dashed var(--hair); border-radius:12px; padding:14px; margin-top:12px;
+  }
+
   /* garante que .hidden esconde mesmo com a regra de #edit-toolbar acima
      (o seletor por ID tinha mais prioridade que a classe .hidden do Tailwind, por isso
      sem esta regra o painel de edição ficava sempre visível, mesmo sem login) */
@@ -512,69 +535,69 @@
     </div>
 
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-14">
-      <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
+      <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal data-projeto-key="smarthouse">
         <div class="proj-img h-48" data-cms-img="proj_smarthouse_img" style="background:linear-gradient(135deg,#0A84FF33,#05050500),#0F1114;">
           <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="home" class="w-10 h-10 text-electric/70"></i></div>
         </div>
         <div class="p-6">
           <p class="font-display text-lg" data-cms="proj_smarthouse_titulo">Smart House</p>
           <p class="text-mute text-sm mt-2" data-cms="proj_smarthouse_desc">Automação residencial com controlo remoto e sensores integrados.</p>
-          <a href="#" class="inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></a>
+          <button type="button" class="projeto-saber-mais inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></button>
         </div>
       </article>
 
-      <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
+      <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal data-projeto-key="smartcity">
         <div class="proj-img h-48" data-cms-img="proj_smartcity_img" style="background:linear-gradient(135deg,#FFC10733,#05050500),#0F1114;">
           <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="building-2" class="w-10 h-10 text-energy/70"></i></div>
         </div>
         <div class="p-6">
           <p class="font-display text-lg" data-cms="proj_smartcity_titulo">Smart City</p>
           <p class="text-mute text-sm mt-2" data-cms="proj_smartcity_desc">Gestão inteligente de semáforos com painel em tempo real.</p>
-          <a href="#" class="inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></a>
+          <button type="button" class="projeto-saber-mais inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></button>
         </div>
       </article>
 
-      <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
+      <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal data-projeto-key="smartkitchen">
         <div class="proj-img h-48" data-cms-img="proj_smartkitchen_img" style="background:linear-gradient(135deg,#00E5FF33,#05050500),#0F1114;">
           <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="chef-hat" class="w-10 h-10 text-neon/70"></i></div>
         </div>
         <div class="p-6">
           <p class="font-display text-lg" data-cms="proj_smartkitchen_titulo">Smart Kitchen</p>
           <p class="text-mute text-sm mt-2" data-cms="proj_smartkitchen_desc">Monitorização inteligente de eletrodomésticos e consumo.</p>
-          <a href="#" class="inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></a>
+          <button type="button" class="projeto-saber-mais inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></button>
         </div>
       </article>
 
-      <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
+      <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal data-projeto-key="assistente">
         <div class="proj-img h-48" data-cms-img="proj_assistente_img" style="background:linear-gradient(135deg,#0A84FF33,#05050500),#0F1114;">
           <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="message-circle" class="w-10 h-10 text-electric/70"></i></div>
         </div>
         <div class="p-6">
           <p class="font-display text-lg" data-cms="proj_assistente_titulo">Assistente IA</p>
           <p class="text-mute text-sm mt-2" data-cms="proj_assistente_desc">Tutor virtual conversacional para apoio técnico e educativo.</p>
-          <a href="#" class="inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></a>
+          <button type="button" class="projeto-saber-mais inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></button>
         </div>
       </article>
 
-      <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
+      <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal data-projeto-key="manutencao">
         <div class="proj-img h-48" data-cms-img="proj_manutencao_img" style="background:linear-gradient(135deg,#FFC10733,#05050500),#0F1114;">
           <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="wrench" class="w-10 h-10 text-energy/70"></i></div>
         </div>
         <div class="p-6">
           <p class="font-display text-lg" data-cms="proj_manutencao_titulo">Sistema de Manutenção Inteligente</p>
           <p class="text-mute text-sm mt-2" data-cms="proj_manutencao_desc">Diagnóstico preditivo de falhas em equipamentos elétricos.</p>
-          <a href="#" class="inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></a>
+          <button type="button" class="projeto-saber-mais inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></button>
         </div>
       </article>
 
-      <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal>
+      <article class="card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal" data-reveal data-projeto-key="eletroqi">
         <div class="proj-img h-48" data-cms-img="proj_eletroqi_img" style="background:linear-gradient(135deg,#00E5FF33,#05050500),#0F1114;">
           <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="graduation-cap" class="w-10 h-10 text-neon/70"></i></div>
         </div>
         <div class="p-6">
           <p class="font-display text-lg" data-cms="proj_eletroqi_titulo">EletroQI</p>
           <p class="text-mute text-sm mt-2" data-cms="proj_eletroqi_desc">Professor virtual inteligente para ensino de eletricidade.</p>
-          <a href="#" class="inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></a>
+          <button type="button" class="projeto-saber-mais inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></button>
         </div>
       </article>
     </div>
@@ -735,7 +758,7 @@
     <form id="newsletter-form" class="flex flex-col sm:flex-row gap-3 mt-8 max-w-lg mx-auto">
       <input required type="text" placeholder="Nome" class="flex-1 rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
       <input required type="email" placeholder="Email" class="flex-1 rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
-      <button type="submit" class="btn-primary rounded-xl px-6 py-3 text-sm whitespace-nowrap">Quero Aprender</button>
+      <button type="submit" class="btn-primary rounded-xl px-6 py-3 text-sm whitespace-nowrap w-full sm:w-auto shrink-0">Quero Aprender</button>
     </form>
     <p id="newsletter-msg" class="text-neon text-sm mt-4 hidden">Obrigado! Em breve receberá novidades da LampMind.</p>
   </div>
@@ -751,7 +774,7 @@
     <div class="flex items-center justify-center gap-3 mt-8 reveal" data-reveal>
       <button id="like-btn" class="flex items-center gap-2 rounded-full border border-hair bg-card px-6 py-3 hover:border-energy transition">
         <i data-lucide="heart" class="w-5 h-5 text-energy"></i>
-        <span id="like-count" class="font-display">—</span>
+        <span id="like-count" class="font-display hidden">—</span>
       </button>
     </div>
 
@@ -799,7 +822,7 @@
     <div class="rounded-2xl border border-hair overflow-hidden h-72 lg:h-full min-h-[280px] reveal relative" data-reveal data-cms-img="contato_mapa_img"
          style="background: radial-gradient(circle at 40% 40%, rgba(10,132,255,.18), transparent 60%), #0B0C0E;">
       <div class="w-full h-full flex items-center justify-center text-mute text-sm gap-2">
-        <i data-lucide="map-pin" class="w-5 h-5 text-electric"></i> Songo, Moçambique
+        <i data-lucide="map-pin" class="w-5 h-5 text-electric"></i> <span data-cms="contato_localizacao">Songo, Moçambique</span>
       </div>
     </div>
   </div>
@@ -866,6 +889,38 @@
     </div>
   </div>
 </footer>
+
+<!-- ================= PAINEL DE DETALHES DO PROJETO ================= -->
+<div id="projeto-modal" class="hidden">
+  <div id="projeto-modal-backdrop"></div>
+  <div id="projeto-modal-panel">
+    <button id="projeto-modal-voltar" type="button">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar
+    </button>
+
+    <div id="projeto-modal-img"></div>
+    <p id="projeto-modal-titulo" class="font-display text-2xl mt-5"></p>
+    <p id="projeto-modal-desc" class="text-mute text-sm mt-2"></p>
+
+    <p id="projeto-extra-smarthouse" class="projeto-extra hidden text-sm text-mute mt-4" data-cms="proj_smarthouse_extra">Mais informações sobre este projeto em breve.</p>
+    <p id="projeto-extra-smartcity" class="projeto-extra hidden text-sm text-mute mt-4" data-cms="proj_smartcity_extra">Mais informações sobre este projeto em breve.</p>
+    <p id="projeto-extra-smartkitchen" class="projeto-extra hidden text-sm text-mute mt-4" data-cms="proj_smartkitchen_extra">Mais informações sobre este projeto em breve.</p>
+    <p id="projeto-extra-assistente" class="projeto-extra hidden text-sm text-mute mt-4" data-cms="proj_assistente_extra">Mais informações sobre este projeto em breve.</p>
+    <p id="projeto-extra-manutencao" class="projeto-extra hidden text-sm text-mute mt-4" data-cms="proj_manutencao_extra">Mais informações sobre este projeto em breve.</p>
+    <p id="projeto-extra-eletroqi" class="projeto-extra hidden text-sm text-mute mt-4" data-cms="proj_eletroqi_extra">Mais informações sobre este projeto em breve.</p>
+
+    <div class="mt-6">
+      <p class="text-xs text-mute uppercase tracking-wide mb-3">Ficheiros e materiais</p>
+      <div id="projeto-modal-ficheiros" class="text-sm"></div>
+
+      <div id="projeto-modal-upload-wrap" class="hidden">
+        <p class="text-xs text-mute mb-2">Carregar um novo ficheiro para este projeto (qualquer tipo)</p>
+        <input type="file" id="projeto-modal-upload-input" class="w-full text-xs">
+        <p id="projeto-modal-upload-msg" class="text-xs mt-2 hidden"></p>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ================= MODO DE EDIÇÃO AO VIVO (só para admin) ================= -->
 <div id="edit-login-modal" class="hidden">
@@ -1031,6 +1086,7 @@
       const { data, error } = await supabase
         .from('materiais')
         .select('*')
+        .or('destino.eq.biblioteca,destino.is.null')
         .order('criado_em', { ascending: false });
 
       if (error) throw error;
@@ -1278,6 +1334,7 @@
   async function checkSession() {
     const { data: { session } } = await supabase.auth.getSession();
     logado = !!session;
+    document.getElementById('like-count').classList.toggle('hidden', !logado);
   }
 
   function ativarEdicao() {
@@ -1389,6 +1446,7 @@
       return;
     }
     logado = true;
+    document.getElementById('like-count').classList.remove('hidden');
     loginModal.classList.add('hidden');
     ativarEdicao();
   });
@@ -1447,6 +1505,114 @@
 
   checkSession();
   carregarControlosAtuais();
+
+  /* ---------- Painel de detalhes do projeto (Saiba mais) ---------- */
+  const projetoModal = document.getElementById('projeto-modal');
+  const projetoModalImg = document.getElementById('projeto-modal-img');
+  const projetoModalTitulo = document.getElementById('projeto-modal-titulo');
+  const projetoModalDesc = document.getElementById('projeto-modal-desc');
+  const projetoModalFicheiros = document.getElementById('projeto-modal-ficheiros');
+  const projetoUploadWrap = document.getElementById('projeto-modal-upload-wrap');
+  const projetoUploadInput = document.getElementById('projeto-modal-upload-input');
+  const projetoUploadMsg = document.getElementById('projeto-modal-upload-msg');
+  let projetoAtual = null;
+
+  function fecharProjetoModal() {
+    projetoModal.classList.add('hidden');
+    projetoAtual = null;
+  }
+
+  async function carregarFicheirosProjeto(key) {
+    projetoModalFicheiros.innerHTML = '<p class="text-mute text-xs">A carregar...</p>';
+    try {
+      const { data, error } = await supabase
+        .from('materiais')
+        .select('*')
+        .eq('destino', `projeto_${key}`)
+        .order('criado_em', { ascending: false });
+      if (error) throw error;
+      if (!data || !data.length) {
+        projetoModalFicheiros.innerHTML = '<p class="text-mute text-xs">Ainda não há ficheiros para este projeto.</p>';
+        return;
+      }
+      projetoModalFicheiros.innerHTML = '';
+      data.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'projeto-ficheiro flex items-center justify-between gap-3';
+        row.innerHTML = `
+          <span class="truncate">${item.titulo}</span>
+          <a href="${item.url}" target="_blank" rel="noopener" class="text-neon shrink-0"><i data-lucide="download" class="w-4 h-4"></i></a>
+        `;
+        projetoModalFicheiros.appendChild(row);
+      });
+      if (window.lucide) lucide.createIcons();
+    } catch (err) {
+      projetoModalFicheiros.innerHTML = '<p class="text-mute text-xs">Não foi possível carregar os ficheiros.</p>';
+    }
+  }
+
+  function abrirProjetoModal(key, article) {
+    projetoAtual = key;
+    const tituloEl = article.querySelector(`[data-cms="proj_${key}_titulo"]`);
+    const descEl = article.querySelector(`[data-cms="proj_${key}_desc"]`);
+    const imgEl = article.querySelector(`[data-cms-img="proj_${key}_img"]`);
+
+    projetoModalTitulo.textContent = tituloEl ? tituloEl.textContent.trim() : '';
+    projetoModalDesc.textContent = descEl ? descEl.textContent.trim() : '';
+    projetoModalImg.style.cssText = imgEl ? imgEl.style.cssText : '';
+
+    document.querySelectorAll('.projeto-extra').forEach(p => p.classList.add('hidden'));
+    const extraEl = document.getElementById(`projeto-extra-${key}`);
+    if (extraEl) extraEl.classList.remove('hidden');
+
+    projetoUploadWrap.classList.toggle('hidden', !logado);
+    projetoUploadMsg.classList.add('hidden');
+    projetoUploadInput.value = '';
+
+    carregarFicheirosProjeto(key);
+    projetoModal.classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.querySelectorAll('.projeto-saber-mais').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const article = btn.closest('[data-projeto-key]');
+      if (!article) return;
+      abrirProjetoModal(article.dataset.projetoKey, article);
+    });
+  });
+
+  document.getElementById('projeto-modal-voltar').addEventListener('click', fecharProjetoModal);
+  document.getElementById('projeto-modal-backdrop').addEventListener('click', fecharProjetoModal);
+
+  projetoUploadInput.addEventListener('change', async () => {
+    if (!projetoUploadInput.files[0] || !projetoAtual) return;
+    const file = projetoUploadInput.files[0];
+    projetoUploadMsg.classList.remove('hidden');
+    projetoUploadMsg.textContent = 'A carregar...';
+    projetoUploadMsg.className = 'text-xs mt-2 text-mute';
+    try {
+      const path = `projetos/${projetoAtual}/${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage.from('materiais').upload(path, file);
+      if (uploadError) throw uploadError;
+      const { data: publicUrlData } = supabase.storage.from('materiais').getPublicUrl(path);
+      const { error: insertError } = await supabase.from('materiais').insert({
+        titulo: file.name,
+        categoria: 'Anexo do projeto',
+        tipo: 'Gratuito',
+        destino: `projeto_${projetoAtual}`,
+        url: publicUrlData.publicUrl
+      });
+      if (insertError) throw insertError;
+      projetoUploadMsg.textContent = 'Ficheiro carregado com sucesso!';
+      projetoUploadMsg.className = 'text-xs mt-2 text-neon';
+      projetoUploadInput.value = '';
+      carregarFicheirosProjeto(projetoAtual);
+    } catch (err) {
+      projetoUploadMsg.textContent = 'Erro: ' + err.message;
+      projetoUploadMsg.className = 'text-xs mt-2 text-red-400';
+    }
+  });
 </script>
 
 <!-- Barra de pesquisa do site -->
