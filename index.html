@@ -600,6 +600,8 @@
           <button type="button" class="projeto-saber-mais inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></button>
         </div>
       </article>
+
+      <div id="projetos-extra-lista" class="contents"></div>
     </div>
   </div>
 </section>
@@ -1278,11 +1280,55 @@
     }
   }
 
+  /* ---------- Projetos extra (adicionados pelo admin) ---------- */
+  async function carregarProjetosExtra() {
+    const container = document.getElementById('projetos-extra-lista');
+    try {
+      const { data, error } = await supabase
+        .from('projetos_extra')
+        .select('*')
+        .order('criado_em', { ascending: false });
+      if (error) throw error;
+      if (!data || !data.length) { container.innerHTML = ''; return; }
+
+      container.innerHTML = '';
+      data.forEach(item => {
+        const article = document.createElement('article');
+        article.className = 'card-lift rounded-2xl border border-hair bg-card overflow-hidden reveal';
+        article.dataset.projetoExtraId = item.id;
+        article.dataset.titulo = item.titulo;
+        article.dataset.descricao = item.descricao || '';
+        article.dataset.imagem = item.imagem_url || '';
+
+        const imgStyle = item.imagem_url
+          ? `background-image:url('${item.imagem_url}');background-size:cover;background-position:center;`
+          : 'background:linear-gradient(135deg,#0A84FF33,#05050500),#0F1114;';
+
+        article.innerHTML = `
+          <div class="proj-img h-48" style="${imgStyle}">
+            ${item.imagem_url ? '' : '<div class="absolute inset-0 flex items-center justify-center"><i data-lucide="rocket" class="w-10 h-10 text-electric/70"></i></div>'}
+          </div>
+          <div class="p-6">
+            <p class="font-display text-lg">${item.titulo}</p>
+            <p class="text-mute text-sm mt-2">${item.descricao || ''}</p>
+            <button type="button" class="projeto-saber-mais inline-flex items-center gap-1 text-sm text-neon mt-4 group">Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i></button>
+          </div>
+        `;
+        container.appendChild(article);
+      });
+      if (window.lucide) lucide.createIcons();
+      gsap.to('#projetos-extra-lista .reveal', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', stagger: 0.06 });
+    } catch (err) {
+      container.innerHTML = '';
+    }
+  }
+
   aplicarPersonalizacao();
   carregarBiblioteca();
   carregarEquipe();
   carregarLikes();
   registarVisita();
+  carregarProjetosExtra();
 </script>
 
 <!-- Modo de Edição ao Vivo (login + edição inline + guardar) -->
@@ -1551,19 +1597,17 @@
     }
   }
 
-  function abrirProjetoModal(key, article) {
+  function popularProjetoModal({ key, titulo, desc, imgStyle, extraElId }) {
     projetoAtual = key;
-    const tituloEl = article.querySelector(`[data-cms="proj_${key}_titulo"]`);
-    const descEl = article.querySelector(`[data-cms="proj_${key}_desc"]`);
-    const imgEl = article.querySelector(`[data-cms-img="proj_${key}_img"]`);
-
-    projetoModalTitulo.textContent = tituloEl ? tituloEl.textContent.trim() : '';
-    projetoModalDesc.textContent = descEl ? descEl.textContent.trim() : '';
-    projetoModalImg.style.cssText = imgEl ? imgEl.style.cssText : '';
+    projetoModalTitulo.textContent = titulo || '';
+    projetoModalDesc.textContent = desc || '';
+    projetoModalImg.style.cssText = imgStyle || '';
 
     document.querySelectorAll('.projeto-extra').forEach(p => p.classList.add('hidden'));
-    const extraEl = document.getElementById(`projeto-extra-${key}`);
-    if (extraEl) extraEl.classList.remove('hidden');
+    if (extraElId) {
+      const extraEl = document.getElementById(extraElId);
+      if (extraEl) extraEl.classList.remove('hidden');
+    }
 
     projetoUploadWrap.classList.toggle('hidden', !logado);
     projetoUploadMsg.classList.add('hidden');
@@ -1574,12 +1618,39 @@
     if (window.lucide) lucide.createIcons();
   }
 
-  document.querySelectorAll('.projeto-saber-mais').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const article = btn.closest('[data-projeto-key]');
-      if (!article) return;
-      abrirProjetoModal(article.dataset.projetoKey, article);
+  function abrirProjetoModal(key, article) {
+    const tituloEl = article.querySelector(`[data-cms="proj_${key}_titulo"]`);
+    const descEl = article.querySelector(`[data-cms="proj_${key}_desc"]`);
+    const imgEl = article.querySelector(`[data-cms-img="proj_${key}_img"]`);
+    popularProjetoModal({
+      key,
+      titulo: tituloEl ? tituloEl.textContent.trim() : '',
+      desc: descEl ? descEl.textContent.trim() : '',
+      imgStyle: imgEl ? imgEl.style.cssText : '',
+      extraElId: `projeto-extra-${key}`
     });
+  }
+
+  function abrirProjetoModalDinamico(article) {
+    const key = `custom_${article.dataset.projetoExtraId}`;
+    const imgStyle = article.dataset.imagem
+      ? `background-image:url('${article.dataset.imagem}');background-size:cover;background-position:center;`
+      : 'background:linear-gradient(135deg,#0A84FF33,#05050500),#0F1114;';
+    popularProjetoModal({
+      key,
+      titulo: article.dataset.titulo,
+      desc: article.dataset.descricao,
+      imgStyle
+    });
+  }
+
+  document.getElementById('projetos').addEventListener('click', (e) => {
+    const btn = e.target.closest('.projeto-saber-mais');
+    if (!btn) return;
+    const estaticoEl = btn.closest('[data-projeto-key]');
+    if (estaticoEl) { abrirProjetoModal(estaticoEl.dataset.projetoKey, estaticoEl); return; }
+    const dinamicoEl = btn.closest('[data-projeto-extra-id]');
+    if (dinamicoEl) abrirProjetoModalDinamico(dinamicoEl);
   });
 
   document.getElementById('projeto-modal-voltar').addEventListener('click', fecharProjetoModal);

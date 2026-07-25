@@ -52,6 +52,7 @@
 
     <div class="flex gap-8 border-b border-white/10 mb-10">
       <div class="tab active" data-tab="materiais">Materiais</div>
+      <div class="tab" data-tab="projetos">Projetos</div>
       <div class="tab" data-tab="personalizacao">Personalização do Site</div>
       <div class="tab" data-tab="feedback">Feedback</div>
       <div class="tab" data-tab="estatisticas">Estatísticas</div>
@@ -108,6 +109,27 @@
       <div class="card rounded-2xl p-8">
         <p class="font-display text-xl mb-6">Materiais publicados</p>
         <div id="lista" class="space-y-3 text-sm"></div>
+      </div>
+    </div>
+
+    <!-- ABA: PROJETOS -->
+    <div id="tab-projetos" class="hidden">
+      <div class="card rounded-2xl p-8 mb-10">
+        <p class="font-display text-xl mb-2">Adicionar novo projeto</p>
+        <p class="text-sm text-gray-400 mb-6">Aparece na secção "Projetos" do site, a seguir aos projetos já existentes. Cada visitante pode tocar em "Saiba mais" para ver os detalhes.</p>
+        <form id="projeto-form" class="space-y-4">
+          <input required type="text" id="projeto-titulo" placeholder="Título do projeto" class="w-full rounded-lg px-4 py-3 text-sm">
+          <textarea id="projeto-descricao" placeholder="Descrição curta" rows="2" class="w-full rounded-lg px-4 py-3 text-sm"></textarea>
+          <input type="file" id="projeto-imagem" accept="image/*" class="w-full rounded-lg px-4 py-3 text-sm">
+          <p class="text-xs text-gray-500">A imagem é opcional — se não escolheres nenhuma, mostra um ícone genérico.</p>
+          <button type="submit" id="projeto-btn" class="btn w-full rounded-lg py-3 text-sm">Adicionar projeto</button>
+          <p id="projeto-msg" class="text-sm hidden"></p>
+        </form>
+      </div>
+
+      <div class="card rounded-2xl p-8">
+        <p class="font-display text-xl mb-6">Projetos adicionados</p>
+        <div id="projetos-lista" class="space-y-3 text-sm"></div>
       </div>
     </div>
 
@@ -251,9 +273,11 @@
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById('tab-materiais').classList.toggle('hidden', tab.dataset.tab !== 'materiais');
+      document.getElementById('tab-projetos').classList.toggle('hidden', tab.dataset.tab !== 'projetos');
       document.getElementById('tab-personalizacao').classList.toggle('hidden', tab.dataset.tab !== 'personalizacao');
       document.getElementById('tab-feedback').classList.toggle('hidden', tab.dataset.tab !== 'feedback');
       document.getElementById('tab-estatisticas').classList.toggle('hidden', tab.dataset.tab !== 'estatisticas');
+      if (tab.dataset.tab === 'projetos') carregarProjetosExtra();
       if (tab.dataset.tab === 'feedback') carregarFeedback();
       if (tab.dataset.tab === 'estatisticas') carregarEstatisticas();
     });
@@ -319,6 +343,74 @@
     projeto_manutencao: 'Projeto: Manutenção Inteligente',
     projeto_eletroqi: 'Projeto: EletroQI'
   };
+
+  /* ---------- Projetos: adicionar novo projeto ---------- */
+  document.getElementById('projeto-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('projeto-btn');
+    const msg = document.getElementById('projeto-msg');
+    btn.disabled = true; btn.textContent = 'A adicionar...';
+
+    const titulo = document.getElementById('projeto-titulo').value;
+    const descricao = document.getElementById('projeto-descricao').value;
+    const file = document.getElementById('projeto-imagem').files[0];
+
+    try {
+      let imagem_url = null;
+      if (file) {
+        const path = `projetos-extra/${Date.now()}-${file.name}`;
+        const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file);
+        if (uploadError) throw uploadError;
+        const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+        imagem_url = publicUrlData.publicUrl;
+      }
+
+      const { error: insertError } = await supabase.from('projetos_extra').insert({ titulo, descricao, imagem_url });
+      if (insertError) throw insertError;
+
+      msg.textContent = 'Projeto adicionado com sucesso!';
+      msg.className = 'text-sm text-green-400';
+      msg.classList.remove('hidden');
+      e.target.reset();
+      carregarProjetosExtra();
+    } catch (err) {
+      msg.textContent = 'Erro: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Adicionar projeto';
+    }
+  });
+
+  async function carregarProjetosExtra() {
+    const lista = document.getElementById('projetos-lista');
+    lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+    const { data, error } = await supabase.from('projetos_extra').select('*').order('criado_em', { ascending: false });
+    if (error) { lista.innerHTML = '<p class="text-red-400">Erro ao carregar: ' + error.message + '</p>'; return; }
+    if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não foram adicionados projetos extra.</p>'; return; }
+
+    lista.innerHTML = '';
+    data.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between border-b border-white/5 pb-3';
+      row.innerHTML = `
+        <div>
+          <p class="font-medium">${item.titulo}</p>
+          <p class="text-gray-500 text-xs">${item.descricao || ''}</p>
+        </div>
+        <button data-id="${item.id}" class="del-projeto-btn btn-danger rounded-lg px-3 py-1.5 text-xs">Remover</button>
+      `;
+      lista.appendChild(row);
+    });
+
+    document.querySelectorAll('.del-projeto-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (!confirm('Remover este projeto do site?')) return;
+        await supabase.from('projetos_extra').delete().eq('id', b.dataset.id);
+        carregarProjetosExtra();
+      });
+    });
+  }
 
   async function carregarLista() {
     const lista = document.getElementById('lista');
