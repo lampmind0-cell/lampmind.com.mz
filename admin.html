@@ -93,6 +93,7 @@
               <option value="projeto_assistente">Projeto — Assistente IA</option>
               <option value="projeto_manutencao">Projeto — Sistema de Manutenção Inteligente</option>
               <option value="projeto_eletroqi">Projeto — EletroQI</option>
+              <option value="cursos">Cursos (materiais de apoio)</option>
             </select>
           </div>
 
@@ -141,6 +142,7 @@
               <option value="projeto_assistente">Projeto — Assistente IA</option>
               <option value="projeto_manutencao">Projeto — Sistema de Manutenção Inteligente</option>
               <option value="projeto_eletroqi">Projeto — EletroQI</option>
+              <option value="cursos">Cursos (materiais de apoio)</option>
             </select>
           </div>
           <div id="edit-campos-pago" class="grid sm:grid-cols-2 gap-4 hidden">
@@ -457,6 +459,14 @@
     const destino = document.getElementById('destino').value;
     const file = document.getElementById('ficheiro').files[0];
 
+    if (file && file.size > 50 * 1024 * 1024) {
+      msg.textContent = `Este ficheiro tem ${(file.size / (1024*1024)).toFixed(1)}MB — o limite atual é 50MB. Tenta comprimir o PDF ou dividir o conteúdo.`;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+      btn.disabled = false; btn.textContent = 'Publicar Material';
+      return;
+    }
+
     try {
       const path = `${Date.now()}-${file.name}`;
       const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file);
@@ -541,7 +551,8 @@
     projeto_smartkitchen: 'Projeto: Smart Kitchen',
     projeto_assistente: 'Projeto: Assistente IA',
     projeto_manutencao: 'Projeto: Manutenção Inteligente',
-    projeto_eletroqi: 'Projeto: EletroQI'
+    projeto_eletroqi: 'Projeto: EletroQI',
+    cursos: 'Cursos'
   };
 
   /* ---------- Projetos: adicionar novo projeto ---------- */
