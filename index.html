@@ -241,6 +241,21 @@
     border:1px dashed var(--hair); border-radius:12px; padding:14px; margin-top:12px;
   }
 
+  /* ---------- Animação do coração de like ---------- */
+  #like-heart{ transition: fill .3s ease, stroke .3s ease, filter .3s ease; }
+  #like-heart.liked{
+    fill:#FF3B5C; stroke:#FF3B5C;
+    filter:drop-shadow(0 0 10px rgba(255,59,92,.85)) drop-shadow(0 0 2px rgba(255,59,92,.9));
+  }
+  #like-heart.pop{ animation: like-pop .55s cubic-bezier(.17,.89,.32,1.49); }
+  @keyframes like-pop{
+    0%{ transform:scale(1); }
+    35%{ transform:scale(1.5); }
+    65%{ transform:scale(.85); }
+    100%{ transform:scale(1); }
+  }
+  #like-btn.liked{ border-color:rgba(255,59,92,.5); box-shadow:0 0 20px -4px rgba(255,59,92,.5); }
+
   /* ---------- Painel de candidatura (Fazer parte da equipa) ---------- */
   #candidatura-modal{ position:fixed; inset:0; z-index:230; display:flex; align-items:center; justify-content:center; padding:20px; }
   #candidatura-modal.hidden{ display:none !important; }
@@ -254,6 +269,20 @@
     background:none; border:none; cursor:pointer; padding:0;
   }
   #candidatura-modal-voltar:hover{ color:var(--ink); }
+
+  /* ---------- Painel de matrícula EletroQI ---------- */
+  #matricula-modal{ position:fixed; inset:0; z-index:230; display:flex; align-items:center; justify-content:center; padding:20px; }
+  #matricula-modal.hidden{ display:none !important; }
+  #matricula-modal-backdrop{ position:absolute; inset:0; background:rgba(5,5,5,.78); backdrop-filter:blur(6px); }
+  #matricula-modal-panel{
+    position:relative; z-index:2; width:100%; max-width:480px; max-height:86vh; overflow-y:auto;
+    background:#0F1114; border:1px solid var(--hair); border-radius:20px; padding:26px;
+  }
+  #matricula-modal-voltar{
+    display:inline-flex; align-items:center; gap:6px; color:var(--mute); font-size:.8rem;
+    background:none; border:none; cursor:pointer; padding:0;
+  }
+  #matricula-modal-voltar:hover{ color:var(--ink); }
 
   /* garante que .hidden esconde mesmo com a regra de #edit-toolbar acima
      (o seletor por ID tinha mais prioridade que a classe .hidden do Tailwind, por isso
@@ -477,6 +506,55 @@
           <span class="value-chip rounded-full px-4 py-1.5 text-sm">Excelência</span>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ELETROQI ================= -->
+<section id="eletroqi" class="relative py-28 bg-panel border-y border-hair overflow-hidden">
+  <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(0,229,255,0.08),transparent_55%)]"></div>
+  <div class="max-w-4xl mx-auto px-6 relative text-center">
+    <p class="eyebrow reveal" data-reveal>EletroQI</p>
+    <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 reveal" data-reveal data-cms="eletroqi_titulo">A Máquina de Conhecimento</h2>
+    <p class="font-display text-xl mt-6 reveal" data-reveal data-cms="eletroqi_pergunta">🎓 Precisas de ajuda com os teus estudos? Nós temos a solução!</p>
+    <p class="text-mute mt-4 leading-relaxed reveal" data-reveal data-cms="eletroqi_intro">
+      Apoiamo-te desde os trabalhos mais simples até aos projetos académicos mais exigentes, com um professor virtual inteligente e explicações passo a passo.
+    </p>
+
+    <div class="mt-14 text-left reveal" data-reveal>
+      <p class="eyebrow mb-6 text-center">📚 Os nossos serviços</p>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>✅</span> Trabalhos para Casa (TPC)</div>
+        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>📖</span> Exercícios resolvidos e explicados</div>
+        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>🎓</span> Trabalhos Académicos</div>
+        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>📑</span> Monografias</div>
+        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>📚</span> Projetos de Pesquisa</div>
+        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>🔬</span> Relatórios Científicos e Técnicos</div>
+        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>📊</span> Apresentações em PowerPoint (Slides)</div>
+        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>📝</span> Resumos e Fichas de Estudo</div>
+        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>✍️</span> Revisão e Formatação de Documentos</div>
+        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>🌍</span> Tradução de Documentos</div>
+        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>💻</span> Programação e Desenvolvimento de Software</div>
+        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>⚡</span> Engenharia Elétrica e Eletrónica</div>
+        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>📐</span> Matemática, Física e Química</div>
+        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>📈</span> Estatística e Análise de Dados</div>
+        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>🤖</span> Explicações com Professor Virtual</div>
+        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>📋</span> Preparação para Testes e Exames</div>
+      </div>
+    </div>
+
+    <div class="mt-14 reveal" data-reveal>
+      <p class="eyebrow mb-3">🌟 O nosso diferencial</p>
+      <p class="font-display text-lg" data-cms="eletroqi_diferencial_titulo">Mais do que respostas, oferecemos aprendizagem.</p>
+      <p class="text-mute mt-3 leading-relaxed max-w-2xl mx-auto" data-cms="eletroqi_diferencial_texto">
+        O nosso sistema explica cada solução de forma clara, utilizando um quadro virtual interativo, animações e um professor virtual para tornar o estudo mais simples, prático e envolvente.
+      </p>
+    </div>
+
+    <div class="mt-14 reveal" data-reveal>
+      <p class="font-display text-xl" data-cms="eletroqi_cta_titulo">🚀 Começa agora!</p>
+      <p class="text-mute mt-2" data-cms="eletroqi_cta_texto">Aprende melhor. Produz trabalhos de qualidade. Evolui com tecnologia.</p>
+      <button id="matricula-abrir-btn" type="button" class="btn-primary inline-block rounded-xl px-10 py-3.5 text-sm mt-8">Entrar</button>
     </div>
   </div>
 </section>
@@ -790,7 +868,7 @@
 
     <div class="flex items-center justify-center gap-3 mt-8 reveal" data-reveal>
       <button id="like-btn" class="flex items-center gap-2 rounded-full border border-hair bg-card px-6 py-3 hover:border-energy transition">
-        <i data-lucide="heart" class="w-5 h-5 text-energy"></i>
+        <i data-lucide="heart" id="like-heart" class="w-5 h-5 text-energy"></i>
         <span id="like-count" class="font-display hidden">—</span>
       </button>
     </div>
@@ -978,6 +1056,26 @@
   </div>
 </div>
 
+<!-- ================= PAINEL: MATRÍCULA ELETROQI ================= -->
+<div id="matricula-modal" class="hidden">
+  <div id="matricula-modal-backdrop"></div>
+  <div id="matricula-modal-panel">
+    <button id="matricula-modal-voltar" type="button">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar
+    </button>
+
+    <p class="font-display text-2xl mt-5">Matrícula EletroQI</p>
+    <p class="text-mute text-sm mt-2">O painel de matrícula está a ser preparado. Deixa o teu contacto e avisamos-te assim que abrir.</p>
+
+    <form id="matricula-form" class="mt-6 space-y-4 text-left">
+      <input required type="text" id="matricula-nome" placeholder="Nome" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+      <input required type="email" id="matricula-email" placeholder="Email" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+      <button type="submit" class="btn-primary rounded-xl px-6 py-3 text-sm w-full">Avisa-me quando abrir</button>
+      <p id="matricula-msg" class="text-sm hidden"></p>
+    </form>
+  </div>
+</div>
+
 <!-- ================= MODO DE EDIÇÃO AO VIVO (só para admin) ================= -->
 <div id="edit-login-modal" class="hidden">
   <p class="font-display text-lg mb-1">Entrar como admin</p>
@@ -1097,6 +1195,38 @@
   });
   document.getElementById('candidatura-modal-backdrop').addEventListener('click', () => {
     candidaturaModal.classList.add('hidden');
+  });
+
+  /* ---------- Painel de matrícula EletroQI ---------- */
+  const matriculaModal = document.getElementById('matricula-modal');
+  document.getElementById('matricula-abrir-btn').addEventListener('click', () => {
+    matriculaModal.classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+  });
+  document.getElementById('matricula-modal-voltar').addEventListener('click', () => {
+    matriculaModal.classList.add('hidden');
+  });
+  document.getElementById('matricula-modal-backdrop').addEventListener('click', () => {
+    matriculaModal.classList.add('hidden');
+  });
+
+  document.getElementById('matricula-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('matricula-msg');
+    const nome = document.getElementById('matricula-nome').value;
+    const email = document.getElementById('matricula-email').value;
+    try {
+      const { error } = await supabase.from('interessados').insert({ nome, email });
+      if (error) throw error;
+      msg.textContent = 'Obrigado! Avisamos-te assim que a matrícula abrir.';
+      msg.className = 'text-sm text-neon';
+      msg.classList.remove('hidden');
+      e.target.reset();
+    } catch (err) {
+      msg.textContent = 'Não foi possível enviar: ' + (err.message || 'erro desconhecido') + '.';
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    }
   });
 
   /* particle background */
@@ -1396,8 +1526,10 @@
 
   const likeBtn = document.getElementById('like-btn');
   const likeMsg = document.getElementById('like-msg');
+  const likeHeart = document.getElementById('like-heart');
   if (localStorage.getItem('lampmind_ja_gostou')) {
-    likeBtn.classList.add('opacity-70');
+    likeBtn.classList.add('opacity-70', 'liked');
+    likeHeart?.classList.add('liked');
     likeMsg.classList.remove('hidden');
   }
 
@@ -1412,7 +1544,9 @@
       const { error } = await supabase.from('curtidas').insert({});
       if (error) throw error;
       localStorage.setItem('lampmind_ja_gostou', '1');
-      btn.classList.add('opacity-70');
+      btn.classList.add('opacity-70', 'liked');
+      likeHeart?.classList.add('liked', 'pop');
+      likeHeart?.addEventListener('animationend', () => likeHeart.classList.remove('pop'), { once: true });
       likeMsg.classList.remove('hidden');
       carregarLikes();
     } catch (err) {
