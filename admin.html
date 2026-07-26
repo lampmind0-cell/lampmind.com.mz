@@ -325,6 +325,7 @@
           <input type="url" id="social_linkedin" placeholder="Link do LinkedIn" class="w-full rounded-lg px-4 py-3 text-sm">
           <input type="url" id="social_tiktok" placeholder="Link do TikTok" class="w-full rounded-lg px-4 py-3 text-sm">
           <input type="url" id="social_instagram" placeholder="Link do Instagram" class="w-full rounded-lg px-4 py-3 text-sm">
+          <input type="url" id="social_facebook" placeholder="Link do Facebook" class="w-full rounded-lg px-4 py-3 text-sm">
           <p class="text-xs text-gray-500">O link do YouTube edita-se na aba "YouTube".</p>
           <button type="submit" class="btn w-full rounded-lg py-3 text-sm">Guardar redes sociais</button>
           <p id="social-msg" class="text-sm hidden"></p>
@@ -1154,7 +1155,7 @@
   });
 
   /* ---------- Redes sociais ---------- */
-  const SOCIAL_KEYS = ['social_github', 'social_linkedin', 'social_tiktok', 'social_instagram'];
+  const SOCIAL_KEYS = ['social_github', 'social_linkedin', 'social_tiktok', 'social_instagram', 'social_facebook'];
 
   async function carregarSocialLinks() {
     const { data } = await supabase.from('site_content').select('*').in('chave', SOCIAL_KEYS);
