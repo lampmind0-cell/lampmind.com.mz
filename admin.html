@@ -302,6 +302,27 @@
 
     <!-- ABA: COMUNIDADE -->
     <div id="tab-comunidade" class="hidden">
+      <div class="card rounded-2xl p-8 mb-10" id="responder-cand-card" style="display:none;">
+        <div class="flex items-center justify-between mb-6">
+          <p class="font-display text-xl">Responder candidatura</p>
+          <button type="button" id="responder-cand-voltar" class="text-xs text-gray-400 hover:text-white">← Voltar</button>
+        </div>
+        <p class="text-xs text-gray-500 mb-4">A responder a: <span id="responder-cand-destinatario" class="text-gray-300"></span></p>
+
+        <div class="flex flex-wrap gap-2 mb-5">
+          <button type="button" id="modelo-aceitacao-btn" class="rounded-lg px-3 py-1.5 text-xs border border-green-500/30 text-green-400 hover:bg-green-500/10">✓ Usar modelo de aceitação</button>
+          <button type="button" id="modelo-rejeicao-btn" class="rounded-lg px-3 py-1.5 text-xs border border-red-500/30 text-red-400 hover:bg-red-500/10">✕ Usar modelo de rejeição</button>
+        </div>
+
+        <form id="responder-cand-form" class="space-y-4">
+          <input type="hidden" id="responder-cand-email">
+          <input required type="text" id="responder-cand-assunto" placeholder="Assunto" class="w-full rounded-lg px-4 py-3 text-sm">
+          <textarea required id="responder-cand-corpo" rows="10" placeholder="Mensagem" class="w-full rounded-lg px-4 py-3 text-sm"></textarea>
+          <button type="submit" id="responder-cand-btn" class="btn w-full rounded-lg py-3 text-sm">Enviar resposta</button>
+          <p id="responder-cand-msg" class="text-sm hidden"></p>
+        </form>
+      </div>
+
       <div class="card rounded-2xl p-8 mb-10">
         <p class="font-display text-xl mb-2">Candidaturas para a equipa</p>
         <p class="text-sm text-gray-400 mb-6">Pessoas que preencheram o questionário completo "Fazer parte da equipa" no site.</p>
@@ -895,6 +916,84 @@
   }
 
   /* ---------- Comunidade: candidaturas e interessados ---------- */
+  /* ---------- Responder candidatura por email ---------- */
+  const responderCandCard = document.getElementById('responder-cand-card');
+  let candidaturaAtualNome = '';
+
+  function abrirRespostaCandidatura(id, nome, email) {
+    candidaturaAtualNome = nome;
+    document.getElementById('responder-cand-destinatario').textContent = `${nome} (${email})`;
+    document.getElementById('responder-cand-email').value = email;
+    document.getElementById('responder-cand-assunto').value = '';
+    document.getElementById('responder-cand-corpo').value = '';
+    document.getElementById('responder-cand-msg').classList.add('hidden');
+    responderCandCard.style.display = 'block';
+    responderCandCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.getElementById('responder-cand-voltar').addEventListener('click', () => {
+    responderCandCard.style.display = 'none';
+  });
+
+  document.getElementById('modelo-aceitacao-btn').addEventListener('click', () => {
+    document.getElementById('responder-cand-assunto').value = 'A tua candidatura à equipa LampMind foi aceite! 🎉';
+    document.getElementById('responder-cand-corpo').value =
+`Olá ${candidaturaAtualNome},
+
+Boas notícias! Analisámos a tua candidatura para fazeres parte da equipa LampMind e temos o prazer de te informar que foi aceite.
+
+Ficámos muito entusiasmados com o teu perfil e motivação, e acreditamos que vais ser um ótimo acréscimo à nossa equipa.
+
+Nos próximos dias vamos entrar em contacto para combinar os próximos passos.
+
+Bem-vindo(a) à LampMind!
+
+Um abraço,
+Equipa LampMind`;
+  });
+
+  document.getElementById('modelo-rejeicao-btn').addEventListener('click', () => {
+    document.getElementById('responder-cand-assunto').value = 'Sobre a tua candidatura à equipa LampMind';
+    document.getElementById('responder-cand-corpo').value =
+`Olá ${candidaturaAtualNome},
+
+Obrigado pelo teu interesse em fazer parte da equipa LampMind e pelo tempo que dedicaste à tua candidatura.
+
+Depois de analisarmos com atenção, decidimos não avançar neste momento. Esta decisão não reflete o teu valor ou potencial — muitas vezes trata-se apenas de sincronizar necessidades específicas da equipa num dado momento.
+
+Gostaríamos de te manter na nossa lista de contactos para oportunidades futuras, e ficamos gratos pelo teu interesse na LampMind.
+
+Um abraço,
+Equipa LampMind`;
+  });
+
+  document.getElementById('responder-cand-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('responder-cand-btn');
+    const msg = document.getElementById('responder-cand-msg');
+    btn.disabled = true; btn.textContent = 'A enviar...';
+
+    const to = document.getElementById('responder-cand-email').value;
+    const subject = document.getElementById('responder-cand-assunto').value;
+    const corpo = document.getElementById('responder-cand-corpo').value;
+    const html = corpo.split('\n').map(l => l || '<br>').join('<br>');
+
+    try {
+      const { data, error } = await supabase.functions.invoke('send-email', { body: { to, subject, html } });
+      if (error) throw error;
+      if (data && data.error) throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error));
+      msg.textContent = 'Resposta enviada!';
+      msg.className = 'text-sm text-green-400';
+      msg.classList.remove('hidden');
+    } catch (err) {
+      msg.textContent = 'Erro ao enviar: ' + (err.message || err);
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Enviar resposta';
+    }
+  });
+
   async function carregarCandidaturas() {
     const lista = document.getElementById('candidaturas-lista');
     lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
@@ -921,8 +1020,15 @@
           <p><span class="text-gray-500">Como conheceu:</span> ${item.como_conheceu || '—'}</p>
         </div>
         ${item.motivacao ? `<p class="text-xs text-gray-400 mt-3"><span class="text-gray-500">Motivação:</span> ${item.motivacao}</p>` : ''}
+        <button data-id="${item.id}" data-nome="${item.nome}" data-email="${item.email}" class="responder-cand-btn mt-3 rounded-lg px-3 py-1.5 text-xs border border-white/10 hover:border-white/30">Responder por email</button>
       `;
       lista.appendChild(row);
+    });
+
+    document.querySelectorAll('.responder-cand-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        abrirRespostaCandidatura(b.dataset.id, b.dataset.nome, b.dataset.email);
+      });
     });
 
     document.querySelectorAll('.del-cand-btn').forEach(b => {
