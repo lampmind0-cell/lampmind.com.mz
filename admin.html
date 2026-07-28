@@ -60,6 +60,7 @@
       <div class="tab active" data-tab="materiais">Materiais</div>
       <div class="tab" data-tab="projetos">Projetos</div>
       <div class="tab" data-tab="blog">Blog</div>
+      <div class="tab" data-tab="equipa">Equipa</div>
       <div class="tab" data-tab="youtube">YouTube</div>
       <div class="tab" data-tab="comunidade">Comunidade</div>
       <div class="tab" data-tab="personalizacao">Personalização do Site</div>
@@ -252,6 +253,43 @@
       </div>
     </div>
 
+    <!-- ABA: EQUIPA -->
+    <div id="tab-equipa" class="hidden">
+      <div class="card rounded-2xl p-8 mb-10">
+        <p class="font-display text-xl mb-2">Adicionar membro da equipa</p>
+        <p class="text-sm text-gray-400 mb-6">Aparece na secção "Equipa" do site.</p>
+        <form id="equipa-form" class="space-y-4">
+          <input required type="text" id="equipa-nome" placeholder="Nome" class="w-full rounded-lg px-4 py-3 text-sm">
+          <input type="text" id="equipa-cargo" placeholder="Cargo (ex: Engenheira Eletrotécnica)" class="w-full rounded-lg px-4 py-3 text-sm">
+          <input type="file" id="equipa-foto" accept="image/*" class="w-full rounded-lg px-4 py-3 text-sm">
+          <p class="text-xs text-gray-500">A foto é opcional. Medida ideal: quadrada, mínimo 400×400px.</p>
+          <button type="submit" id="equipa-btn" class="btn w-full rounded-lg py-3 text-sm">Adicionar membro</button>
+          <p id="equipa-msg" class="text-sm hidden"></p>
+        </form>
+      </div>
+
+      <div class="card rounded-2xl p-8 mb-10" id="editar-equipa-card" style="display:none;">
+        <div class="flex items-center justify-between mb-6">
+          <p class="font-display text-xl">Editar membro</p>
+          <button type="button" id="editar-equipa-voltar" class="text-xs text-gray-400 hover:text-white">← Voltar</button>
+        </div>
+        <form id="editar-equipa-form" class="space-y-4">
+          <input type="hidden" id="edit-equipa-id">
+          <input required type="text" id="edit-equipa-nome" placeholder="Nome" class="w-full rounded-lg px-4 py-3 text-sm">
+          <input type="text" id="edit-equipa-cargo" placeholder="Cargo" class="w-full rounded-lg px-4 py-3 text-sm">
+          <input type="file" id="edit-equipa-foto" accept="image/*" class="w-full rounded-lg px-4 py-3 text-sm">
+          <p class="text-xs text-gray-500">Só escolhe um ficheiro se quiseres trocar a foto atual.</p>
+          <button type="submit" class="btn w-full rounded-lg py-3 text-sm">Guardar alterações</button>
+          <p id="editar-equipa-msg" class="text-sm hidden"></p>
+        </form>
+      </div>
+
+      <div class="card rounded-2xl p-8">
+        <p class="font-display text-xl mb-6">Membros da equipa</p>
+        <div id="equipa-lista" class="space-y-3 text-sm"></div>
+      </div>
+    </div>
+
     <!-- ABA: YOUTUBE -->
     <div id="tab-youtube" class="hidden">
       <div class="card rounded-2xl p-8 mb-10">
@@ -302,6 +340,21 @@
 
     <!-- ABA: COMUNIDADE -->
     <div id="tab-comunidade" class="hidden">
+      <div class="card rounded-2xl p-8 mb-10">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="font-display text-xl mb-1">Candidaturas para a equipa</p>
+            <p class="text-sm text-gray-400" id="candidaturas-status-texto">A verificar estado...</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer shrink-0">
+            <input type="checkbox" id="candidaturas-toggle" class="sr-only peer">
+            <div class="w-12 h-7 bg-gray-700 peer-checked:bg-green-500 rounded-full transition-colors"></div>
+            <div class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+          </label>
+        </div>
+        <p class="text-xs text-gray-500 mt-3">Quando desligado, o questionário completo "Fazer parte da equipa" fica indisponível no site, com uma mensagem a avisar os visitantes.</p>
+      </div>
+
       <div class="card rounded-2xl p-8 mb-10" id="responder-cand-card" style="display:none;">
         <div class="flex items-center justify-between mb-6">
           <p class="font-display text-xl">Responder candidatura</p>
@@ -338,6 +391,16 @@
 
     <!-- ABA: PERSONALIZAÇÃO -->
     <div id="tab-personalizacao" class="hidden">
+      <div class="card rounded-2xl p-8 mb-10">
+        <p class="font-display text-xl mb-2">Data de abertura das aulas</p>
+        <p class="text-sm text-gray-400 mb-6">Aparece no teste grátis de Matemática (e pode ser usado noutros testes de serviços futuramente).</p>
+        <form id="data-abertura-form" class="flex flex-col sm:flex-row gap-3">
+          <input type="text" id="data-abertura-input" placeholder="ex: 15 de Setembro de 2026, ou 'a anunciar em breve'" class="flex-1 rounded-lg px-4 py-3 text-sm">
+          <button type="submit" class="btn rounded-lg px-6 py-3 text-sm whitespace-nowrap">Guardar</button>
+        </form>
+        <p id="data-abertura-msg" class="text-sm hidden mt-2"></p>
+      </div>
+
       <div class="card rounded-2xl p-8 mb-10">
         <p class="font-display text-xl mb-2">Redes sociais</p>
         <p class="text-sm text-gray-400 mb-6">Aparecem no rodapé e na secção de Contacto do site. Deixa em branco o que ainda não tiveres.</p>
@@ -472,6 +535,7 @@
       carregarLista();
       carregarConfig();
       carregarSocialLinks();
+      carregarDataAbertura();
     } else {
       loginBox.classList.remove('hidden');
       panel.classList.add('hidden');
@@ -505,6 +569,7 @@
       document.getElementById('tab-materiais').classList.toggle('hidden', tab.dataset.tab !== 'materiais');
       document.getElementById('tab-projetos').classList.toggle('hidden', tab.dataset.tab !== 'projetos');
       document.getElementById('tab-blog').classList.toggle('hidden', tab.dataset.tab !== 'blog');
+      document.getElementById('tab-equipa').classList.toggle('hidden', tab.dataset.tab !== 'equipa');
       document.getElementById('tab-youtube').classList.toggle('hidden', tab.dataset.tab !== 'youtube');
       document.getElementById('tab-comunidade').classList.toggle('hidden', tab.dataset.tab !== 'comunidade');
       document.getElementById('tab-personalizacao').classList.toggle('hidden', tab.dataset.tab !== 'personalizacao');
@@ -512,6 +577,8 @@
       document.getElementById('tab-estatisticas').classList.toggle('hidden', tab.dataset.tab !== 'estatisticas');
       if (tab.dataset.tab === 'projetos') carregarProjetosExtra();
       if (tab.dataset.tab === 'blog') carregarBlogAdmin();
+      if (tab.dataset.tab === 'equipa') carregarEquipaAdmin();
+      if (tab.dataset.tab === 'comunidade') carregarEstadoCandidaturas();
       if (tab.dataset.tab === 'youtube') { carregarYoutubeAdmin(); carregarYoutubeLinkAtual(); }
       if (tab.dataset.tab === 'comunidade') { carregarCandidaturas(); carregarInteressados(); }
       if (tab.dataset.tab === 'feedback') carregarFeedback();
@@ -1200,6 +1267,152 @@ Equipa LampMind`;
     });
   }
 
+  /* ---------- Equipa: adicionar membro ---------- */
+  document.getElementById('equipa-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('equipa-btn');
+    const msg = document.getElementById('equipa-msg');
+    btn.disabled = true; btn.textContent = 'A adicionar...';
+
+    const nome = document.getElementById('equipa-nome').value;
+    const cargo = document.getElementById('equipa-cargo').value;
+    const file = document.getElementById('equipa-foto').files[0];
+
+    try {
+      let foto_url = null;
+      if (file) {
+        const path = `equipe/${Date.now()}-${file.name}`;
+        const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file);
+        if (uploadError) throw uploadError;
+        const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+        foto_url = publicUrlData.publicUrl;
+      }
+      const { error } = await supabase.from('equipe').insert({ nome, cargo, foto_url });
+      if (error) throw error;
+      msg.textContent = 'Membro adicionado com sucesso!';
+      msg.className = 'text-sm text-green-400';
+      msg.classList.remove('hidden');
+      e.target.reset();
+      carregarEquipaAdmin();
+    } catch (err) {
+      msg.textContent = 'Erro: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Adicionar membro';
+    }
+  });
+
+  /* ---------- Equipa: editar ---------- */
+  const editarEquipaCard = document.getElementById('editar-equipa-card');
+
+  function abrirEdicaoEquipa(item) {
+    document.getElementById('edit-equipa-id').value = item.id;
+    document.getElementById('edit-equipa-nome').value = item.nome || '';
+    document.getElementById('edit-equipa-cargo').value = item.cargo || '';
+    document.getElementById('edit-equipa-foto').value = '';
+    editarEquipaCard.style.display = 'block';
+    editarEquipaCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.getElementById('editar-equipa-voltar').addEventListener('click', () => {
+    editarEquipaCard.style.display = 'none';
+  });
+
+  document.getElementById('editar-equipa-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('editar-equipa-msg');
+    const id = document.getElementById('edit-equipa-id').value;
+    const file = document.getElementById('edit-equipa-foto').files[0];
+    const payload = {
+      nome: document.getElementById('edit-equipa-nome').value,
+      cargo: document.getElementById('edit-equipa-cargo').value
+    };
+    try {
+      if (file) {
+        const path = `equipe/${Date.now()}-${file.name}`;
+        const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file);
+        if (uploadError) throw uploadError;
+        const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+        payload.foto_url = publicUrlData.publicUrl;
+      }
+      const { error } = await supabase.from('equipe').update(payload).eq('id', id);
+      if (error) throw error;
+      msg.textContent = 'Alterações guardadas!';
+      msg.className = 'text-sm text-green-400';
+      msg.classList.remove('hidden');
+      editarEquipaCard.style.display = 'none';
+      carregarEquipaAdmin();
+    } catch (err) {
+      msg.textContent = 'Erro: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    }
+  });
+
+  async function carregarEquipaAdmin() {
+    const lista = document.getElementById('equipa-lista');
+    lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+    const { data, error } = await supabase.from('equipe').select('*').order('criado_em', { ascending: false });
+    if (error) { lista.innerHTML = '<p class="text-red-400">Erro ao carregar: ' + error.message + '</p>'; return; }
+    if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não foram adicionados membros.</p>'; return; }
+
+    lista.innerHTML = '';
+    data.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between border-b border-white/5 pb-3 gap-3';
+      row.innerHTML = `
+        <div>
+          <p class="font-medium">${item.nome}</p>
+          <p class="text-gray-500 text-xs">${item.cargo || ''}</p>
+        </div>
+        <div class="flex gap-2 shrink-0">
+          <button data-id="${item.id}" class="edit-equipa-btn rounded-lg px-3 py-1.5 text-xs border border-white/10 hover:border-white/30">Editar</button>
+          <button data-id="${item.id}" class="del-equipa-btn btn-danger rounded-lg px-3 py-1.5 text-xs">Remover</button>
+        </div>
+      `;
+      lista.appendChild(row);
+    });
+
+    document.querySelectorAll('.edit-equipa-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        const item = data.find(d => d.id === b.dataset.id);
+        if (item) abrirEdicaoEquipa(item);
+      });
+    });
+
+    document.querySelectorAll('.del-equipa-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (!confirm('Remover este membro do site?')) return;
+        await supabase.from('equipe').delete().eq('id', b.dataset.id);
+        carregarEquipaAdmin();
+      });
+    });
+  }
+
+  /* ---------- Candidaturas: abrir/fechar receção ---------- */
+  async function carregarEstadoCandidaturas() {
+    const toggle = document.getElementById('candidaturas-toggle');
+    const texto = document.getElementById('candidaturas-status-texto');
+    const { data } = await supabase.from('site_content').select('valor').eq('chave', 'candidaturas_abertas').maybeSingle();
+    const aberto = !data || data.valor !== 'false';
+    toggle.checked = aberto;
+    texto.textContent = aberto ? 'A receber candidaturas' : 'Candidaturas fechadas';
+  }
+
+  document.getElementById('candidaturas-toggle').addEventListener('change', async (e) => {
+    const aberto = e.target.checked;
+    const texto = document.getElementById('candidaturas-status-texto');
+    try {
+      const { error } = await supabase.from('site_content').upsert({ chave: 'candidaturas_abertas', valor: aberto ? 'true' : 'false' });
+      if (error) throw error;
+      texto.textContent = aberto ? 'A receber candidaturas' : 'Candidaturas fechadas';
+    } catch (err) {
+      e.target.checked = !aberto;
+      texto.textContent = 'Erro ao guardar: ' + err.message;
+    }
+  });
+
   async function carregarLista() {
     const lista = document.getElementById('lista');
     lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
@@ -1262,6 +1475,29 @@ Equipa LampMind`;
 
   /* ---------- Redes sociais ---------- */
   const SOCIAL_KEYS = ['social_github', 'social_linkedin', 'social_tiktok', 'social_instagram', 'social_facebook'];
+
+  /* ---------- Data de abertura das aulas ---------- */
+  async function carregarDataAbertura() {
+    const { data } = await supabase.from('site_content').select('valor').eq('chave', 'data_abertura_aulas').maybeSingle();
+    document.getElementById('data-abertura-input').value = (data && data.valor) || '';
+  }
+
+  document.getElementById('data-abertura-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('data-abertura-msg');
+    const valor = document.getElementById('data-abertura-input').value;
+    try {
+      const { error } = await supabase.from('site_content').upsert({ chave: 'data_abertura_aulas', valor });
+      if (error) throw error;
+      msg.textContent = 'Data guardada!';
+      msg.className = 'text-sm text-green-400';
+      msg.classList.remove('hidden');
+    } catch (err) {
+      msg.textContent = 'Erro: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    }
+  });
 
   async function carregarSocialLinks() {
     const { data } = await supabase.from('site_content').select('*').in('chave', SOCIAL_KEYS);

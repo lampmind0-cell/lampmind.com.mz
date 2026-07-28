@@ -554,7 +554,10 @@
     <div class="mt-14 reveal" data-reveal>
       <p class="font-display text-xl" data-cms="eletroqi_cta_titulo">🚀 Começa agora!</p>
       <p class="text-mute mt-2" data-cms="eletroqi_cta_texto">Aprende melhor. Produz trabalhos de qualidade. Evolui com tecnologia.</p>
-      <button id="matricula-abrir-btn" type="button" class="btn-primary inline-block rounded-xl px-10 py-3.5 text-sm mt-8">Entrar</button>
+      <div class="flex flex-wrap items-center justify-center gap-4 mt-8">
+        <button id="matricula-abrir-btn" type="button" class="btn-primary inline-block rounded-xl px-10 py-3.5 text-sm">Entrar</button>
+        <a href="teste-matematica.html" target="_blank" rel="noopener" class="btn-ghost inline-block rounded-xl px-10 py-3.5 text-sm">🧮 Testar aula grátis de Matemática</a>
+      </div>
     </div>
   </div>
 </section>
@@ -856,6 +859,7 @@
     <button id="abrir-candidatura-btn" type="button" class="text-xs text-mute hover:text-ink underline mt-6">
       Queres fazer parte da equipa? Preenche o questionário completo →
     </button>
+    <p id="candidaturas-fechadas-msg" class="text-xs text-mute mt-6 hidden">No momento não estamos a receber candidaturas para a equipa. Volta a verificar em breve!</p>
   </div>
 </section>
 
@@ -1186,12 +1190,8 @@
     });
   });
 
-  /* ---------- Questionário completo (candidatura à equipa): abrir/fechar painel ---------- */
+  /* ---------- Questionário completo (candidatura à equipa): fechar painel ---------- */
   const candidaturaModal = document.getElementById('candidatura-modal');
-  document.getElementById('abrir-candidatura-btn').addEventListener('click', () => {
-    candidaturaModal.classList.remove('hidden');
-    if (window.lucide) lucide.createIcons();
-  });
   document.getElementById('candidatura-modal-voltar').addEventListener('click', () => {
     candidaturaModal.classList.add('hidden');
   });
@@ -1210,25 +1210,6 @@
   });
   document.getElementById('matricula-modal-backdrop').addEventListener('click', () => {
     matriculaModal.classList.add('hidden');
-  });
-
-  document.getElementById('matricula-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const msg = document.getElementById('matricula-msg');
-    const nome = document.getElementById('matricula-nome').value;
-    const email = document.getElementById('matricula-email').value;
-    try {
-      const { error } = await supabase.from('interessados').insert({ nome, email });
-      if (error) throw error;
-      msg.textContent = 'Obrigado! Avisamos-te assim que a matrícula abrir.';
-      msg.className = 'text-sm text-neon';
-      msg.classList.remove('hidden');
-      e.target.reset();
-    } catch (err) {
-      msg.textContent = 'Não foi possível enviar: ' + (err.message || 'erro desconhecido') + '.';
-      msg.className = 'text-sm text-red-400';
-      msg.classList.remove('hidden');
-    }
   });
 
   /* particle background */
@@ -1623,6 +1604,45 @@
       e.target.reset();
     } catch (err) {
       msg.textContent = 'Erro ao enviar: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    }
+  });
+
+  /* ---------- Questionário completo (candidatura à equipa): abrir painel (verifica se está aberto) ---------- */
+  document.getElementById('abrir-candidatura-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('abrir-candidatura-btn');
+    const fechadaMsg = document.getElementById('candidaturas-fechadas-msg');
+    try {
+      const { data } = await supabase.from('site_content').select('valor').eq('chave', 'candidaturas_abertas').maybeSingle();
+      const aberto = !data || data.valor !== 'false';
+      if (!aberto) {
+        btn.classList.add('hidden');
+        fechadaMsg.classList.remove('hidden');
+        return;
+      }
+    } catch (err) {
+      // se não conseguir verificar, deixa abrir por segurança
+    }
+    document.getElementById('candidatura-modal').classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+  });
+
+  /* ---------- Painel de matrícula EletroQI: envio ---------- */
+  document.getElementById('matricula-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('matricula-msg');
+    const nome = document.getElementById('matricula-nome').value;
+    const email = document.getElementById('matricula-email').value;
+    try {
+      const { error } = await supabase.from('interessados').insert({ nome, email });
+      if (error) throw error;
+      msg.textContent = 'Obrigado! Avisamos-te assim que a matrícula abrir.';
+      msg.className = 'text-sm text-neon';
+      msg.classList.remove('hidden');
+      e.target.reset();
+    } catch (err) {
+      msg.textContent = 'Não foi possível enviar: ' + (err.message || 'erro desconhecido') + '.';
       msg.className = 'text-sm text-red-400';
       msg.classList.remove('hidden');
     }
