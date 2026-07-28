@@ -842,14 +842,17 @@ let lesson = { steps: [], index: 0, started: false, timerId: null };
 let ptVoice = null;
 function loadVoices(){
   const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
-  ptVoice = voices.find(v => v.lang === 'pt-BR' && /female|mulher|maria|luciana/i.test(v.name))
-         || voices.find(v => v.lang === 'pt-BR')
-         || voices.find(v => v.lang && v.lang.startsWith('pt'))
+  ptVoice = voices.find(v => /^pt-BR$/i.test(v.lang) && /female|mulher|maria|luciana/i.test(v.name))
+         || voices.find(v => /^pt-BR$/i.test(v.lang))
+         || voices.find(v => /^pt-PT$/i.test(v.lang))
+         || voices.find(v => v.lang && v.lang.toLowerCase().startsWith('pt'))
          || null;
 }
 if('speechSynthesis' in window){
   loadVoices();
   window.speechSynthesis.onvoiceschanged = loadVoices;
+  setTimeout(loadVoices, 300);
+  setTimeout(loadVoices, 1200);
 }
 
 function setTalking(isTalking){
@@ -865,7 +868,7 @@ function speak(text, onDone){
   }
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'pt-BR';
+  u.lang = ptVoice ? ptVoice.lang : 'pt-PT';
   u.rate = 0.82;
   u.pitch = 1.12;
   if(ptVoice) u.voice = ptVoice;
@@ -1348,12 +1351,22 @@ setupDrag();
   const FLAG = 'lampmind_teste_matematica_usado';
   const boardFrame = document.getElementById('lmBoardFrame');
   const alreadyPanel = document.getElementById('lmAlreadyPanel');
+  let ehAdmin = false;
 
-  /* já testou antes? mostra o painel em vez da aula */
-  if (localStorage.getItem(FLAG)) {
-    boardFrame.style.display = 'none';
-    alreadyPanel.classList.add('show');
-  }
+  (async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      ehAdmin = !!session;
+    } catch (err) {
+      ehAdmin = false;
+    }
+
+    /* já testou antes? mostra o painel em vez da aula (admin fica sempre com acesso livre) */
+    if (!ehAdmin && localStorage.getItem(FLAG)) {
+      boardFrame.style.display = 'none';
+      alreadyPanel.classList.add('show');
+    }
+  })();
 
   /* data de abertura das aulas, editável pelo admin */
   (async () => {
@@ -1365,13 +1378,13 @@ setupDrag();
     }
   })();
 
-  /* marca como usado e regista o teste assim que a aula começa */
+  /* marca como usado e regista o teste assim que a aula começa (não se aplica ao admin) */
   const iniciarAulaOriginal = window.startLesson;
   window.startLesson = function () {
-    if (!localStorage.getItem(FLAG)) {
+    if (!ehAdmin && !localStorage.getItem(FLAG)) {
       localStorage.setItem(FLAG, '1');
-      supabase.from('testes_servico').insert({ servico: 'matematica' }).then(() => {}).catch(() => {});
     }
+    supabase.from('testes_servico').insert({ servico: 'matematica' }).then(() => {}).catch(() => {});
     iniciarAulaOriginal();
   };
 </script>

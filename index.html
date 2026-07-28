@@ -515,13 +515,8 @@
   <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(0,229,255,0.08),transparent_55%)]"></div>
   <div class="max-w-4xl mx-auto px-6 relative text-center">
     <p class="eyebrow reveal" data-reveal>EletroQI</p>
-    <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 reveal" data-reveal data-cms="eletroqi_titulo">A Máquina de Conhecimento</h2>
-    <p class="font-display text-xl mt-6 reveal" data-reveal data-cms="eletroqi_pergunta">🎓 Precisas de ajuda com os teus estudos? Nós temos a solução!</p>
-    <p class="text-mute mt-4 leading-relaxed reveal" data-reveal data-cms="eletroqi_intro">
-      Apoiamo-te desde os trabalhos mais simples até aos projetos académicos mais exigentes, com um professor virtual inteligente e explicações passo a passo.
-    </p>
 
-    <div class="mt-14 text-left reveal" data-reveal>
+    <div class="mt-8 text-left reveal" data-reveal>
       <p class="eyebrow mb-6 text-center">📚 Os nossos serviços</p>
       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>✅</span> Trabalhos para Casa (TPC)</div>
@@ -1388,7 +1383,7 @@
       const { data, error } = await supabase
         .from('equipe')
         .select('*')
-        .order('ordem', { ascending: true });
+        .order('criado_em', { ascending: true });
 
       if (error) throw error;
 

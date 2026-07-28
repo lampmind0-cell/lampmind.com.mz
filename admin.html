@@ -495,6 +495,12 @@
         <p class="font-display text-lg mb-6">Visitas por dia (últimos 7 dias)</p>
         <div id="stat-grafico" class="flex items-end gap-3 h-40"></div>
       </div>
+
+      <div class="card rounded-2xl p-8 mt-8">
+        <p class="font-display text-lg mb-2">Testes de serviços</p>
+        <p class="text-sm text-gray-400 mb-6">Quantas vezes as pessoas experimentaram os testes grátis (ex: aula de Matemática).</p>
+        <div id="stat-testes-lista" class="space-y-2 text-sm"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1614,6 +1620,21 @@ Equipa LampMind`;
         <span class="text-xs text-gray-300">${d.total}</span>
       </div>
     `).join('');
+
+    const testesLista = document.getElementById('stat-testes-lista');
+    const { data: testes } = await supabase.from('testes_servico').select('servico');
+    if (!testes || !testes.length) {
+      testesLista.innerHTML = '<p class="text-gray-500">Ainda não houve testes realizados.</p>';
+    } else {
+      const contagem = {};
+      testes.forEach(t => { contagem[t.servico] = (contagem[t.servico] || 0) + 1; });
+      testesLista.innerHTML = Object.entries(contagem).map(([servico, n]) => `
+        <div class="flex items-center justify-between border-b border-white/5 pb-2">
+          <span class="capitalize">${servico}</span>
+          <span class="font-display text-lg">${n}</span>
+        </div>
+      `).join('');
+    }
   }
 
   checkSession();
