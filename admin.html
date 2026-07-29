@@ -64,6 +64,7 @@
       <div class="tab" data-tab="youtube">YouTube</div>
       <div class="tab" data-tab="comunidade">Comunidade</div>
       <div class="tab" data-tab="biscoitos">Biscoitos</div>
+      <div class="tab" data-tab="matriculas">Matrículas</div>
       <div class="tab" data-tab="personalizacao">Personalização do Site</div>
       <div class="tab" data-tab="feedback">Feedback</div>
       <div class="tab" data-tab="estatisticas">Estatísticas</div>
@@ -420,6 +421,15 @@
       </div>
     </div>
 
+    <!-- ABA: MATRÍCULAS -->
+    <div id="tab-matriculas" class="hidden">
+      <div class="card rounded-2xl p-8">
+        <p class="font-display text-xl mb-2">Matrículas — LampMind Kids</p>
+        <p class="text-sm text-gray-400 mb-6">Confirma o acesso depois de verificares o comprovativo de pagamento no WhatsApp.</p>
+        <div id="matriculas-lista" class="space-y-4 text-sm"></div>
+      </div>
+    </div>
+
     <!-- ABA: PERSONALIZAÇÃO -->
     <div id="tab-personalizacao" class="hidden">
       <div class="card rounded-2xl p-8 mb-10">
@@ -610,6 +620,7 @@
       document.getElementById('tab-youtube').classList.toggle('hidden', tab.dataset.tab !== 'youtube');
       document.getElementById('tab-comunidade').classList.toggle('hidden', tab.dataset.tab !== 'comunidade');
       document.getElementById('tab-biscoitos').classList.toggle('hidden', tab.dataset.tab !== 'biscoitos');
+      document.getElementById('tab-matriculas').classList.toggle('hidden', tab.dataset.tab !== 'matriculas');
       document.getElementById('tab-personalizacao').classList.toggle('hidden', tab.dataset.tab !== 'personalizacao');
       document.getElementById('tab-feedback').classList.toggle('hidden', tab.dataset.tab !== 'feedback');
       document.getElementById('tab-estatisticas').classList.toggle('hidden', tab.dataset.tab !== 'estatisticas');
@@ -620,6 +631,7 @@
       if (tab.dataset.tab === 'youtube') { carregarYoutubeAdmin(); carregarYoutubeLinkAtual(); }
       if (tab.dataset.tab === 'comunidade') { carregarCandidaturas(); carregarInteressados(); }
       if (tab.dataset.tab === 'biscoitos') { carregarBiscoitos(); carregarPedidosTrabalho(); }
+      if (tab.dataset.tab === 'matriculas') carregarMatriculas();
       if (tab.dataset.tab === 'feedback') carregarFeedback();
       if (tab.dataset.tab === 'estatisticas') carregarEstatisticas();
     });
@@ -1520,6 +1532,47 @@ Equipa LampMind`;
         <a href="${p.arquivo_url}" target="_blank" rel="noopener" class="text-xs border border-white/10 hover:border-white/30 rounded-lg px-3 py-1.5 shrink-0">Ver ficheiro</a>
       </div>
     `).join('');
+  }
+
+  /* ---------- Matrículas: LampMind Kids ---------- */
+  async function carregarMatriculas() {
+    const lista = document.getElementById('matriculas-lista');
+    lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+    const { data, error } = await supabase.from('matriculas_curso').select('*').order('criado_em', { ascending: false });
+    if (error) { lista.innerHTML = '<p class="text-red-400">Erro: ' + error.message + '</p>'; return; }
+    if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não há matrículas.</p>'; return; }
+
+    lista.innerHTML = data.map(m => `
+      <div class="border border-white/10 rounded-xl p-4">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="font-medium">${m.nome_crianca} <span class="text-gray-500 font-normal text-xs">· ${m.idade_crianca || '—'} anos</span></p>
+            <p class="text-gray-400 text-xs mt-1">Encarregado: ${m.nome_encarregado} · ${m.telefone_encarregado}${m.email_encarregado ? ' · ' + m.email_encarregado : ''}</p>
+          </div>
+          <span class="text-xs px-2 py-1 rounded-full shrink-0 ${m.status_pagamento === 'confirmado' ? 'bg-green-500/15 text-green-400' : 'bg-yellow-500/15 text-yellow-400'}">${m.status_pagamento === 'confirmado' ? '✓ Confirmado' : 'Pendente'}</span>
+        </div>
+        <p class="text-xs text-gray-400 mt-2">Pagamento: ${m.metodo_pagamento === 'semanal' ? 'Semanal (125 MT/semana)' : 'Único (500 MT)'}${m.endereco ? ' · ' + m.endereco : ''}</p>
+        ${m.observacoes ? `<p class="text-xs text-gray-500 mt-2">Obs: ${m.observacoes}</p>` : ''}
+        <div class="flex gap-2 mt-3">
+          ${m.status_pagamento !== 'confirmado' ? `<button data-id="${m.id}" class="confirmar-matricula-btn rounded-lg px-3 py-1.5 text-xs border border-green-500/30 text-green-400 hover:bg-green-500/10">Confirmar pagamento</button>` : ''}
+          <button data-id="${m.id}" class="del-matricula-btn btn-danger rounded-lg px-3 py-1.5 text-xs">Remover</button>
+        </div>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.confirmar-matricula-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        await supabase.from('matriculas_curso').update({ status_pagamento: 'confirmado' }).eq('id', b.dataset.id);
+        carregarMatriculas();
+      });
+    });
+    document.querySelectorAll('.del-matricula-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (!confirm('Remover esta matrícula?')) return;
+        await supabase.from('matriculas_curso').delete().eq('id', b.dataset.id);
+        carregarMatriculas();
+      });
+    });
   }
 
   async function carregarLista() {

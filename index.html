@@ -303,20 +303,6 @@
   #ia-chat-input{ flex:1; background:var(--card); border:1px solid var(--hair); border-radius:10px; padding:9px 12px; font-size:13px; color:var(--ink); }
   #ia-chat-form button{ background:var(--electric); border:none; border-radius:10px; width:38px; color:#fff; cursor:pointer; }
 
-  /* ---------- Painel de matrícula EletroQI ---------- */
-  #matricula-modal{ position:fixed; inset:0; z-index:230; display:flex; align-items:center; justify-content:center; padding:20px; }
-  #matricula-modal.hidden{ display:none !important; }
-  #matricula-modal-backdrop{ position:absolute; inset:0; background:rgba(5,5,5,.78); backdrop-filter:blur(6px); }
-  #matricula-modal-panel{
-    position:relative; z-index:2; width:100%; max-width:480px; max-height:86vh; overflow-y:auto;
-    background:#0F1114; border:1px solid var(--hair); border-radius:20px; padding:26px;
-  }
-  #matricula-modal-voltar{
-    display:inline-flex; align-items:center; gap:6px; color:var(--mute); font-size:.8rem;
-    background:none; border:none; cursor:pointer; padding:0;
-  }
-  #matricula-modal-voltar:hover{ color:var(--ink); }
-
   /* garante que .hidden esconde mesmo com a regra de #edit-toolbar acima
      (o seletor por ID tinha mais prioridade que a classe .hidden do Tailwind, por isso
      sem esta regra o painel de edição ficava sempre visível, mesmo sem login) */
@@ -543,49 +529,25 @@
   </div>
 </section>
 
-<!-- ================= ELETROQI ================= -->
+<!-- ================= SERVIÇOS ================= -->
 <section id="eletroqi" class="relative py-28 bg-panel border-y border-hair overflow-hidden">
   <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(0,229,255,0.08),transparent_55%)]"></div>
   <div class="max-w-4xl mx-auto px-6 relative text-center">
-    <p class="eyebrow reveal" data-reveal>EletroQI</p>
+    <p class="eyebrow reveal" data-reveal>Serviços</p>
+    <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 reveal" data-reveal>O que já temos pronto para ti</h2>
+    <p class="text-mute mt-4 reveal" data-reveal>Estamos a lançar os nossos serviços aos poucos — mais novidades em breve.</p>
 
-    <div class="mt-8 text-left reveal" data-reveal>
-      <p class="eyebrow mb-6 text-center">📚 Os nossos serviços</p>
-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>✅</span> Trabalhos para Casa (TPC)</div>
-        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>📖</span> Exercícios resolvidos e explicados</div>
-        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>🎓</span> Trabalhos Académicos</div>
-        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>📑</span> Monografias</div>
-        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>📚</span> Projetos de Pesquisa</div>
-        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>🔬</span> Relatórios Científicos e Técnicos</div>
-        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>📊</span> Apresentações em PowerPoint (Slides)</div>
-        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>📝</span> Resumos e Fichas de Estudo</div>
-        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>✍️</span> Revisão e Formatação de Documentos</div>
-        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>🌍</span> Tradução de Documentos</div>
-        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>💻</span> Programação e Desenvolvimento de Software</div>
-        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>⚡</span> Engenharia Elétrica e Eletrónica</div>
-        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>📐</span> Matemática, Física e Química</div>
-        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>📈</span> Estatística e Análise de Dados</div>
-        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>🤖</span> Explicações com Professor Virtual</div>
-        <div class="flex items-start gap-2 text-sm text-mute bg-card border border-hair rounded-xl px-4 py-3"><span>📋</span> Preparação para Testes e Exames</div>
-      </div>
-    </div>
+    <div class="grid sm:grid-cols-2 gap-5 mt-14 text-left">
+      <button type="button" id="curso-kids-abrir-btn" class="card-lift rounded-2xl border border-hair bg-card p-6 reveal text-left" data-reveal>
+        <span class="eyebrow">👶 LampMind Kids</span>
+        <p class="font-display text-lg mt-3">Curso Básico Infantil (4-6 anos)</p>
+        <p class="text-mute text-sm mt-2">Matemática e Português para os mais pequenos, com aulas divertidas e interativas.</p>
+        <span class="inline-flex items-center gap-1 text-sm text-neon mt-4">Ver curso e matricular <i data-lucide="arrow-right" class="w-4 h-4"></i></span>
+      </button>
 
-    <div class="mt-14 reveal" data-reveal>
-      <p class="eyebrow mb-3">🌟 O nosso diferencial</p>
-      <p class="font-display text-lg" data-cms="eletroqi_diferencial_titulo">Mais do que respostas, oferecemos aprendizagem.</p>
-      <p class="text-mute mt-3 leading-relaxed max-w-2xl mx-auto" data-cms="eletroqi_diferencial_texto">
-        O nosso sistema explica cada solução de forma clara, utilizando um quadro virtual interativo, animações e um professor virtual para tornar o estudo mais simples, prático e envolvente.
-      </p>
-    </div>
-
-    <div class="mt-14 reveal" data-reveal>
-      <p class="font-display text-xl" data-cms="eletroqi_cta_titulo">🚀 Começa agora!</p>
-      <p class="text-mute mt-2" data-cms="eletroqi_cta_texto">Aprende melhor. Produz trabalhos de qualidade. Evolui com tecnologia.</p>
-      <div class="flex flex-wrap items-center justify-center gap-4 mt-8">
-        <button id="matricula-abrir-btn" type="button" class="btn-primary inline-block rounded-xl px-10 py-3.5 text-sm">Entrar</button>
-        <a href="teste-matematica.html" target="_blank" rel="noopener" class="btn-ghost inline-block rounded-xl px-10 py-3.5 text-sm">🧮 Testar aula grátis de Matemática</a>
-        <a href="trabalhos.html" target="_blank" rel="noopener" class="btn-ghost inline-block rounded-xl px-10 py-3.5 text-sm">🍪 Pedir um trabalho pronto</a>
+      <div class="rounded-2xl border border-dashed border-hair p-6 flex flex-col items-center justify-center text-center reveal" data-reveal>
+        <i data-lucide="hourglass" class="w-6 h-6 text-mute mb-3"></i>
+        <p class="text-mute text-sm">Mais serviços a caminho — volta a visitar em breve!</p>
       </div>
     </div>
   </div>
@@ -1091,7 +1053,7 @@
   </div>
 </div>
 
-<!-- ================= PAINEL: MATRÍCULA ELETROQI ================= -->
+<!-- ================= PAINEL: LAMPMIND KIDS (CURSO INFANTIL) ================= -->
 <div id="matricula-modal" class="hidden">
   <div id="matricula-modal-backdrop"></div>
   <div id="matricula-modal-panel">
@@ -1099,15 +1061,56 @@
       <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar
     </button>
 
-    <p class="font-display text-2xl mt-5">Matrícula EletroQI</p>
-    <p class="text-mute text-sm mt-2">O painel de matrícula está a ser preparado. Deixa o teu contacto e avisamos-te assim que abrir.</p>
+    <p class="eyebrow mt-5">👶 LampMind Kids</p>
+    <p class="font-display text-2xl mt-2">Curso Básico Infantil (4-6 anos)</p>
+    <p class="text-mute text-sm mt-3 leading-relaxed">
+      O Curso Básico Infantil LampMind foi criado para crianças de 4 a 6 anos que estão a iniciar a aprendizagem escolar. O curso integra Matemática e Português, com aulas divertidas e interativas que ajudam a criança a aprender brincando, contando números, reconhecendo animais, letras, cores e palavras simples, desenvolvendo linguagem, raciocínio lógico e confiança para começar a escola.
+    </p>
 
-    <form id="matricula-form" class="mt-6 space-y-4 text-left">
-      <input required type="text" id="matricula-nome" placeholder="Nome" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
-      <input required type="email" id="matricula-email" placeholder="Email" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
-      <button type="submit" class="btn-primary rounded-xl px-6 py-3 text-sm w-full">Avisa-me quando abrir</button>
+    <div class="mt-6 rounded-xl border border-hair p-4">
+      <p class="text-xs uppercase tracking-wide text-mute mb-2">Experimenta grátis primeiro</p>
+      <a href="teste-matematica.html" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-sm text-neon">🧮 Teste grátis de Matemática <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
+      <p class="text-xs text-mute mt-2">📖 Teste de Português: brevemente</p>
+    </div>
+
+    <p class="font-display text-lg mt-8">Matrícula</p>
+    <form id="matricula-form" class="mt-3 space-y-3 text-left">
+      <div class="grid sm:grid-cols-2 gap-3">
+        <input required type="text" id="matricula-nome-crianca" placeholder="Nome da criança" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+        <input required type="text" id="matricula-idade-crianca" placeholder="Idade da criança" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+      </div>
+      <input required type="text" id="matricula-nome-encarregado" placeholder="Nome do encarregado/responsável" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+      <div class="grid sm:grid-cols-2 gap-3">
+        <input required type="tel" id="matricula-telefone" placeholder="Telefone (WhatsApp) do encarregado" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+        <input type="email" id="matricula-email" placeholder="Email (opcional)" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+      </div>
+      <input type="text" id="matricula-endereco" placeholder="Endereço / localização" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+      <select id="matricula-pagamento" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+        <option value="unico">Pagamento único — 500 MT</option>
+        <option value="semanal">Pagamento semanal — 125 MT/semana</option>
+      </select>
+      <textarea id="matricula-observacoes" rows="2" placeholder="Observações (opcional)" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink"></textarea>
+      <button type="submit" class="btn-primary rounded-xl px-6 py-3 text-sm w-full">Confirmar matrícula</button>
       <p id="matricula-msg" class="text-sm hidden"></p>
     </form>
+
+    <div class="mt-8 rounded-xl border border-hair p-4">
+      <p class="font-display text-base mb-2">💳 Pagamento — M-Pesa ou e-Mola</p>
+      <p class="text-sm text-mute">873781699 — Aires Ernesto Luis Lampião</p>
+      <p class="text-sm text-mute">853891719 — Aires Lampião</p>
+      <p class="text-sm text-mute mt-3">Curso: <strong class="text-ink">500 MT</strong> (pagamento único) ou <strong class="text-ink">125 MT/semana</strong>.</p>
+      <p class="text-sm text-mute mt-2">Depois de pagares, envia o comprovativo pelo WhatsApp: <strong class="text-ink">873781699</strong>.</p>
+    </div>
+
+    <div class="mt-5 rounded-xl bg-card border border-hair p-4 text-xs text-mute leading-relaxed">
+      <p class="text-ink font-semibold mb-1">📢 Nota Importante – LampMind Kids</p>
+      <p>Estamos a iniciar as atividades da LampMind, por isso alguns processos ainda são realizados manualmente. Após efetuar o pagamento, pedimos gentilmente que envie o comprovativo pelo WhatsApp e aguarde algum momento para a confirmação do acesso ao curso.</p>
+      <p class="mt-2">Prazo máximo para confirmação: <strong class="text-ink">24h</strong>.</p>
+      <p class="mt-2">Estamos a trabalhar para que, em breve, todo o processo de pagamento e liberação das aulas seja 100% automático.</p>
+    </div>
+
+    <p class="text-center text-sm text-energy mt-5">🍪✨ Garante já a vaga da tua criança — as primeiras vagas promocionais são limitadas!</p>
+    <p class="text-center text-xs text-mute mt-2">Obrigado por confiares na LampMind para acompanhar o crescimento e a aprendizagem do teu pequeno! 💙📚</p>
   </div>
 </div>
 
@@ -1254,9 +1257,9 @@
     candidaturaModal.classList.add('hidden');
   });
 
-  /* ---------- Painel de matrícula EletroQI ---------- */
+  /* ---------- Painel LampMind Kids (curso infantil) ---------- */
   const matriculaModal = document.getElementById('matricula-modal');
-  document.getElementById('matricula-abrir-btn').addEventListener('click', () => {
+  document.getElementById('curso-kids-abrir-btn').addEventListener('click', () => {
     matriculaModal.classList.remove('hidden');
     if (window.lucide) lucide.createIcons();
   });
@@ -1687,12 +1690,21 @@
   document.getElementById('matricula-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('matricula-msg');
-    const nome = document.getElementById('matricula-nome').value;
-    const email = document.getElementById('matricula-email').value;
+    const payload = {
+      curso: 'infantil_4_6',
+      nome_crianca: document.getElementById('matricula-nome-crianca').value,
+      idade_crianca: document.getElementById('matricula-idade-crianca').value,
+      nome_encarregado: document.getElementById('matricula-nome-encarregado').value,
+      telefone_encarregado: document.getElementById('matricula-telefone').value,
+      email_encarregado: document.getElementById('matricula-email').value,
+      endereco: document.getElementById('matricula-endereco').value,
+      metodo_pagamento: document.getElementById('matricula-pagamento').value,
+      observacoes: document.getElementById('matricula-observacoes').value
+    };
     try {
-      const { error } = await supabase.from('interessados').insert({ nome, email });
+      const { error } = await supabase.from('matriculas_curso').insert(payload);
       if (error) throw error;
-      msg.textContent = 'Obrigado! Avisamos-te assim que a matrícula abrir.';
+      msg.textContent = 'Matrícula recebida! Agora efetua o pagamento abaixo e envia o comprovativo pelo WhatsApp.';
       msg.className = 'text-sm text-neon';
       msg.classList.remove('hidden');
       e.target.reset();
