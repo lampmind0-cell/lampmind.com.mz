@@ -63,6 +63,7 @@
       <div class="tab" data-tab="equipa">Equipa</div>
       <div class="tab" data-tab="youtube">YouTube</div>
       <div class="tab" data-tab="comunidade">Comunidade</div>
+      <div class="tab" data-tab="biscoitos">Biscoitos</div>
       <div class="tab" data-tab="personalizacao">Personalização do Site</div>
       <div class="tab" data-tab="feedback">Feedback</div>
       <div class="tab" data-tab="estatisticas">Estatísticas</div>
@@ -389,6 +390,36 @@
       </div>
     </div>
 
+    <!-- ABA: BISCOITOS -->
+    <div id="tab-biscoitos" class="hidden">
+      <div class="card rounded-2xl p-8 mb-10">
+        <p class="font-display text-xl mb-2">Creditar biscoitos</p>
+        <p class="text-sm text-gray-400 mb-6">Depois de confirmares o pagamento (M-Pesa/e-Mola) do cliente, credita aqui o saldo.</p>
+        <form id="creditar-form" class="space-y-4">
+          <div class="grid sm:grid-cols-2 gap-4">
+            <input required type="text" id="cred-identificador" placeholder="Telefone ou email do cliente" class="w-full rounded-lg px-4 py-3 text-sm">
+            <input type="text" id="cred-nome" placeholder="Nome do cliente (opcional)" class="w-full rounded-lg px-4 py-3 text-sm">
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <input required type="number" id="cred-quantidade" placeholder="Quantidade de biscoitos" class="w-full rounded-lg px-4 py-3 text-sm">
+            <input type="text" id="cred-motivo" placeholder="Motivo (ex: pagamento M-Pesa 500MT)" class="w-full rounded-lg px-4 py-3 text-sm">
+          </div>
+          <button type="submit" class="btn w-full rounded-lg py-3 text-sm">Creditar</button>
+          <p id="creditar-msg" class="text-sm hidden"></p>
+        </form>
+      </div>
+
+      <div class="card rounded-2xl p-8 mb-10">
+        <p class="font-display text-xl mb-6">Saldos dos clientes</p>
+        <div id="biscoitos-lista" class="space-y-3 text-sm"></div>
+      </div>
+
+      <div class="card rounded-2xl p-8">
+        <p class="font-display text-xl mb-6">Trabalhos gerados</p>
+        <div id="pedidos-lista" class="space-y-3 text-sm"></div>
+      </div>
+    </div>
+
     <!-- ABA: PERSONALIZAÇÃO -->
     <div id="tab-personalizacao" class="hidden">
       <div class="card rounded-2xl p-8 mb-10">
@@ -578,6 +609,7 @@
       document.getElementById('tab-equipa').classList.toggle('hidden', tab.dataset.tab !== 'equipa');
       document.getElementById('tab-youtube').classList.toggle('hidden', tab.dataset.tab !== 'youtube');
       document.getElementById('tab-comunidade').classList.toggle('hidden', tab.dataset.tab !== 'comunidade');
+      document.getElementById('tab-biscoitos').classList.toggle('hidden', tab.dataset.tab !== 'biscoitos');
       document.getElementById('tab-personalizacao').classList.toggle('hidden', tab.dataset.tab !== 'personalizacao');
       document.getElementById('tab-feedback').classList.toggle('hidden', tab.dataset.tab !== 'feedback');
       document.getElementById('tab-estatisticas').classList.toggle('hidden', tab.dataset.tab !== 'estatisticas');
@@ -587,6 +619,7 @@
       if (tab.dataset.tab === 'comunidade') carregarEstadoCandidaturas();
       if (tab.dataset.tab === 'youtube') { carregarYoutubeAdmin(); carregarYoutubeLinkAtual(); }
       if (tab.dataset.tab === 'comunidade') { carregarCandidaturas(); carregarInteressados(); }
+      if (tab.dataset.tab === 'biscoitos') { carregarBiscoitos(); carregarPedidosTrabalho(); }
       if (tab.dataset.tab === 'feedback') carregarFeedback();
       if (tab.dataset.tab === 'estatisticas') carregarEstatisticas();
     });
@@ -1418,6 +1451,76 @@ Equipa LampMind`;
       texto.textContent = 'Erro ao guardar: ' + err.message;
     }
   });
+
+  /* ---------- Biscoitos: creditar cliente ---------- */
+  document.getElementById('creditar-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('creditar-msg');
+    const identificador = document.getElementById('cred-identificador').value.trim();
+    const nome = document.getElementById('cred-nome').value.trim();
+    const quantidade = parseInt(document.getElementById('cred-quantidade').value, 10);
+    const motivo = document.getElementById('cred-motivo').value.trim();
+
+    try {
+      const { data: existente } = await supabase.from('creditos_clientes').select('*').eq('identificador', identificador).maybeSingle();
+      const novoSaldo = (existente ? existente.saldo_biscoitos : 0) + quantidade;
+
+      if (existente) {
+        const { error } = await supabase.from('creditos_clientes').update({ saldo_biscoitos: novoSaldo, nome: nome || existente.nome }).eq('identificador', identificador);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('creditos_clientes').insert({ identificador, nome, saldo_biscoitos: novoSaldo });
+        if (error) throw error;
+      }
+      await supabase.from('transacoes_biscoitos').insert({ identificador_cliente: identificador, quantidade, motivo: motivo || 'Crédito manual' });
+
+      msg.textContent = `Creditado! Novo saldo: ${novoSaldo} biscoitos.`;
+      msg.className = 'text-sm text-green-400';
+      msg.classList.remove('hidden');
+      e.target.reset();
+      carregarBiscoitos();
+    } catch (err) {
+      msg.textContent = 'Erro: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    }
+  });
+
+  async function carregarBiscoitos() {
+    const lista = document.getElementById('biscoitos-lista');
+    lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+    const { data, error } = await supabase.from('creditos_clientes').select('*').order('criado_em', { ascending: false });
+    if (error) { lista.innerHTML = '<p class="text-red-400">Erro: ' + error.message + '</p>'; return; }
+    if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não há clientes com biscoitos.</p>'; return; }
+
+    lista.innerHTML = data.map(c => `
+      <div class="flex items-center justify-between border-b border-white/5 pb-3">
+        <div>
+          <p class="font-medium">${c.nome || '(sem nome)'}</p>
+          <p class="text-gray-500 text-xs">${c.identificador}</p>
+        </div>
+        <span class="font-display text-lg">${c.saldo_biscoitos} 🍪</span>
+      </div>
+    `).join('');
+  }
+
+  async function carregarPedidosTrabalho() {
+    const lista = document.getElementById('pedidos-lista');
+    lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+    const { data, error } = await supabase.from('pedidos_trabalho').select('*').order('criado_em', { ascending: false }).limit(50);
+    if (error) { lista.innerHTML = '<p class="text-red-400">Erro: ' + error.message + '</p>'; return; }
+    if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não foram gerados trabalhos.</p>'; return; }
+
+    lista.innerHTML = data.map(p => `
+      <div class="flex items-center justify-between border-b border-white/5 pb-3 gap-3">
+        <div>
+          <p class="font-medium">${p.titulo}</p>
+          <p class="text-gray-500 text-xs">${p.nome_cliente || p.identificador_cliente} · ${p.tipo_documento} · ${p.nivel} · ${p.biscoitos_gastos} 🍪</p>
+        </div>
+        <a href="${p.arquivo_url}" target="_blank" rel="noopener" class="text-xs border border-white/10 hover:border-white/30 rounded-lg px-3 py-1.5 shrink-0">Ver ficheiro</a>
+      </div>
+    `).join('');
+  }
 
   async function carregarLista() {
     const lista = document.getElementById('lista');

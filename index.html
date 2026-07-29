@@ -270,6 +270,39 @@
   }
   #candidatura-modal-voltar:hover{ color:var(--ink); }
 
+  /* ---------- Chat: Professor Virtual (IA) ---------- */
+  #ia-chat-toggle{
+    position:fixed; right:20px; bottom:20px; z-index:240;
+    width:56px; height:56px; border-radius:999px; border:none; cursor:pointer;
+    background:linear-gradient(135deg, var(--electric), var(--neon));
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 10px 30px -6px rgba(10,132,255,.6);
+  }
+  #ia-chat-panel{
+    position:fixed; right:20px; bottom:88px; z-index:240;
+    width:min(360px, calc(100vw - 40px)); height:min(480px, calc(100vh - 140px));
+    background:#0F1114; border:1px solid var(--hair); border-radius:18px; overflow:hidden;
+    display:flex; flex-direction:column; box-shadow:0 20px 60px -10px rgba(0,0,0,.7);
+  }
+  #ia-chat-panel.hidden{ display:none !important; }
+  #ia-chat-header{
+    background:linear-gradient(90deg, var(--electric), var(--neon)); color:#fff;
+    padding:14px 16px; display:flex; align-items:center; justify-content:space-between;
+  }
+  #ia-chat-header button{ background:none; border:none; color:#fff; font-size:16px; cursor:pointer; opacity:.85; }
+  #ia-chat-mensagens{ flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; }
+  .ia-msg{ max-width:85%; padding:9px 13px; border-radius:14px; font-size:13px; line-height:1.5; }
+  .ia-msg-bot{ background:var(--card); border:1px solid var(--hair); color:var(--ink); align-self:flex-start; border-bottom-left-radius:4px; }
+  .ia-msg-user{ background:var(--electric); color:#fff; align-self:flex-end; border-bottom-right-radius:4px; }
+  #ia-chat-limite{ display:none; padding:14px; border-top:1px solid var(--hair); text-align:center; }
+  #ia-chat-limite.show{ display:block; }
+  #ia-chat-limite p{ font-size:12px; color:var(--mute); margin:0 0 8px; }
+  #ia-chat-limite a{ font-size:12px; color:var(--neon); font-weight:600; }
+  #ia-chat-form{ display:flex; gap:8px; padding:12px; border-top:1px solid var(--hair); }
+  #ia-chat-form.hidden{ display:none !important; }
+  #ia-chat-input{ flex:1; background:var(--card); border:1px solid var(--hair); border-radius:10px; padding:9px 12px; font-size:13px; color:var(--ink); }
+  #ia-chat-form button{ background:var(--electric); border:none; border-radius:10px; width:38px; color:#fff; cursor:pointer; }
+
   /* ---------- Painel de matrícula EletroQI ---------- */
   #matricula-modal{ position:fixed; inset:0; z-index:230; display:flex; align-items:center; justify-content:center; padding:20px; }
   #matricula-modal.hidden{ display:none !important; }
@@ -552,6 +585,7 @@
       <div class="flex flex-wrap items-center justify-center gap-4 mt-8">
         <button id="matricula-abrir-btn" type="button" class="btn-primary inline-block rounded-xl px-10 py-3.5 text-sm">Entrar</button>
         <a href="teste-matematica.html" target="_blank" rel="noopener" class="btn-ghost inline-block rounded-xl px-10 py-3.5 text-sm">🧮 Testar aula grátis de Matemática</a>
+        <a href="trabalhos.html" target="_blank" rel="noopener" class="btn-ghost inline-block rounded-xl px-10 py-3.5 text-sm">🍪 Pedir um trabalho pronto</a>
       </div>
     </div>
   </div>
@@ -1075,6 +1109,32 @@
       <p id="matricula-msg" class="text-sm hidden"></p>
     </form>
   </div>
+</div>
+
+<!-- ================= CHAT: PROFESSOR VIRTUAL (IA) ================= -->
+<button id="ia-chat-toggle" aria-label="Falar com o Professor Virtual">
+  <i data-lucide="bot" class="w-6 h-6"></i>
+</button>
+
+<div id="ia-chat-panel" class="hidden">
+  <div id="ia-chat-header">
+    <div>
+      <p class="font-display text-sm">Professor Virtual</p>
+      <p class="text-xs" style="opacity:.8">EletroQI · LampMind</p>
+    </div>
+    <button id="ia-chat-fechar" aria-label="Fechar">✕</button>
+  </div>
+  <div id="ia-chat-mensagens">
+    <div class="ia-msg ia-msg-bot">Olá! Sou o Professor Virtual da EletroQI. Podes perguntar-me qualquer dúvida de matemática, física, química, eletricidade, programação e mais. Tens 5 perguntas grátis para experimentar — em que posso ajudar? 🎓</div>
+  </div>
+  <div id="ia-chat-limite" class="hidden">
+    <p>Usaste as tuas perguntas grátis! Gostaste? Matricula-te para teres acesso completo ao Professor Virtual.</p>
+    <a href="#eletroqi">Ver EletroQI →</a>
+  </div>
+  <form id="ia-chat-form">
+    <input type="text" id="ia-chat-input" placeholder="Escreve a tua dúvida..." autocomplete="off">
+    <button type="submit" aria-label="Enviar"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+  </form>
 </div>
 
 <!-- ================= MODO DE EDIÇÃO AO VIVO (só para admin) ================= -->
@@ -1760,6 +1820,91 @@
       container.innerHTML = '';
     }
   }
+
+  /* ---------- Chat: Professor Virtual (IA) ---------- */
+  const IA_LIMITE = 5;
+  const IA_CHAVE = 'lampmind_ia_perguntas';
+  const iaToggle = document.getElementById('ia-chat-toggle');
+  const iaPanel = document.getElementById('ia-chat-panel');
+  const iaMensagens = document.getElementById('ia-chat-mensagens');
+  const iaForm = document.getElementById('ia-chat-form');
+  const iaInput = document.getElementById('ia-chat-input');
+  const iaLimiteAviso = document.getElementById('ia-chat-limite');
+  let iaHistorico = [];
+  let iaJaRegistado = false;
+
+  function iaContagemAtual() {
+    return parseInt(localStorage.getItem(IA_CHAVE) || '0', 10);
+  }
+
+  function iaAplicarEstadoLimite() {
+    if (iaContagemAtual() >= IA_LIMITE) {
+      iaForm.classList.add('hidden');
+      iaLimiteAviso.classList.add('show');
+    }
+  }
+
+  iaToggle.addEventListener('click', () => {
+    iaPanel.classList.toggle('hidden');
+    if (window.lucide) lucide.createIcons();
+  });
+  document.getElementById('ia-chat-fechar').addEventListener('click', () => {
+    iaPanel.classList.add('hidden');
+  });
+
+  function iaAdicionarMensagem(texto, autor) {
+    const div = document.createElement('div');
+    div.className = 'ia-msg ' + (autor === 'user' ? 'ia-msg-user' : 'ia-msg-bot');
+    div.textContent = texto;
+    iaMensagens.appendChild(div);
+    iaMensagens.scrollTop = iaMensagens.scrollHeight;
+  }
+
+  iaForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const pergunta = iaInput.value.trim();
+    if (!pergunta || iaContagemAtual() >= IA_LIMITE) return;
+
+    iaAdicionarMensagem(pergunta, 'user');
+    iaInput.value = '';
+    iaInput.disabled = true;
+    localStorage.setItem(IA_CHAVE, String(iaContagemAtual() + 1));
+
+    if (!iaJaRegistado) {
+      iaJaRegistado = true;
+      supabase.from('testes_servico').insert({ servico: 'chat_ia' }).then(() => {}).catch(() => {});
+    }
+
+    const pensando = document.createElement('div');
+    pensando.className = 'ia-msg ia-msg-bot';
+    pensando.textContent = 'A pensar...';
+    iaMensagens.appendChild(pensando);
+    iaMensagens.scrollTop = iaMensagens.scrollHeight;
+
+    iaHistorico.push({ role: 'user', content: pergunta });
+
+    try {
+      const resp = await fetch(`${SUPABASE_URL}/functions/v1/ai-tutor`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mensagens: iaHistorico })
+      });
+      const dados = await resp.json();
+      pensando.remove();
+      if (!resp.ok || dados.error) throw new Error('Erro ao obter resposta');
+      iaAdicionarMensagem(dados.resposta, 'bot');
+      iaHistorico.push({ role: 'assistant', content: dados.resposta });
+    } catch (err) {
+      pensando.remove();
+      iaAdicionarMensagem('Ups, não consegui responder agora. Tenta novamente daqui a pouco.', 'bot');
+    } finally {
+      iaInput.disabled = false;
+      iaInput.focus();
+      iaAplicarEstadoLimite();
+    }
+  });
+
+  iaAplicarEstadoLimite();
 
   aplicarPersonalizacao();
   carregarBiblioteca();
