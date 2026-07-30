@@ -433,6 +433,21 @@
     <!-- ABA: PERSONALIZAÇÃO -->
     <div id="tab-personalizacao" class="hidden">
       <div class="card rounded-2xl p-8 mb-10">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="font-display text-xl mb-1">Assistente LampMind (chat)</p>
+            <p class="text-sm text-gray-400" id="chat-ia-status-texto">A verificar estado...</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer shrink-0">
+            <input type="checkbox" id="chat-ia-toggle" class="sr-only peer">
+            <div class="w-12 h-7 bg-gray-700 peer-checked:bg-green-500 rounded-full transition-colors"></div>
+            <div class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+          </label>
+        </div>
+        <p class="text-xs text-gray-500 mt-3">Quando desligado, o botão de chat deixa de aparecer no site para os visitantes.</p>
+      </div>
+
+      <div class="card rounded-2xl p-8 mb-10">
         <p class="font-display text-xl mb-2">Data de abertura das aulas</p>
         <p class="text-sm text-gray-400 mb-6">Aparece no teste grátis de Matemática (e pode ser usado noutros testes de serviços futuramente).</p>
         <form id="data-abertura-form" class="flex flex-col sm:flex-row gap-3">
@@ -583,6 +598,7 @@
       carregarConfig();
       carregarSocialLinks();
       carregarDataAbertura();
+      carregarEstadoChatIA();
     } else {
       loginBox.classList.remove('hidden');
       panel.classList.add('hidden');
@@ -1643,6 +1659,29 @@ Equipa LampMind`;
   const SOCIAL_KEYS = ['social_github', 'social_linkedin', 'social_tiktok', 'social_instagram', 'social_facebook'];
 
   /* ---------- Data de abertura das aulas ---------- */
+  /* ---------- Assistente LampMind (chat): ativar/desativar ---------- */
+  async function carregarEstadoChatIA() {
+    const toggle = document.getElementById('chat-ia-toggle');
+    const texto = document.getElementById('chat-ia-status-texto');
+    const { data } = await supabase.from('site_content').select('valor').eq('chave', 'chat_ia_ativo').maybeSingle();
+    const ativo = !data || data.valor !== 'false';
+    toggle.checked = ativo;
+    texto.textContent = ativo ? 'Ativo no site' : 'Desativado no site';
+  }
+
+  document.getElementById('chat-ia-toggle').addEventListener('change', async (e) => {
+    const ativo = e.target.checked;
+    const texto = document.getElementById('chat-ia-status-texto');
+    try {
+      const { error } = await supabase.from('site_content').upsert({ chave: 'chat_ia_ativo', valor: ativo ? 'true' : 'false' });
+      if (error) throw error;
+      texto.textContent = ativo ? 'Ativo no site' : 'Desativado no site';
+    } catch (err) {
+      e.target.checked = !ativo;
+      texto.textContent = 'Erro ao guardar: ' + err.message;
+    }
+  });
+
   async function carregarDataAbertura() {
     const { data } = await supabase.from('site_content').select('valor').eq('chave', 'data_abertura_aulas').maybeSingle();
     document.getElementById('data-abertura-input').value = (data && data.valor) || '';

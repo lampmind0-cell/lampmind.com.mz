@@ -1149,10 +1149,10 @@
     <button id="ia-chat-fechar" aria-label="Fechar">✕</button>
   </div>
   <div id="ia-chat-mensagens">
-    <div class="ia-msg ia-msg-bot">Olá! Sou o assistente da LampMind. Pergunta-me qualquer curiosidade sobre o site — serviços, cursos, como funciona a matrícula, contactos, etc. Tens 5 perguntas grátis — em que posso ajudar? 🙂</div>
+    <div class="ia-msg ia-msg-bot">Olá! Sou o assistente da LampMind. Pergunta-me qualquer curiosidade sobre o site — serviços, cursos, matrícula, contactos — ou conta-me se tiveres alguma reclamação ou problema, que ajudo a encaminhar. Tens 5 perguntas grátis por dia — em que posso ajudar? 🙂</div>
   </div>
   <div id="ia-chat-limite" class="hidden">
-    <p>Usaste as tuas perguntas grátis! Explora os serviços do site para saberes mais.</p>
+    <p>Usaste as tuas 5 perguntas gratuitas de hoje! Volta amanhã para mais, ou explora os serviços do site.</p>
     <a href="#eletroqi">Ver serviços →</a>
   </div>
   <form id="ia-chat-form">
@@ -1867,7 +1867,19 @@
   let iaJaRegistado = false;
 
   function iaContagemAtual() {
-    return parseInt(localStorage.getItem(IA_CHAVE) || '0', 10);
+    try {
+      const guardado = JSON.parse(localStorage.getItem(IA_CHAVE) || 'null');
+      const hoje = new Date().toISOString().slice(0, 10);
+      if (!guardado || guardado.data !== hoje) return 0;
+      return guardado.contagem || 0;
+    } catch (err) {
+      return 0;
+    }
+  }
+
+  function iaIncrementarContagem() {
+    const hoje = new Date().toISOString().slice(0, 10);
+    localStorage.setItem(IA_CHAVE, JSON.stringify({ data: hoje, contagem: iaContagemAtual() + 1 }));
   }
 
   function iaAplicarEstadoLimite() {
@@ -1901,7 +1913,7 @@
     iaAdicionarMensagem(pergunta, 'user');
     iaInput.value = '';
     iaInput.disabled = true;
-    localStorage.setItem(IA_CHAVE, String(iaContagemAtual() + 1));
+    iaIncrementarContagem();
 
     if (!iaJaRegistado) {
       iaJaRegistado = true;
@@ -1938,6 +1950,19 @@
   });
 
   iaAplicarEstadoLimite();
+
+  (async () => {
+    try {
+      const { data } = await supabase.from('site_content').select('valor').eq('chave', 'chat_ia_ativo').maybeSingle();
+      const ativo = !data || data.valor !== 'false';
+      if (!ativo) {
+        iaToggle.style.display = 'none';
+        iaPanel.classList.add('hidden');
+      }
+    } catch (err) {
+      // em caso de erro, mantém o chat visível por defeito
+    }
+  })();
 
   aplicarPersonalizacao();
   carregarBiblioteca();
