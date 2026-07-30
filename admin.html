@@ -1529,7 +1529,11 @@ Equipa LampMind`;
           <p class="font-medium">${p.titulo}</p>
           <p class="text-gray-500 text-xs">${p.nome_cliente || p.identificador_cliente} · ${p.tipo_documento} · ${p.nivel} · ${p.biscoitos_gastos} 🍪</p>
         </div>
-        <a href="${p.arquivo_url}" target="_blank" rel="noopener" class="text-xs border border-white/10 hover:border-white/30 rounded-lg px-3 py-1.5 shrink-0">Ver ficheiro</a>
+        <div class="flex gap-2 shrink-0">
+          ${p.exemplar_url ? `<a href="${p.exemplar_url}" target="_blank" rel="noopener" class="text-xs border border-white/10 hover:border-white/30 rounded-lg px-3 py-1.5">Exemplar</a>` : ''}
+          ${p.logotipo_url ? `<a href="${p.logotipo_url}" target="_blank" rel="noopener" class="text-xs border border-white/10 hover:border-white/30 rounded-lg px-3 py-1.5">Logótipo</a>` : ''}
+          <a href="${p.arquivo_url}" target="_blank" rel="noopener" class="text-xs border border-white/10 hover:border-white/30 rounded-lg px-3 py-1.5">Ver ficheiro</a>
+        </div>
       </div>
     `).join('');
   }

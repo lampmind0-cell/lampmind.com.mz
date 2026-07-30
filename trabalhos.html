@@ -32,8 +32,10 @@
 
   <div class="mt-6">
     <p class="tag inline-block">🍪 Biscoitos LampMind</p>
-    <h1 class="font-display font-semibold text-3xl md:text-4xl mt-4">Pede o teu trabalho pronto</h1>
-    <p class="mt-3" style="color:var(--mute)">Descreve o que precisas, escolhe o formato e o nível — a nossa IA prepara o teu trabalho em minutos.</p>
+    <h1 class="font-display font-semibold text-3xl md:text-4xl mt-4">Trabalhos Prontos</h1>
+    <p class="mt-3" style="color:var(--mute)">
+      Precisas de um TPC, um ensaio, uma monografia, um relatório científico, uma carta formal ou uma apresentação de slides? A nossa IA prepara qualquer tipo de documento para ti — rápido, bem estruturado e no formato que precisares (Word, PDF ou PowerPoint). Descreve o que queres, escolhe o nível de qualidade, e recebe o teu trabalho pronto em minutos.
+    </p>
   </div>
 
   <!-- SALDO -->
@@ -66,6 +68,20 @@
 
       <input required type="text" id="tf-titulo" placeholder="Título / tema do trabalho">
       <textarea required id="tf-descricao" rows="4" placeholder="Descreve com detalhe o que precisas: disciplina, nível de ensino, pontos a cobrir, referências, etc."></textarea>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs block mb-1" style="color:var(--mute)">Exemplar de um trabalho (opcional)</label>
+          <input type="file" id="tf-exemplar" accept=".pdf,.doc,.docx,.ppt,.pptx,image/*">
+          <p class="text-xs mt-1" style="color:var(--mute)">Ajuda-nos a perceber o estilo que queres. Máx. 2MB.</p>
+        </div>
+        <div>
+          <label class="text-xs block mb-1" style="color:var(--mute)">Logótipo (opcional)</label>
+          <input type="file" id="tf-logo" accept="image/*">
+          <p class="text-xs mt-1" style="color:var(--mute)">Aparece na capa do teu documento. Máx. 2MB.</p>
+        </div>
+      </div>
+      <p id="tf-arquivo-msg" class="text-xs hidden"></p>
 
       <div class="grid sm:grid-cols-3 gap-4">
         <div>
@@ -150,9 +166,26 @@
     e.preventDefault();
     const btn = document.getElementById('tf-btn');
     const msg = document.getElementById('tf-msg');
+    const arquivoMsg = document.getElementById('tf-arquivo-msg');
     const resultadoCard = document.getElementById('resultado-card');
     resultadoCard.classList.add('hidden');
     msg.classList.add('hidden');
+    arquivoMsg.classList.add('hidden');
+
+    const LIMITE = 2 * 1024 * 1024;
+    const exemplarFile = document.getElementById('tf-exemplar').files[0];
+    const logoFile = document.getElementById('tf-logo').files[0];
+
+    if (exemplarFile && exemplarFile.size > LIMITE) {
+      arquivoMsg.textContent = `O exemplar tem ${(exemplarFile.size / 1024 / 1024).toFixed(1)}MB — o limite é 2MB.`;
+      arquivoMsg.className = 'text-xs text-red-400'; arquivoMsg.classList.remove('hidden');
+      return;
+    }
+    if (logoFile && logoFile.size > LIMITE) {
+      arquivoMsg.textContent = `O logótipo tem ${(logoFile.size / 1024 / 1024).toFixed(1)}MB — o limite é 2MB.`;
+      arquivoMsg.className = 'text-xs text-red-400'; arquivoMsg.classList.remove('hidden');
+      return;
+    }
 
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> A gerar o teu trabalho... isto pode demorar um minuto';
@@ -168,6 +201,20 @@
     };
 
     try {
+      const pasta = payload.identificador.replace(/[^a-zA-Z0-9]/g, '_');
+      if (exemplarFile) {
+        const path = `exemplos/${pasta}/${Date.now()}-${exemplarFile.name}`;
+        const { error: upErr } = await supabase.storage.from('trabalhos').upload(path, exemplarFile);
+        if (upErr) throw new Error('Erro ao carregar exemplar: ' + upErr.message);
+        payload.exemplo_url = supabase.storage.from('trabalhos').getPublicUrl(path).data.publicUrl;
+      }
+      if (logoFile) {
+        const path = `logos/${pasta}/${Date.now()}-${logoFile.name}`;
+        const { error: upErr } = await supabase.storage.from('trabalhos').upload(path, logoFile);
+        if (upErr) throw new Error('Erro ao carregar logótipo: ' + upErr.message);
+        payload.logotipo_url = supabase.storage.from('trabalhos').getPublicUrl(path).data.publicUrl;
+      }
+
       const resp = await fetch(`${SUPABASE_URL}/functions/v1/gerar-trabalho`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -193,7 +240,7 @@
       msg.className = 'text-sm text-green-400';
       msg.classList.remove('hidden');
     } catch (err) {
-      msg.textContent = 'Não foi possível ligar ao servidor. Tenta novamente.';
+      msg.textContent = err.message || 'Não foi possível ligar ao servidor. Tenta novamente.';
       msg.className = 'text-sm text-red-400';
       msg.classList.remove('hidden');
     } finally {

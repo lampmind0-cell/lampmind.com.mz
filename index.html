@@ -270,7 +270,21 @@
   }
   #candidatura-modal-voltar:hover{ color:var(--ink); }
 
-  /* ---------- Chat: Professor Virtual (IA) ---------- */
+  /* ---------- Painel LampMind Kids (matrícula do curso infantil) ---------- */
+  #matricula-modal{ position:fixed; inset:0; z-index:230; display:flex; align-items:center; justify-content:center; padding:20px; }
+  #matricula-modal.hidden{ display:none !important; }
+  #matricula-modal-backdrop{ position:absolute; inset:0; background:rgba(5,5,5,.78); backdrop-filter:blur(6px); }
+  #matricula-modal-panel{
+    position:relative; z-index:2; width:100%; max-width:580px; max-height:86vh; overflow-y:auto;
+    background:#0F1114; border:1px solid var(--hair); border-radius:20px; padding:26px;
+  }
+  #matricula-modal-voltar{
+    display:inline-flex; align-items:center; gap:6px; color:var(--mute); font-size:.8rem;
+    background:none; border:none; cursor:pointer; padding:0;
+  }
+  #matricula-modal-voltar:hover{ color:var(--ink); }
+
+  /* ---------- Chat: Assistente LampMind (IA) ---------- */
   #ia-chat-toggle{
     position:fixed; right:20px; bottom:20px; z-index:240;
     width:56px; height:56px; border-radius:999px; border:none; cursor:pointer;
@@ -544,6 +558,13 @@
         <p class="text-mute text-sm mt-2">Matemática e Português para os mais pequenos, com aulas divertidas e interativas.</p>
         <span class="inline-flex items-center gap-1 text-sm text-neon mt-4">Ver curso e matricular <i data-lucide="arrow-right" class="w-4 h-4"></i></span>
       </button>
+
+      <a href="trabalhos.html" target="_blank" rel="noopener" class="card-lift rounded-2xl border border-hair bg-card p-6 reveal text-left" data-reveal>
+        <span class="eyebrow">🍪 Trabalho Pronto</span>
+        <p class="font-display text-lg mt-3">O teu documento, pronto em minutos</p>
+        <p class="text-mute text-sm mt-2">Pede qualquer tipo de documento — TPC, ensaios, relatórios, monografias, apresentações e muito mais — em Word, PDF ou PowerPoint, com a tua descrição e (se quiseres) um exemplo e o teu logótipo.</p>
+        <span class="inline-flex items-center gap-1 text-sm text-neon mt-4">Pedir agora <i data-lucide="arrow-right" class="w-4 h-4"></i></span>
+      </a>
 
       <div class="rounded-2xl border border-dashed border-hair p-6 flex flex-col items-center justify-center text-center reveal" data-reveal>
         <i data-lucide="hourglass" class="w-6 h-6 text-mute mb-3"></i>
@@ -1114,28 +1135,28 @@
   </div>
 </div>
 
-<!-- ================= CHAT: PROFESSOR VIRTUAL (IA) ================= -->
-<button id="ia-chat-toggle" aria-label="Falar com o Professor Virtual">
+<!-- ================= CHAT: ASSISTENTE LAMPMIND (IA) ================= -->
+<button id="ia-chat-toggle" aria-label="Falar com o Assistente LampMind">
   <i data-lucide="bot" class="w-6 h-6"></i>
 </button>
 
 <div id="ia-chat-panel" class="hidden">
   <div id="ia-chat-header">
     <div>
-      <p class="font-display text-sm">Professor Virtual</p>
-      <p class="text-xs" style="opacity:.8">EletroQI · LampMind</p>
+      <p class="font-display text-sm">Assistente LampMind</p>
+      <p class="text-xs" style="opacity:.8">Tira as tuas dúvidas sobre o site</p>
     </div>
     <button id="ia-chat-fechar" aria-label="Fechar">✕</button>
   </div>
   <div id="ia-chat-mensagens">
-    <div class="ia-msg ia-msg-bot">Olá! Sou o Professor Virtual da EletroQI. Podes perguntar-me qualquer dúvida de matemática, física, química, eletricidade, programação e mais. Tens 5 perguntas grátis para experimentar — em que posso ajudar? 🎓</div>
+    <div class="ia-msg ia-msg-bot">Olá! Sou o assistente da LampMind. Pergunta-me qualquer curiosidade sobre o site — serviços, cursos, como funciona a matrícula, contactos, etc. Tens 5 perguntas grátis — em que posso ajudar? 🙂</div>
   </div>
   <div id="ia-chat-limite" class="hidden">
-    <p>Usaste as tuas perguntas grátis! Gostaste? Matricula-te para teres acesso completo ao Professor Virtual.</p>
-    <a href="#eletroqi">Ver EletroQI →</a>
+    <p>Usaste as tuas perguntas grátis! Explora os serviços do site para saberes mais.</p>
+    <a href="#eletroqi">Ver serviços →</a>
   </div>
   <form id="ia-chat-form">
-    <input type="text" id="ia-chat-input" placeholder="Escreve a tua dúvida..." autocomplete="off">
+    <input type="text" id="ia-chat-input" placeholder="Escreve a tua pergunta..." autocomplete="off">
     <button type="submit" aria-label="Enviar"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
   </form>
 </div>
@@ -1833,7 +1854,7 @@
     }
   }
 
-  /* ---------- Chat: Professor Virtual (IA) ---------- */
+  /* ---------- Chat: Assistente LampMind (IA) ---------- */
   const IA_LIMITE = 5;
   const IA_CHAVE = 'lampmind_ia_perguntas';
   const iaToggle = document.getElementById('ia-chat-toggle');
