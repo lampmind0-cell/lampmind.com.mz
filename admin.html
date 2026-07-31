@@ -1522,14 +1522,25 @@ Equipa LampMind`;
     if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não há clientes com biscoitos.</p>'; return; }
 
     lista.innerHTML = data.map(c => `
-      <div class="flex items-center justify-between border-b border-white/5 pb-3">
+      <div class="flex items-center justify-between border-b border-white/5 pb-3 gap-3">
         <div>
           <p class="font-medium">${c.nome || '(sem nome)'}</p>
-          <p class="text-gray-500 text-xs">${c.identificador}</p>
+          <p class="text-gray-500 text-xs">${c.identificador} ${c.pin_hash ? '· PIN definido' : '· sem PIN ainda'}</p>
         </div>
-        <span class="font-display text-lg">${c.saldo_biscoitos} 🍪</span>
+        <div class="flex items-center gap-3 shrink-0">
+          <span class="font-display text-lg">${c.saldo_biscoitos} 🍪</span>
+          ${c.pin_hash ? `<button data-id="${c.identificador}" class="reset-pin-btn text-xs border border-white/10 hover:border-white/30 rounded-lg px-3 py-1.5">Resetar PIN</button>` : ''}
+        </div>
       </div>
     `).join('');
+
+    document.querySelectorAll('.reset-pin-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (!confirm(`Resetar o PIN de ${b.dataset.id}? A pessoa vai poder definir um novo PIN na próxima vez que usar o site.`)) return;
+        await supabase.from('creditos_clientes').update({ pin_hash: null }).eq('identificador', b.dataset.id);
+        carregarBiscoitos();
+      });
+    });
   }
 
   async function carregarPedidosTrabalho() {

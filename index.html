@@ -1149,10 +1149,10 @@
     <button id="ia-chat-fechar" aria-label="Fechar">✕</button>
   </div>
   <div id="ia-chat-mensagens">
-    <div class="ia-msg ia-msg-bot">Olá! Sou o assistente da LampMind. Pergunta-me qualquer curiosidade sobre o site — serviços, cursos, matrícula, contactos — ou conta-me se tiveres alguma reclamação ou problema, que ajudo a encaminhar. Tens 5 perguntas grátis por dia — em que posso ajudar? 🙂</div>
+    <div class="ia-msg ia-msg-bot">Olá! Sou o assistente da LampMind. Pergunta-me qualquer curiosidade sobre o site — serviços, cursos, matrícula, contactos — ou conta-me se tiveres alguma reclamação ou problema, que ajudo a encaminhar. Tens 5 perguntas por dia — em que posso ajudar? 🙂</div>
   </div>
   <div id="ia-chat-limite" class="hidden">
-    <p>Usaste as tuas 5 perguntas gratuitas de hoje! Volta amanhã para mais, ou explora os serviços do site.</p>
+    <p>Usaste as tuas 5 perguntas de hoje! Volta amanhã para mais, ou explora os serviços do site.</p>
     <a href="#eletroqi">Ver serviços →</a>
   </div>
   <form id="ia-chat-form">
@@ -1385,7 +1385,7 @@
   async function carregarBiblioteca() {
     try {
       const { data, error } = await supabase
-        .from('materiais')
+        .from('materiais_publico')
         .select('*')
         .or('destino.eq.biblioteca,destino.is.null')
         .order('criado_em', { ascending: false });
@@ -1432,7 +1432,7 @@
     const lista = document.getElementById('cursos-materiais-lista');
     try {
       const { data, error } = await supabase
-        .from('materiais')
+        .from('materiais_publico')
         .select('*')
         .eq('destino', 'cursos')
         .order('criado_em', { ascending: false });
@@ -2229,7 +2229,7 @@
     projetoModalFicheiros.innerHTML = '<p class="text-mute text-xs">A carregar...</p>';
     try {
       const { data, error } = await supabase
-        .from('materiais')
+        .from('materiais_publico')
         .select('*')
         .eq('destino', `projeto_${key}`)
         .order('criado_em', { ascending: false });
@@ -2240,12 +2240,14 @@
       }
       projetoModalFicheiros.innerHTML = '';
       data.forEach(item => {
+        const pago = item.tipo === 'Pago';
         const row = document.createElement('div');
         row.className = 'projeto-ficheiro flex items-center justify-between gap-3';
-        row.innerHTML = `
-          <span class="truncate">${item.titulo}</span>
-          <a href="${item.url}" target="_blank" rel="noopener" class="text-neon shrink-0"><i data-lucide="download" class="w-4 h-4"></i></a>
-        `;
+        row.innerHTML = pago
+          ? `<span class="truncate">${item.titulo} <span class="text-energy">· Pago${item.preco ? ' — ' + item.preco : ''}</span></span>
+             <a href="${item.link_pagamento || '#contato'}" target="_blank" rel="noopener" class="text-energy shrink-0"><i data-lucide="shopping-cart" class="w-4 h-4"></i></a>`
+          : `<span class="truncate">${item.titulo}</span>
+             <a href="${item.url}" target="_blank" rel="noopener" class="text-neon shrink-0"><i data-lucide="download" class="w-4 h-4"></i></a>`;
         projetoModalFicheiros.appendChild(row);
       });
       if (window.lucide) lucide.createIcons();
