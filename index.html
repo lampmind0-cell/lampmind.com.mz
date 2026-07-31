@@ -1149,7 +1149,7 @@
     <button id="ia-chat-fechar" aria-label="Fechar">✕</button>
   </div>
   <div id="ia-chat-mensagens">
-    <div class="ia-msg ia-msg-bot">Olá! Sou o assistente da LampMind. Pergunta-me qualquer curiosidade sobre o site — serviços, cursos, matrícula, contactos — ou conta-me se tiveres alguma reclamação ou problema, que ajudo a encaminhar. Tens 5 perguntas por dia — em que posso ajudar? 🙂</div>
+    <div class="ia-msg ia-msg-bot">Olá! Sou o assistente da LampMind. Pergunta-me qualquer curiosidade sobre o site — serviços, cursos, matrícula, contactos — ou conta-me se tiveres alguma reclamação ou problema, que ajudo a encaminhar. Em que posso ajudar? 🙂</div>
   </div>
   <div id="ia-chat-limite" class="hidden">
     <p>Usaste as tuas 5 perguntas de hoje! Volta amanhã para mais, ou explora os serviços do site.</p>
@@ -1883,10 +1883,7 @@
   }
 
   function iaAplicarEstadoLimite() {
-    if (iaContagemAtual() >= IA_LIMITE) {
-      iaForm.classList.add('hidden');
-      iaLimiteAviso.classList.add('show');
-    }
+    // limite diário removido — o chat fica aberto sem restrição
   }
 
   iaToggle.addEventListener('click', () => {
@@ -1908,7 +1905,7 @@
   iaForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const pergunta = iaInput.value.trim();
-    if (!pergunta || iaContagemAtual() >= IA_LIMITE) return;
+    if (!pergunta) return;
 
     iaAdicionarMensagem(pergunta, 'user');
     iaInput.value = '';
