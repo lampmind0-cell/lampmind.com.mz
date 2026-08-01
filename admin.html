@@ -1785,12 +1785,15 @@ Equipa LampMind`;
 
     lista.innerHTML = data.map(item => `
       <div class="border-b border-white/5 pb-3">
-        <div class="flex items-center justify-between">
-          <span class="text-xs px-2 py-0.5 rounded-full border border-white/10 text-gray-300">${item.tipo || 'Sugestão'}</span>
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="text-xs px-2 py-0.5 rounded-full border border-white/10 text-gray-300">${item.tipo || 'Sugestão'}</span>
+            ${item.origem === 'chat_ia' ? '<span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-300">🤖 via chat</span>' : ''}
+          </div>
           <span class="text-xs text-gray-500">${new Date(item.criado_em).toLocaleString('pt-PT')}</span>
         </div>
         <p class="mt-2">${item.mensagem}</p>
-        ${item.nome ? `<p class="text-xs text-gray-500 mt-1">— ${item.nome}</p>` : ''}
+        ${item.nome ? `<p class="text-xs text-gray-500 mt-1">— ${item.nome}${item.email ? ' · ' + item.email : ''}</p>` : (item.email ? `<p class="text-xs text-gray-500 mt-1">Contacto: ${item.email}</p>` : '')}
       </div>
     `).join('');
   }

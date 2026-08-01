@@ -1933,6 +1933,11 @@
       });
       const dados = await resp.json();
       pensando.remove();
+      if (dados.error === 'cota_esgotada') {
+        iaAdicionarMensagem('Já respondi a muitas perguntas hoje e preciso de descansar até amanhã! 😅 Se for urgente, contacta-nos por WhatsApp na secção de Contacto.', 'bot');
+        iaHistorico.pop();
+        return;
+      }
       if (!resp.ok || dados.error) throw new Error('Erro ao obter resposta');
       iaAdicionarMensagem(dados.resposta, 'bot');
       iaHistorico.push({ role: 'assistant', content: dados.resposta });
