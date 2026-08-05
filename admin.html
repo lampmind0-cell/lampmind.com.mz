@@ -424,8 +424,8 @@
     <!-- ABA: MATRÍCULAS -->
     <div id="tab-matriculas" class="hidden">
       <div class="card rounded-2xl p-8">
-        <p class="font-display text-xl mb-2">Matrículas — LampMind Kids</p>
-        <p class="text-sm text-gray-400 mb-6">Confirma o acesso depois de verificares o comprovativo de pagamento no WhatsApp.</p>
+        <p class="font-display text-xl mb-2">Matrículas e desempenho — LampMind Kids</p>
+        <p class="text-sm text-gray-400 mb-6">Curso gratuito — o acesso é imediato após a matrícula. Aqui vês o progresso de cada aluno nas aulas de Português e Matemática.</p>
         <div id="matriculas-lista" class="space-y-4 text-sm"></div>
       </div>
     </div>
@@ -1565,7 +1565,12 @@ Equipa LampMind`;
     `).join('');
   }
 
-  /* ---------- Matrículas: LampMind Kids ---------- */
+  /* ---------- Matrículas e desempenho: LampMind Kids ---------- */
+  function ultimaAulaTexto(pt, mat) {
+    const datas = [...Object.values(pt.completionDates || {}), ...Object.values(mat.completionDates || {})].sort();
+    return datas.length ? datas[datas.length - 1] : null;
+  }
+
   async function carregarMatriculas() {
     const lista = document.getElementById('matriculas-lista');
     lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
@@ -1573,30 +1578,41 @@ Equipa LampMind`;
     if (error) { lista.innerHTML = '<p class="text-red-400">Erro: ' + error.message + '</p>'; return; }
     if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não há matrículas.</p>'; return; }
 
-    lista.innerHTML = data.map(m => `
+    lista.innerHTML = data.map(m => {
+      const pt = m.pt_progresso || { daysCompleted: [], completionDates: {} };
+      const mat = m.mat_progresso || { daysCompleted: [], completionDates: {} };
+      const ptDias = (pt.daysCompleted || []).length;
+      const matDias = (mat.daysCompleted || []).length;
+      const ultima = ultimaAulaTexto(pt, mat);
+      return `
       <div class="border border-white/10 rounded-xl p-4">
         <div class="flex items-start justify-between gap-3">
           <div>
             <p class="font-medium">${m.nome_crianca} <span class="text-gray-500 font-normal text-xs">· ${m.idade_crianca || '—'} anos</span></p>
             <p class="text-gray-400 text-xs mt-1">Encarregado: ${m.nome_encarregado} · ${m.telefone_encarregado}${m.email_encarregado ? ' · ' + m.email_encarregado : ''}</p>
           </div>
-          <span class="text-xs px-2 py-1 rounded-full shrink-0 ${m.status_pagamento === 'confirmado' ? 'bg-green-500/15 text-green-400' : 'bg-yellow-500/15 text-yellow-400'}">${m.status_pagamento === 'confirmado' ? '✓ Confirmado' : 'Pendente'}</span>
+          <span class="text-xs px-2 py-1 rounded-full shrink-0 bg-blue-500/15 text-blue-300">Começou por ${m.curso_inicial === 'matematica' ? 'Matemática' : 'Português'}</span>
         </div>
-        <p class="text-xs text-gray-400 mt-2">Pagamento: ${m.metodo_pagamento === 'semanal' ? 'Semanal (125 MT/semana)' : 'Único (500 MT)'}${m.endereco ? ' · ' + m.endereco : ''}</p>
-        ${m.observacoes ? `<p class="text-xs text-gray-500 mt-2">Obs: ${m.observacoes}</p>` : ''}
+        <div class="grid sm:grid-cols-2 gap-3 mt-3">
+          <div class="rounded-lg bg-white/5 p-3">
+            <p class="text-xs text-gray-400">📖 Português</p>
+            <p class="text-sm font-medium mt-1">${ptDias}/30 dias</p>
+            <div class="w-full h-1.5 rounded-full bg-white/10 mt-2 overflow-hidden"><div class="h-full bg-blue-400" style="width:${(ptDias/30)*100}%"></div></div>
+          </div>
+          <div class="rounded-lg bg-white/5 p-3">
+            <p class="text-xs text-gray-400">🧮 Matemática</p>
+            <p class="text-sm font-medium mt-1">${matDias}/30 dias</p>
+            <div class="w-full h-1.5 rounded-full bg-white/10 mt-2 overflow-hidden"><div class="h-full bg-yellow-400" style="width:${(matDias/30)*100}%"></div></div>
+          </div>
+        </div>
+        <p class="text-xs text-gray-500 mt-3">${ultima ? `Última aula concluída: ${ultima}` : 'Ainda não concluiu nenhuma aula'}${m.endereco ? ' · ' + m.endereco : ''}</p>
+        ${m.observacoes ? `<p class="text-xs text-gray-500 mt-1">Obs: ${m.observacoes}</p>` : ''}
         <div class="flex gap-2 mt-3">
-          ${m.status_pagamento !== 'confirmado' ? `<button data-id="${m.id}" class="confirmar-matricula-btn rounded-lg px-3 py-1.5 text-xs border border-green-500/30 text-green-400 hover:bg-green-500/10">Confirmar pagamento</button>` : ''}
           <button data-id="${m.id}" class="del-matricula-btn btn-danger rounded-lg px-3 py-1.5 text-xs">Remover</button>
         </div>
       </div>
-    `).join('');
+    `; }).join('');
 
-    document.querySelectorAll('.confirmar-matricula-btn').forEach(b => {
-      b.addEventListener('click', async () => {
-        await supabase.from('matriculas_curso').update({ status_pagamento: 'confirmado' }).eq('id', b.dataset.id);
-        carregarMatriculas();
-      });
-    });
     document.querySelectorAll('.del-matricula-btn').forEach(b => {
       b.addEventListener('click', async () => {
         if (!confirm('Remover esta matrícula?')) return;

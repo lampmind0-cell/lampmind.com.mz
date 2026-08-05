@@ -284,6 +284,20 @@
   }
   #matricula-modal-voltar:hover{ color:var(--ink); }
 
+  /* ---------- Painel LampMind Kids (desempenho / progresso do aluno) ---------- */
+  #desempenho-modal{ position:fixed; inset:0; z-index:230; display:flex; align-items:center; justify-content:center; padding:20px; }
+  #desempenho-modal.hidden{ display:none !important; }
+  #desempenho-modal-backdrop{ position:absolute; inset:0; background:rgba(5,5,5,.78); backdrop-filter:blur(6px); }
+  #desempenho-modal-panel{
+    position:relative; z-index:2; width:100%; max-width:520px; max-height:86vh; overflow-y:auto;
+    background:#0F1114; border:1px solid var(--hair); border-radius:20px; padding:26px;
+  }
+  #desempenho-modal-voltar{
+    display:inline-flex; align-items:center; gap:6px; color:var(--mute); font-size:.8rem;
+    background:none; border:none; cursor:pointer; padding:0;
+  }
+  #desempenho-modal-voltar:hover{ color:var(--ink); }
+
   /* ---------- Chat: Assistente LampMind (IA) ---------- */
   #ia-chat-toggle{
     position:fixed; right:20px; bottom:20px; z-index:240;
@@ -549,14 +563,15 @@
   <div class="max-w-4xl mx-auto px-6 relative text-center">
     <p class="eyebrow reveal" data-reveal>Serviços</p>
     <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 reveal" data-reveal>O que já temos pronto para ti</h2>
-    <p class="text-mute mt-4 reveal" data-reveal>Estamos a lançar os nossos serviços aos poucos — mais novidades em breve.</p>
+    <p class="text-mute mt-4 reveal" data-reveal>Estamos a lançar os nossos serviços aos poucos — mais novidades em breve. Não encontraste o curso que precisas? Desce até <a href="#feedback" class="text-neon underline underline-offset-2">A tua opinião</a>, no final da página, e diz-nos lá qual curso queres que a LampMind traga a seguir.</p>
 
     <div class="grid sm:grid-cols-2 gap-5 mt-14 text-left">
-      <button type="button" id="curso-kids-abrir-btn" class="card-lift rounded-2xl border border-hair bg-card p-6 reveal text-left" data-reveal>
+      <button type="button" id="curso-kids-abrir-btn" class="card-lift rounded-2xl border border-hair bg-card p-6 reveal text-left relative" data-reveal>
+        <span class="absolute -top-3 right-4 rounded-full bg-neon text-bg text-[11px] font-semibold px-3 py-1">GRÁTIS</span>
         <span class="eyebrow">👶 LampMind Kids</span>
         <p class="font-display text-lg mt-3">Curso Básico Infantil (4-6 anos)</p>
-        <p class="text-mute text-sm mt-2">Matemática e Português para os mais pequenos, com aulas divertidas e interativas.</p>
-        <span class="inline-flex items-center gap-1 text-sm text-neon mt-4">Ver curso e matricular <i data-lucide="arrow-right" class="w-4 h-4"></i></span>
+        <p class="text-mute text-sm mt-2">Matemática e Português para os mais pequenos, com aulas divertidas e interativas — <strong class="text-ink">totalmente gratuito e aberto</strong>, sem pagamento nenhum.</p>
+        <span class="inline-flex items-center gap-1 text-sm text-neon mt-4">Ver curso, matricular e ver desempenho <i data-lucide="arrow-right" class="w-4 h-4"></i></span>
       </button>
 
       <a href="trabalhos.html" target="_blank" rel="noopener" class="card-lift rounded-2xl border border-hair bg-card p-6 reveal text-left" data-reveal>
@@ -880,7 +895,7 @@
   <div class="max-w-3xl mx-auto px-6 text-center">
     <p class="eyebrow reveal" data-reveal>A tua opinião</p>
     <h2 class="font-display font-semibold text-3xl md:text-4xl mt-4 reveal" data-reveal>Ajuda-nos a melhorar</h2>
-    <p class="text-mute mt-4 reveal" data-reveal>Gostas do LampMind? Deixa o teu like, ou envia uma reclamação, sugestão ou elogio.</p>
+    <p class="text-mute mt-4 reveal" data-reveal>Gostas do LampMind? Deixa o teu like, ou envia uma reclamação, sugestão ou elogio. Também é aqui que nos dizes qual curso queres que a LampMind traga a seguir.</p>
 
     <div class="flex items-center justify-center gap-3 mt-8 reveal" data-reveal>
       <button id="like-btn" class="flex items-center gap-2 rounded-full border border-hair bg-card px-6 py-3 hover:border-energy transition">
@@ -894,12 +909,13 @@
       <div class="grid sm:grid-cols-2 gap-4">
         <input type="text" id="feedback-nome" placeholder="Nome (opcional)" class="rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
         <select id="feedback-tipo" class="rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+          <option value="Pedido de curso">Pedido de curso — diz-nos qual curso queres</option>
           <option value="Sugestão">Sugestão</option>
           <option value="Reclamação">Reclamação</option>
           <option value="Elogio">Elogio</option>
         </select>
       </div>
-      <textarea required id="feedback-mensagem" rows="4" placeholder="A tua mensagem..." class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink"></textarea>
+      <textarea required id="feedback-mensagem" rows="4" placeholder="Ex.: 'Gostava de um curso de Matemática para o 6ª classe' — escreve aqui o curso que precisas ou a tua mensagem..." class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink"></textarea>
       <button type="submit" class="btn-primary rounded-xl px-6 py-3 text-sm w-full sm:w-auto">Enviar</button>
       <p id="feedback-msg" class="text-sm hidden"></p>
     </form>
@@ -1082,56 +1098,110 @@
       <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar
     </button>
 
-    <p class="eyebrow mt-5">👶 LampMind Kids</p>
+    <div class="flex items-center justify-between gap-3 mt-5 flex-wrap">
+      <p class="eyebrow">👶 LampMind Kids · <span class="text-neon">100% Grátis</span></p>
+      <button type="button" id="matricula-ver-desempenho-btn" class="inline-flex items-center gap-1 text-xs text-neon underline underline-offset-2">📊 Já estás matriculado? Ver desempenho</button>
+    </div>
     <p class="font-display text-2xl mt-2">Curso Básico Infantil (4-6 anos)</p>
     <p class="text-mute text-sm mt-3 leading-relaxed">
-      O Curso Básico Infantil LampMind foi criado para crianças de 4 a 6 anos que estão a iniciar a aprendizagem escolar. O curso integra Matemática e Português, com aulas divertidas e interativas que ajudam a criança a aprender brincando, contando números, reconhecendo animais, letras, cores e palavras simples, desenvolvendo linguagem, raciocínio lógico e confiança para começar a escola.
+      O Curso Básico Infantil LampMind foi criado para crianças de 4 a 6 anos que estão a iniciar a aprendizagem escolar. O curso integra Matemática e Português, com aulas divertidas e interativas que ajudam a criança a aprender brincando, contando números, reconhecendo animais, letras, cores e palavras simples, desenvolvendo linguagem, raciocínio lógico e confiança para começar a escola. <strong class="text-ink">O curso é gratuito e está aberto — não há nenhum pagamento a fazer.</strong>
     </p>
 
     <div class="mt-6 rounded-xl border border-hair p-4">
-      <p class="text-xs uppercase tracking-wide text-mute mb-2">Experimenta grátis primeiro</p>
+      <p class="text-xs uppercase tracking-wide text-mute mb-2">Experimenta antes de matricular</p>
       <a href="teste-matematica.html" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-sm text-neon">🧮 Teste grátis de Matemática <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
       <p class="text-xs text-mute mt-2">📖 Teste de Português: brevemente</p>
     </div>
 
-    <p class="font-display text-lg mt-8">Matrícula</p>
-    <form id="matricula-form" class="mt-3 space-y-3 text-left">
-      <div class="grid sm:grid-cols-2 gap-3">
-        <input required type="text" id="matricula-nome-crianca" placeholder="Nome da criança" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
-        <input required type="text" id="matricula-idade-crianca" placeholder="Idade da criança" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+    <!-- Formulário de matrícula (visível antes de matricular) -->
+    <div id="matricula-form-wrap">
+      <p class="font-display text-lg mt-8">Matrícula (gratuita)</p>
+      <form id="matricula-form" class="mt-3 space-y-3 text-left">
+        <div class="grid sm:grid-cols-2 gap-3">
+          <input required type="text" id="matricula-nome-crianca" placeholder="Nome da criança" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+          <input required type="text" id="matricula-idade-crianca" placeholder="Idade da criança" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+        </div>
+        <input required type="text" id="matricula-nome-encarregado" placeholder="Nome do encarregado/responsável" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+        <div class="grid sm:grid-cols-2 gap-3">
+          <input required type="tel" id="matricula-telefone" placeholder="Telefone (WhatsApp) do encarregado" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+          <input type="email" id="matricula-email" placeholder="Email (opcional)" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+        </div>
+        <input type="text" id="matricula-endereco" placeholder="Endereço / localização" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+        <div>
+          <p class="text-xs text-mute mb-2">A tua criança é obrigada a participar nas duas aulas (Português e Matemática) — escolhe só qual quer começar primeiro:</p>
+          <select id="matricula-curso-inicial" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+            <option value="portugues">Começar por Português</option>
+            <option value="matematica">Começar por Matemática</option>
+          </select>
+        </div>
+        <textarea id="matricula-observacoes" rows="2" placeholder="Observações (opcional)" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink"></textarea>
+        <button type="submit" class="btn-primary rounded-xl px-6 py-3 text-sm w-full">Confirmar matrícula gratuita</button>
+        <p id="matricula-msg" class="text-sm hidden"></p>
+      </form>
+    </div>
+
+    <!-- Painel pós-matrícula: acesso imediato às aulas -->
+    <div id="matricula-sucesso-wrap" class="hidden mt-8">
+      <div class="rounded-xl border border-neon/40 bg-card p-5 text-center">
+        <p class="font-display text-lg">🎉 Matrícula confirmada!</p>
+        <p class="text-mute text-sm mt-2">A tua criança já pode entrar e começar as aulas agora mesmo — sem esperar por nenhuma confirmação.</p>
+        <p class="text-xs text-mute mt-3">Lembra-te: é obrigatório participar nas duas aulas (Português e Matemática). Só é possível avançar uma aula por dia, para respeitar o ritmo de aprendizagem.</p>
+        <div class="grid sm:grid-cols-2 gap-3 mt-5">
+          <a id="matricula-ir-portugues" href="escola-portugues.html" class="btn-primary rounded-xl px-4 py-3 text-sm">📖 Começar Português</a>
+          <a id="matricula-ir-matematica" href="sala-matematica.html" class="btn-ghost rounded-xl px-4 py-3 text-sm">🧮 Começar Matemática</a>
+        </div>
       </div>
-      <input required type="text" id="matricula-nome-encarregado" placeholder="Nome do encarregado/responsável" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
-      <div class="grid sm:grid-cols-2 gap-3">
-        <input required type="tel" id="matricula-telefone" placeholder="Telefone (WhatsApp) do encarregado" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
-        <input type="email" id="matricula-email" placeholder="Email (opcional)" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
-      </div>
-      <input type="text" id="matricula-endereco" placeholder="Endereço / localização" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
-      <select id="matricula-pagamento" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
-        <option value="unico">Pagamento único — 500 MT</option>
-        <option value="semanal">Pagamento semanal — 125 MT/semana</option>
-      </select>
-      <textarea id="matricula-observacoes" rows="2" placeholder="Observações (opcional)" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink"></textarea>
-      <button type="submit" class="btn-primary rounded-xl px-6 py-3 text-sm w-full">Confirmar matrícula</button>
-      <p id="matricula-msg" class="text-sm hidden"></p>
+    </div>
+
+    <p class="text-center text-sm text-energy mt-5">🍪✨ Garante já a vaga da tua criança — o acesso é imediato e gratuito!</p>
+    <p class="text-center text-xs text-mute mt-2">Obrigado por confiares na LampMind para acompanhar o crescimento e a aprendizagem do teu pequeno! 💙📚</p>
+  </div>
+</div>
+
+<!-- ================= PAINEL: DESEMPENHO DO ALUNO (login por dados da matrícula) ================= -->
+<div id="desempenho-modal" class="hidden">
+  <div id="desempenho-modal-backdrop"></div>
+  <div id="desempenho-modal-panel">
+    <button id="desempenho-modal-voltar" type="button">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar
+    </button>
+
+    <p class="eyebrow mt-5">📊 LampMind Kids</p>
+    <p class="font-display text-2xl mt-2">Desempenho da tua criança</p>
+    <p class="text-mute text-sm mt-3 leading-relaxed">Entra com os dados usados na matrícula para veres o progresso nas aulas de Português e Matemática.</p>
+
+    <form id="desempenho-login-form" class="mt-6 space-y-3 text-left">
+      <input required type="text" id="desempenho-nome-crianca" placeholder="Nome da criança (como na matrícula)" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+      <input required type="tel" id="desempenho-telefone" placeholder="Telefone do encarregado (como na matrícula)" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
+      <button type="submit" class="btn-primary rounded-xl px-6 py-3 text-sm w-full">Ver desempenho</button>
+      <p id="desempenho-login-msg" class="text-sm hidden"></p>
     </form>
 
-    <div class="mt-8 rounded-xl border border-hair p-4">
-      <p class="font-display text-base mb-2">💳 Pagamento — M-Pesa ou e-Mola</p>
-      <p class="text-sm text-mute">873781699 — Aires Ernesto Luis Lampião</p>
-      <p class="text-sm text-mute">853891719 — Aires Lampião</p>
-      <p class="text-sm text-mute mt-3">Curso: <strong class="text-ink">500 MT</strong> (pagamento único) ou <strong class="text-ink">125 MT/semana</strong>.</p>
-      <p class="text-sm text-mute mt-2">Depois de pagares, envia o comprovativo pelo WhatsApp: <strong class="text-ink">873781699</strong>.</p>
+    <div id="desempenho-resultado" class="hidden mt-8 space-y-4 text-left">
+      <div class="rounded-xl border border-hair p-4">
+        <p class="font-display text-base" id="desempenho-nome-titulo">—</p>
+        <p class="text-xs text-mute mt-1" id="desempenho-curso-inicial">—</p>
+      </div>
+      <div class="rounded-xl border border-hair p-4">
+        <div class="flex items-center justify-between">
+          <span class="text-sm">📖 Português</span>
+          <span class="text-sm text-neon" id="desempenho-pt-valor">0/30 dias</span>
+        </div>
+        <div class="w-full h-2 rounded-full bg-hair mt-2 overflow-hidden"><div id="desempenho-pt-barra" class="h-full bg-electric" style="width:0%"></div></div>
+      </div>
+      <div class="rounded-xl border border-hair p-4">
+        <div class="flex items-center justify-between">
+          <span class="text-sm">🧮 Matemática</span>
+          <span class="text-sm text-neon" id="desempenho-mat-valor">0/30 dias</span>
+        </div>
+        <div class="w-full h-2 rounded-full bg-hair mt-2 overflow-hidden"><div id="desempenho-mat-barra" class="h-full bg-energy" style="width:0%"></div></div>
+      </div>
+      <p class="text-xs text-mute" id="desempenho-ultima-aula">—</p>
+      <div class="grid sm:grid-cols-2 gap-3">
+        <a href="escola-portugues.html" class="btn-ghost rounded-xl px-4 py-3 text-sm text-center">Continuar Português</a>
+        <a href="sala-matematica.html" class="btn-ghost rounded-xl px-4 py-3 text-sm text-center">Continuar Matemática</a>
+      </div>
     </div>
-
-    <div class="mt-5 rounded-xl bg-card border border-hair p-4 text-xs text-mute leading-relaxed">
-      <p class="text-ink font-semibold mb-1">📢 Nota Importante – LampMind Kids</p>
-      <p>Estamos a iniciar as atividades da LampMind, por isso alguns processos ainda são realizados manualmente. Após efetuar o pagamento, pedimos gentilmente que envie o comprovativo pelo WhatsApp e aguarde algum momento para a confirmação do acesso ao curso.</p>
-      <p class="mt-2">Prazo máximo para confirmação: <strong class="text-ink">24h</strong>.</p>
-      <p class="mt-2">Estamos a trabalhar para que, em breve, todo o processo de pagamento e liberação das aulas seja 100% automático.</p>
-    </div>
-
-    <p class="text-center text-sm text-energy mt-5">🍪✨ Garante já a vaga da tua criança — as primeiras vagas promocionais são limitadas!</p>
-    <p class="text-center text-xs text-mute mt-2">Obrigado por confiares na LampMind para acompanhar o crescimento e a aprendizagem do teu pequeno! 💙📚</p>
   </div>
 </div>
 
@@ -1289,6 +1359,21 @@
   });
   document.getElementById('matricula-modal-backdrop').addEventListener('click', () => {
     matriculaModal.classList.add('hidden');
+  });
+
+  /* ---------- Painel LampMind Kids (desempenho / progresso) ---------- */
+  const desempenhoModal = document.getElementById('desempenho-modal');
+  document.getElementById('matricula-ver-desempenho-btn').addEventListener('click', () => {
+    matriculaModal.classList.add('hidden');
+    desempenhoModal.classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+  });
+  document.getElementById('desempenho-modal-voltar').addEventListener('click', () => {
+    desempenhoModal.classList.add('hidden');
+    matriculaModal.classList.remove('hidden');
+  });
+  document.getElementById('desempenho-modal-backdrop').addEventListener('click', () => {
+    desempenhoModal.classList.add('hidden');
   });
 
   /* particle background */
@@ -1707,30 +1792,107 @@
     if (window.lucide) lucide.createIcons();
   });
 
-  /* ---------- Painel de matrícula EletroQI: envio ---------- */
+  /* ---------- Painel de matrícula LampMind Kids: envio (curso gratuito, acesso imediato) ---------- */
+  function guardarCredenciaisMatricula({ id, nomeCrianca, telefone, cursoInicial }) {
+    try {
+      localStorage.setItem('lampmind_matricula_id', id || '');
+      localStorage.setItem('lampmind_matricula_nome_crianca', nomeCrianca || '');
+      localStorage.setItem('lampmind_matricula_telefone', telefone || '');
+      localStorage.setItem('lampmind_matricula_curso_inicial', cursoInicial || '');
+      // também prepara o nome do(a) aluno(a) para as salas de aula
+      localStorage.setItem('lampmind_portugues_student_name', nomeCrianca || '');
+      localStorage.setItem('lampmind_student_name', nomeCrianca || '');
+    } catch (e) { /* localStorage indisponível */ }
+  }
+
   document.getElementById('matricula-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('matricula-msg');
-    const payload = {
-      curso: 'infantil_4_6',
-      nome_crianca: document.getElementById('matricula-nome-crianca').value,
-      idade_crianca: document.getElementById('matricula-idade-crianca').value,
-      nome_encarregado: document.getElementById('matricula-nome-encarregado').value,
-      telefone_encarregado: document.getElementById('matricula-telefone').value,
-      email_encarregado: document.getElementById('matricula-email').value,
-      endereco: document.getElementById('matricula-endereco').value,
-      metodo_pagamento: document.getElementById('matricula-pagamento').value,
-      observacoes: document.getElementById('matricula-observacoes').value
-    };
+    const nomeCrianca = document.getElementById('matricula-nome-crianca').value;
+    const telefone = document.getElementById('matricula-telefone').value;
+    const cursoInicial = document.getElementById('matricula-curso-inicial').value;
     try {
-      const { error } = await supabase.from('matriculas_curso').insert(payload);
+      const { data: novoId, error } = await supabase.rpc('lm_criar_matricula', {
+        p_nome_crianca: nomeCrianca,
+        p_idade_crianca: document.getElementById('matricula-idade-crianca').value,
+        p_nome_encarregado: document.getElementById('matricula-nome-encarregado').value,
+        p_telefone_encarregado: telefone,
+        p_email_encarregado: document.getElementById('matricula-email').value,
+        p_endereco: document.getElementById('matricula-endereco').value,
+        p_observacoes: document.getElementById('matricula-observacoes').value,
+        p_curso_inicial: cursoInicial
+      });
       if (error) throw error;
-      msg.textContent = 'Matrícula recebida! Agora efetua o pagamento abaixo e envia o comprovativo pelo WhatsApp.';
-      msg.className = 'text-sm text-neon';
-      msg.classList.remove('hidden');
-      e.target.reset();
+      guardarCredenciaisMatricula({ id: novoId, nomeCrianca, telefone, cursoInicial });
+
+      // mostra o painel de acesso imediato às aulas e esconde o formulário
+      document.getElementById('matricula-form-wrap').classList.add('hidden');
+      const sucessoWrap = document.getElementById('matricula-sucesso-wrap');
+      sucessoWrap.classList.remove('hidden');
+      const btnPrimeiro = cursoInicial === 'matematica'
+        ? document.getElementById('matricula-ir-matematica')
+        : document.getElementById('matricula-ir-portugues');
+      const btnSegundo = cursoInicial === 'matematica'
+        ? document.getElementById('matricula-ir-portugues')
+        : document.getElementById('matricula-ir-matematica');
+      btnPrimeiro.classList.add('btn-primary');
+      btnPrimeiro.classList.remove('btn-ghost');
+      btnSegundo.classList.add('btn-ghost');
+      btnSegundo.classList.remove('btn-primary');
+      sucessoWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } catch (err) {
       msg.textContent = 'Não foi possível enviar: ' + (err.message || 'erro desconhecido') + '.';
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    }
+  });
+
+  /* ---------- Painel de desempenho: login por dados da matrícula ---------- */
+  document.getElementById('desempenho-login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('desempenho-login-msg');
+    msg.classList.add('hidden');
+    const nomeCrianca = document.getElementById('desempenho-nome-crianca').value.trim();
+    const telefone = document.getElementById('desempenho-telefone').value.trim();
+    try {
+      const { data, error } = await supabase.rpc('lm_buscar_desempenho', {
+        p_nome_crianca: nomeCrianca,
+        p_telefone: telefone
+      });
+      if (error) throw error;
+      if (!data || !data.length) {
+        msg.textContent = 'Não encontrámos nenhuma matrícula com estes dados. Confere o nome da criança e o telefone usados na matrícula.';
+        msg.className = 'text-sm text-red-400';
+        msg.classList.remove('hidden');
+        document.getElementById('desempenho-resultado').classList.add('hidden');
+        return;
+      }
+      const m = data[0];
+      guardarCredenciaisMatricula({ id: m.id, nomeCrianca: m.nome_crianca, telefone: m.telefone_encarregado, cursoInicial: m.curso_inicial });
+
+      const pt = m.pt_progresso || { daysCompleted: [], completionDates: {} };
+      const mat = m.mat_progresso || { daysCompleted: [], completionDates: {} };
+      const ptDias = (pt.daysCompleted || []).length;
+      const matDias = (mat.daysCompleted || []).length;
+
+      document.getElementById('desempenho-nome-titulo').textContent = m.nome_crianca;
+      document.getElementById('desempenho-curso-inicial').textContent =
+        `Começou por: ${m.curso_inicial === 'matematica' ? 'Matemática 🧮' : 'Português 📖'}`;
+      document.getElementById('desempenho-pt-valor').textContent = `${ptDias}/30 dias`;
+      document.getElementById('desempenho-pt-barra').style.width = `${(ptDias / 30) * 100}%`;
+      document.getElementById('desempenho-mat-valor').textContent = `${matDias}/30 dias`;
+      document.getElementById('desempenho-mat-barra').style.width = `${(matDias / 30) * 100}%`;
+
+      const todasDatas = [...Object.values(pt.completionDates || {}), ...Object.values(mat.completionDates || {})].sort();
+      const ultima = todasDatas.length ? todasDatas[todasDatas.length - 1] : null;
+      document.getElementById('desempenho-ultima-aula').textContent = ultima
+        ? `Última aula concluída em ${ultima}. Só é possível desbloquear uma aula nova por dia.`
+        : 'Ainda não concluiu nenhuma aula. Vamos começar?';
+
+      document.getElementById('desempenho-resultado').classList.remove('hidden');
+      msg.classList.add('hidden');
+    } catch (err) {
+      msg.textContent = 'Não foi possível consultar o desempenho: ' + (err.message || 'erro desconhecido') + '.';
       msg.className = 'text-sm text-red-400';
       msg.classList.remove('hidden');
     }
