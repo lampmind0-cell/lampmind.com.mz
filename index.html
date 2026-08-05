@@ -1197,9 +1197,10 @@
         <div class="w-full h-2 rounded-full bg-hair mt-2 overflow-hidden"><div id="desempenho-mat-barra" class="h-full bg-energy" style="width:0%"></div></div>
       </div>
       <p class="text-xs text-mute" id="desempenho-ultima-aula">—</p>
+      <p class="text-xs text-mute">Ao clicares, a aula já abre com os dados da tua criança carregados — é só entrar e participar. Só é possível desbloquear uma aula nova por dia.</p>
       <div class="grid sm:grid-cols-2 gap-3">
-        <a href="escola-portugues.html" class="btn-ghost rounded-xl px-4 py-3 text-sm text-center">Continuar Português</a>
-        <a href="sala-matematica.html" class="btn-ghost rounded-xl px-4 py-3 text-sm text-center">Continuar Matemática</a>
+        <a href="escola-portugues.html" id="desempenho-ir-portugues" class="rounded-xl px-4 py-3 text-sm text-center">Português</a>
+        <a href="sala-matematica.html" id="desempenho-ir-matematica" class="rounded-xl px-4 py-3 text-sm text-center">Matemática</a>
       </div>
     </div>
   </div>
@@ -1886,8 +1887,18 @@
       const todasDatas = [...Object.values(pt.completionDates || {}), ...Object.values(mat.completionDates || {})].sort();
       const ultima = todasDatas.length ? todasDatas[todasDatas.length - 1] : null;
       document.getElementById('desempenho-ultima-aula').textContent = ultima
-        ? `Última aula concluída em ${ultima}. Só é possível desbloquear uma aula nova por dia.`
-        : 'Ainda não concluiu nenhuma aula. Vamos começar?';
+        ? `Última aula concluída em ${ultima}.`
+        : 'Ainda não concluiu nenhuma aula.';
+
+      // Botões: "Iniciar aulas" se ainda não começou aquela disciplina, "Continuar aula" se já tem progresso.
+      // O curso escolhido como "primeiro" na matrícula fica em destaque.
+      const btnPt = document.getElementById('desempenho-ir-portugues');
+      const btnMat = document.getElementById('desempenho-ir-matematica');
+      btnPt.textContent = ptDias > 0 ? '📖 Continuar aula de Português' : '📖 Iniciar aulas de Português';
+      btnMat.textContent = matDias > 0 ? '🧮 Continuar aula de Matemática' : '🧮 Iniciar aulas de Matemática';
+      const [btnPrimeiro, btnSegundo] = m.curso_inicial === 'matematica' ? [btnMat, btnPt] : [btnPt, btnMat];
+      btnPrimeiro.className = 'btn-primary rounded-xl px-4 py-3 text-sm text-center';
+      btnSegundo.className = 'btn-ghost rounded-xl px-4 py-3 text-sm text-center';
 
       document.getElementById('desempenho-resultado').classList.remove('hidden');
       msg.classList.add('hidden');
