@@ -236,6 +236,7 @@
     </div>
     <h1>😊 Escola do <span>Português</span> 📖</h1>
     <p>Com a professora Paula — um curso de 30 dias!</p>
+    <a href="index.html" class="sound-toggle" id="ptVoltarBtn" style="text-decoration:none; display:inline-block; right:auto; left:0;">⬅️ Voltar ao site</a>
     <button class="sound-toggle" id="ptSoundToggle" onclick="PtToggleSound()">🔊 Som ligado</button>
   </header>
 
@@ -467,7 +468,7 @@ function initNameGate(){
 }
 function confirmStudentName(){
   const input = document.getElementById('nameInput');
-  const val = input.value.trim();
+  const val = (input.value.trim().split(/\s+/)[0]) || '';
   if(!val){
     input.focus();
     return;

@@ -1098,12 +1098,15 @@
       <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar
     </button>
 
-    <div class="flex items-center justify-between gap-3 mt-5 flex-wrap">
-      <p class="eyebrow">👶 LampMind Kids · <span class="text-neon">100% Grátis</span></p>
-      <button type="button" id="matricula-ver-desempenho-btn" class="inline-flex items-center gap-1 text-xs text-neon underline underline-offset-2">📊 Já estás matriculado? Ver desempenho</button>
-    </div>
+    <p class="eyebrow mt-5">👶 LampMind Kids · <span class="text-neon">100% Grátis</span></p>
     <p class="font-display text-2xl mt-2">Curso Básico Infantil (4-6 anos)</p>
-    <p class="text-mute text-sm mt-3 leading-relaxed">
+
+    <div class="mt-4 rounded-xl border border-neon/40 bg-card p-4 flex items-center justify-between gap-3 flex-wrap">
+      <p class="text-sm text-mute">Já tens matrícula? Entra e participa na aula. Ainda não tens? Matricula-te grátis logo abaixo. 👇</p>
+      <button type="button" id="matricula-ver-desempenho-btn" class="btn-primary rounded-xl px-4 py-2.5 text-sm shrink-0">🎓 Entrar na aula</button>
+    </div>
+
+    <p class="text-mute text-sm mt-4 leading-relaxed">
       O Curso Básico Infantil LampMind foi criado para crianças de 4 a 6 anos que estão a iniciar a aprendizagem escolar. O curso integra Matemática e Português, com aulas divertidas e interativas que ajudam a criança a aprender brincando, contando números, reconhecendo animais, letras, cores e palavras simples, desenvolvendo linguagem, raciocínio lógico e confiança para começar a escola. <strong class="text-ink">O curso é gratuito e está aberto — não há nenhum pagamento a fazer.</strong>
     </p>
 
@@ -1115,7 +1118,7 @@
 
     <!-- Formulário de matrícula (visível antes de matricular) -->
     <div id="matricula-form-wrap">
-      <p class="font-display text-lg mt-8">Matrícula (gratuita)</p>
+      <p class="font-display text-lg mt-8">Ainda não tens matrícula? Faz aqui (gratuita)</p>
       <form id="matricula-form" class="mt-3 space-y-3 text-left">
         <div class="grid sm:grid-cols-2 gap-3">
           <input required type="text" id="matricula-nome-crianca" placeholder="Nome da criança" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
@@ -1166,14 +1169,14 @@
       <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar
     </button>
 
-    <p class="eyebrow mt-5">📊 LampMind Kids</p>
-    <p class="font-display text-2xl mt-2">Desempenho da tua criança</p>
-    <p class="text-mute text-sm mt-3 leading-relaxed">Entra com os dados usados na matrícula para veres o progresso nas aulas de Português e Matemática.</p>
+    <p class="eyebrow mt-5">🎓 LampMind Kids</p>
+    <p class="font-display text-2xl mt-2">Entrar e continuar as aulas</p>
+    <p class="text-mute text-sm mt-3 leading-relaxed">Entra com os dados usados na matrícula para começares ou continuares as aulas de Português e Matemática — e vês também o progresso da tua criança.</p>
 
     <form id="desempenho-login-form" class="mt-6 space-y-3 text-left">
       <input required type="text" id="desempenho-nome-crianca" placeholder="Nome da criança (como na matrícula)" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
       <input required type="tel" id="desempenho-telefone" placeholder="Telefone do encarregado (como na matrícula)" class="w-full rounded-xl bg-card border border-hair px-4 py-3 text-sm text-ink">
-      <button type="submit" class="btn-primary rounded-xl px-6 py-3 text-sm w-full">Ver desempenho</button>
+      <button type="submit" class="btn-primary rounded-xl px-6 py-3 text-sm w-full">Entrar</button>
       <p id="desempenho-login-msg" class="text-sm hidden"></p>
     </form>
 
@@ -1182,6 +1185,14 @@
         <p class="font-display text-base" id="desempenho-nome-titulo">—</p>
         <p class="text-xs text-mute mt-1" id="desempenho-curso-inicial">—</p>
       </div>
+
+      <div class="grid sm:grid-cols-2 gap-3">
+        <a href="escola-portugues.html" id="desempenho-ir-portugues" class="rounded-xl px-4 py-3 text-sm text-center">Português</a>
+        <a href="sala-matematica.html" id="desempenho-ir-matematica" class="rounded-xl px-4 py-3 text-sm text-center">Matemática</a>
+      </div>
+      <p class="text-xs text-mute">Ao clicares, a aula já abre com os dados da tua criança carregados — é só entrar e participar. Só é possível desbloquear uma aula nova por dia.</p>
+
+      <p class="text-xs uppercase tracking-wide text-mute pt-2">📊 Desempenho</p>
       <div class="rounded-xl border border-hair p-4">
         <div class="flex items-center justify-between">
           <span class="text-sm">📖 Português</span>
@@ -1197,11 +1208,6 @@
         <div class="w-full h-2 rounded-full bg-hair mt-2 overflow-hidden"><div id="desempenho-mat-barra" class="h-full bg-energy" style="width:0%"></div></div>
       </div>
       <p class="text-xs text-mute" id="desempenho-ultima-aula">—</p>
-      <p class="text-xs text-mute">Ao clicares, a aula já abre com os dados da tua criança carregados — é só entrar e participar. Só é possível desbloquear uma aula nova por dia.</p>
-      <div class="grid sm:grid-cols-2 gap-3">
-        <a href="escola-portugues.html" id="desempenho-ir-portugues" class="rounded-xl px-4 py-3 text-sm text-center">Português</a>
-        <a href="sala-matematica.html" id="desempenho-ir-matematica" class="rounded-xl px-4 py-3 text-sm text-center">Matemática</a>
-      </div>
     </div>
   </div>
 </div>
@@ -1794,15 +1800,20 @@
   });
 
   /* ---------- Painel de matrícula LampMind Kids: envio (curso gratuito, acesso imediato) ---------- */
+  function LM_primeiroNome(nomeCompleto) {
+    return (nomeCompleto || '').trim().split(/\s+/)[0] || '';
+  }
+
   function guardarCredenciaisMatricula({ id, nomeCrianca, telefone, cursoInicial }) {
+    const primeiroNome = LM_primeiroNome(nomeCrianca);
     try {
       localStorage.setItem('lampmind_matricula_id', id || '');
       localStorage.setItem('lampmind_matricula_nome_crianca', nomeCrianca || '');
       localStorage.setItem('lampmind_matricula_telefone', telefone || '');
       localStorage.setItem('lampmind_matricula_curso_inicial', cursoInicial || '');
-      // também prepara o nome do(a) aluno(a) para as salas de aula
-      localStorage.setItem('lampmind_portugues_student_name', nomeCrianca || '');
-      localStorage.setItem('lampmind_student_name', nomeCrianca || '');
+      // a professora chama a criança só pelo primeiro nome durante as aulas
+      localStorage.setItem('lampmind_portugues_student_name', primeiroNome);
+      localStorage.setItem('lampmind_student_name', primeiroNome);
     } catch (e) { /* localStorage indisponível */ }
   }
 
@@ -1876,7 +1887,7 @@
       const ptDias = (pt.daysCompleted || []).length;
       const matDias = (mat.daysCompleted || []).length;
 
-      document.getElementById('desempenho-nome-titulo').textContent = m.nome_crianca;
+      document.getElementById('desempenho-nome-titulo').textContent = LM_primeiroNome(m.nome_crianca);
       document.getElementById('desempenho-curso-inicial').textContent =
         `Começou por: ${m.curso_inicial === 'matematica' ? 'Matemática 🧮' : 'Português 📖'}`;
       document.getElementById('desempenho-pt-valor').textContent = `${ptDias}/30 dias`;
