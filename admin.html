@@ -65,6 +65,7 @@
       <div class="tab" data-tab="comunidade">Comunidade</div>
       <div class="tab" data-tab="biscoitos">Biscoitos</div>
       <div class="tab" data-tab="matriculas">Matrículas</div>
+      <div class="tab" data-tab="servicos">Serviços</div>
       <div class="tab" data-tab="personalizacao">Personalização do Site</div>
       <div class="tab" data-tab="feedback">Feedback</div>
       <div class="tab" data-tab="estatisticas">Estatísticas</div>
@@ -430,6 +431,49 @@
       </div>
     </div>
 
+    <!-- ABA: SERVIÇOS -->
+    <div id="tab-servicos" class="hidden">
+      <div class="card rounded-2xl p-8 mb-10">
+        <p class="font-display text-xl mb-2">Adicionar novo serviço</p>
+        <p class="text-sm text-gray-400 mb-6">O Assistente LampMind (chat com IA) usa esta lista para saber sobre todos os serviços disponíveis e responder às perguntas dos visitantes.</p>
+        <form id="servico-form" class="space-y-4">
+          <input required type="text" id="servico-titulo" placeholder="Título do serviço" class="w-full rounded-lg px-4 py-3 text-sm">
+          <textarea id="servico-descricao" placeholder="Descrição do serviço" rows="3" class="w-full rounded-lg px-4 py-3 text-sm"></textarea>
+          <input type="text" id="servico-preco" placeholder="Preço (ex: Grátis, 500 MT, Pago com biscoitos)" class="w-full rounded-lg px-4 py-3 text-sm">
+          <input type="number" id="servico-ordem" placeholder="Ordem de exibição (0 = primeiro)" value="0" class="w-full rounded-lg px-4 py-3 text-sm">
+          <label class="flex items-center gap-2 text-sm text-gray-300">
+            <input type="checkbox" id="servico-ativo" checked> Serviço ativo (a IA só fala de serviços ativos)
+          </label>
+          <button type="submit" id="servico-btn" class="btn w-full rounded-lg py-3 text-sm">Adicionar serviço</button>
+          <p id="servico-msg" class="text-sm hidden"></p>
+        </form>
+      </div>
+
+      <div class="card rounded-2xl p-8 mb-10" id="editar-servico-card" style="display:none;">
+        <div class="flex items-center justify-between mb-6">
+          <p class="font-display text-xl">Editar serviço</p>
+          <button type="button" id="editar-servico-voltar" class="text-xs text-gray-400 hover:text-white">← Voltar</button>
+        </div>
+        <form id="editar-servico-form" class="space-y-4">
+          <input type="hidden" id="edit-servico-id">
+          <input required type="text" id="edit-servico-titulo" placeholder="Título do serviço" class="w-full rounded-lg px-4 py-3 text-sm">
+          <textarea id="edit-servico-descricao" placeholder="Descrição do serviço" rows="3" class="w-full rounded-lg px-4 py-3 text-sm"></textarea>
+          <input type="text" id="edit-servico-preco" placeholder="Preço" class="w-full rounded-lg px-4 py-3 text-sm">
+          <input type="number" id="edit-servico-ordem" placeholder="Ordem de exibição" class="w-full rounded-lg px-4 py-3 text-sm">
+          <label class="flex items-center gap-2 text-sm text-gray-300">
+            <input type="checkbox" id="edit-servico-ativo"> Serviço ativo
+          </label>
+          <button type="submit" class="btn w-full rounded-lg py-3 text-sm">Guardar alterações</button>
+          <p id="editar-servico-msg" class="text-sm hidden"></p>
+        </form>
+      </div>
+
+      <div class="card rounded-2xl p-8">
+        <p class="font-display text-xl mb-6">Serviços cadastrados</p>
+        <div id="servicos-lista" class="space-y-3 text-sm"></div>
+      </div>
+    </div>
+
     <!-- ABA: PERSONALIZAÇÃO -->
     <div id="tab-personalizacao" class="hidden">
       <div class="card rounded-2xl p-8 mb-10">
@@ -637,6 +681,7 @@
       document.getElementById('tab-comunidade').classList.toggle('hidden', tab.dataset.tab !== 'comunidade');
       document.getElementById('tab-biscoitos').classList.toggle('hidden', tab.dataset.tab !== 'biscoitos');
       document.getElementById('tab-matriculas').classList.toggle('hidden', tab.dataset.tab !== 'matriculas');
+      document.getElementById('tab-servicos').classList.toggle('hidden', tab.dataset.tab !== 'servicos');
       document.getElementById('tab-personalizacao').classList.toggle('hidden', tab.dataset.tab !== 'personalizacao');
       document.getElementById('tab-feedback').classList.toggle('hidden', tab.dataset.tab !== 'feedback');
       document.getElementById('tab-estatisticas').classList.toggle('hidden', tab.dataset.tab !== 'estatisticas');
@@ -648,6 +693,7 @@
       if (tab.dataset.tab === 'comunidade') { carregarCandidaturas(); carregarInteressados(); }
       if (tab.dataset.tab === 'biscoitos') { carregarBiscoitos(); carregarPedidosTrabalho(); }
       if (tab.dataset.tab === 'matriculas') carregarMatriculas();
+      if (tab.dataset.tab === 'servicos') carregarServicos();
       if (tab.dataset.tab === 'feedback') carregarFeedback();
       if (tab.dataset.tab === 'estatisticas') carregarEstatisticas();
     });
@@ -1618,6 +1664,110 @@ Equipa LampMind`;
         if (!confirm('Remover esta matrícula?')) return;
         await supabase.from('matriculas_curso').delete().eq('id', b.dataset.id);
         carregarMatriculas();
+      });
+    });
+  }
+
+  /* ---------- Serviços: usados pelo site e pelo Assistente LampMind (IA) ---------- */
+  document.getElementById('servico-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('servico-btn');
+    const msg = document.getElementById('servico-msg');
+    btn.disabled = true;
+    btn.textContent = 'A adicionar...';
+    const payload = {
+      titulo: document.getElementById('servico-titulo').value,
+      descricao: document.getElementById('servico-descricao').value,
+      preco: document.getElementById('servico-preco').value,
+      ordem: parseInt(document.getElementById('servico-ordem').value, 10) || 0,
+      ativo: document.getElementById('servico-ativo').checked
+    };
+    const { error } = await supabase.from('servicos').insert(payload);
+    btn.disabled = false;
+    btn.textContent = 'Adicionar serviço';
+    if (error) {
+      msg.textContent = 'Erro: ' + error.message;
+      msg.className = 'text-sm text-red-400';
+    } else {
+      msg.textContent = 'Serviço adicionado!';
+      msg.className = 'text-sm text-green-400';
+      e.target.reset();
+      document.getElementById('servico-ativo').checked = true;
+      carregarServicos();
+    }
+    msg.classList.remove('hidden');
+  });
+
+  document.getElementById('editar-servico-voltar').addEventListener('click', () => {
+    document.getElementById('editar-servico-card').style.display = 'none';
+  });
+
+  document.getElementById('editar-servico-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('edit-servico-id').value;
+    const msg = document.getElementById('editar-servico-msg');
+    const payload = {
+      titulo: document.getElementById('edit-servico-titulo').value,
+      descricao: document.getElementById('edit-servico-descricao').value,
+      preco: document.getElementById('edit-servico-preco').value,
+      ordem: parseInt(document.getElementById('edit-servico-ordem').value, 10) || 0,
+      ativo: document.getElementById('edit-servico-ativo').checked
+    };
+    const { error } = await supabase.from('servicos').update(payload).eq('id', id);
+    if (error) {
+      msg.textContent = 'Erro: ' + error.message;
+      msg.className = 'text-sm text-red-400';
+    } else {
+      msg.textContent = 'Alterações guardadas!';
+      msg.className = 'text-sm text-green-400';
+      carregarServicos();
+      setTimeout(() => { document.getElementById('editar-servico-card').style.display = 'none'; }, 800);
+    }
+    msg.classList.remove('hidden');
+  });
+
+  async function carregarServicos() {
+    const lista = document.getElementById('servicos-lista');
+    lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+    const { data, error } = await supabase.from('servicos').select('*').order('ordem', { ascending: true });
+    if (error) { lista.innerHTML = '<p class="text-red-400">Erro: ' + error.message + '</p>'; return; }
+    if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não há serviços cadastrados.</p>'; return; }
+
+    lista.innerHTML = data.map(s => `
+      <div class="border border-white/10 rounded-xl p-4">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="font-medium">${s.titulo} <span class="text-xs px-2 py-0.5 rounded-full ml-1 ${s.ativo ? 'bg-green-500/15 text-green-400' : 'bg-gray-500/15 text-gray-400'}">${s.ativo ? 'Ativo' : 'Inativo'}</span></p>
+            ${s.descricao ? `<p class="text-gray-400 text-xs mt-1">${s.descricao}</p>` : ''}
+            <p class="text-gray-500 text-xs mt-1">${s.preco || 'sem preço definido'} · ordem ${s.ordem ?? 0}</p>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-3">
+          <button data-id="${s.id}" class="edit-servico-btn rounded-lg px-3 py-1.5 text-xs border border-white/20 hover:bg-white/10">Editar</button>
+          <button data-id="${s.id}" class="del-servico-btn btn-danger rounded-lg px-3 py-1.5 text-xs">Remover</button>
+        </div>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.edit-servico-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        const s = data.find(x => x.id === b.dataset.id);
+        if (!s) return;
+        document.getElementById('edit-servico-id').value = s.id;
+        document.getElementById('edit-servico-titulo').value = s.titulo || '';
+        document.getElementById('edit-servico-descricao').value = s.descricao || '';
+        document.getElementById('edit-servico-preco').value = s.preco || '';
+        document.getElementById('edit-servico-ordem').value = s.ordem ?? 0;
+        document.getElementById('edit-servico-ativo').checked = !!s.ativo;
+        document.getElementById('editar-servico-card').style.display = 'block';
+        document.getElementById('editar-servico-card').scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+    document.querySelectorAll('.del-servico-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (!confirm('Remover este serviço?')) return;
+        await supabase.from('servicos').delete().eq('id', b.dataset.id);
+        carregarServicos();
       });
     });
   }
