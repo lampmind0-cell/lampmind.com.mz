@@ -25,24 +25,6 @@
 </head>
 <body class="antialiased">
 
-<!-- Diagnóstico temporário: mostra qualquer erro de JS diretamente no ecrã, sem precisar de DevTools -->
-<div id="erro-diagnostico" style="display:none; position:fixed; top:0; left:0; right:0; z-index:9999; background:#dc2626; color:#fff; padding:14px 16px; font-family:monospace; font-size:12px; white-space:pre-wrap; max-height:40vh; overflow-y:auto;"></div>
-<script>
-  (function() {
-    var caixa = document.getElementById('erro-diagnostico');
-    function mostrar(msg) {
-      caixa.style.display = 'block';
-      caixa.textContent += msg + '\n\n';
-    }
-    window.addEventListener('error', function(e) {
-      mostrar('ERRO: ' + e.message + '\nFicheiro: ' + e.filename + ' linha ' + e.lineno);
-    });
-    window.addEventListener('unhandledrejection', function(e) {
-      mostrar('PROMESSA REJEITADA: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
-    });
-  })();
-</script>
-
 <div class="max-w-3xl mx-auto px-6 py-14">
   <div class="flex items-center gap-2 mb-10">
     <svg width="26" height="26" viewBox="0 0 48 48" fill="none"><path d="M27 3 L11 26H21L17 45L37 20H26L27 3Z" fill="#FFC107"/></svg>
@@ -87,7 +69,6 @@
       <div class="tab" data-tab="personalizacao">Personalização do Site</div>
       <div class="tab" data-tab="feedback">Feedback</div>
       <div class="tab" data-tab="estatisticas">Estatísticas</div>
-      <div class="tab" data-tab="consultorio">🔒 Consultório</div>
     </div>
 
     <!-- ABA: MATERIAIS -->
@@ -621,58 +602,6 @@
         <div id="stat-testes-lista" class="space-y-2 text-sm"></div>
       </div>
     </div>
-
-    <!-- ABA: CONSULTÓRIO (multi-IA: Claude + Gemini + GPT) -->
-    <div id="tab-consultorio" class="hidden">
-      <!-- Portão de acesso: chave separada, diferente do login do admin -->
-      <div id="consultorio-gate" class="card rounded-2xl p-8 max-w-md mx-auto text-center">
-        <p class="text-3xl mb-3">🔒</p>
-        <p class="font-display text-xl mb-2">Consultório — acesso restrito</p>
-        <p class="text-sm text-gray-400 mb-6">Esta secção tem uma chave de acesso própria, separada do login do admin.</p>
-        <form id="consultorio-auth-form" class="space-y-3">
-          <input required type="password" id="consultorio-chave-input" placeholder="Chave de acesso do Consultório" class="w-full rounded-lg px-4 py-3 text-sm">
-          <button type="submit" class="rounded-lg px-4 py-3 text-sm w-full" style="background:#fff; color:#000; font-weight:600;">Entrar</button>
-          <p id="consultorio-auth-msg" class="text-sm hidden"></p>
-        </form>
-      </div>
-
-      <!-- Conteúdo do Consultório: só aparece depois da chave correta -->
-      <div id="consultorio-conteudo" class="hidden">
-        <div class="flex gap-2 mb-6">
-          <button type="button" id="consultorio-nav-perguntar" class="rounded-lg px-4 py-2 text-sm" style="background:#fff; color:#000; font-weight:600;">💬 Perguntar</button>
-          <button type="button" id="consultorio-nav-observacao" class="rounded-lg px-4 py-2 text-sm border border-white/20">📊 Observação</button>
-        </div>
-
-        <!-- Painel: Perguntar -->
-        <div id="consultorio-painel-perguntar">
-          <div class="card rounded-2xl p-8">
-            <p class="font-display text-lg mb-1">Consultar as IAs</p>
-            <p class="text-sm text-gray-400 mb-6">Claude, Gemini e GPT — a mais forte para o assunto assume, ou as três colaboram quando fizer sentido.</p>
-            <form id="consultorio-perguntar-form" class="space-y-3">
-              <textarea required id="consultorio-pergunta" rows="4" placeholder="Escreve a tarefa ou pergunta..." class="w-full rounded-lg px-4 py-3 text-sm"></textarea>
-              <select id="consultorio-modo" class="w-full rounded-lg px-4 py-3 text-sm">
-                <option value="automatico">🤖 Automático (a IA mais forte para o assunto assume, ou colaboram se for complexo)</option>
-                <option value="claude">Só Claude</option>
-                <option value="gemini">Só Gemini</option>
-                <option value="gpt">Só GPT</option>
-                <option value="colaborativo">🤝 Colaborar — as três respondem</option>
-              </select>
-              <button type="submit" id="consultorio-perguntar-btn" class="rounded-lg px-4 py-3 text-sm w-full" style="background:#fff; color:#000; font-weight:600;">Perguntar</button>
-            </form>
-          </div>
-          <div id="consultorio-resultado" class="hidden mt-6 space-y-4"></div>
-        </div>
-
-        <!-- Painel: Observação (histórico / desempenho) -->
-        <div id="consultorio-painel-observacao" class="hidden">
-          <div class="card rounded-2xl p-8">
-            <p class="font-display text-lg mb-1">Observação — desempenho das IAs</p>
-            <p class="text-sm text-gray-400 mb-6">Histórico de tudo o que já foi perguntado: qual IA respondeu, o tempo de resposta e a resposta de cada uma.</p>
-            <div id="consultorio-log-lista" class="space-y-3 text-sm"></div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -756,7 +685,6 @@
       document.getElementById('tab-personalizacao').classList.toggle('hidden', tab.dataset.tab !== 'personalizacao');
       document.getElementById('tab-feedback').classList.toggle('hidden', tab.dataset.tab !== 'feedback');
       document.getElementById('tab-estatisticas').classList.toggle('hidden', tab.dataset.tab !== 'estatisticas');
-      document.getElementById('tab-consultorio').classList.toggle('hidden', tab.dataset.tab !== 'consultorio');
       if (tab.dataset.tab === 'projetos') carregarProjetosExtra();
       if (tab.dataset.tab === 'blog') carregarBlogAdmin();
       if (tab.dataset.tab === 'equipa') carregarEquipaAdmin();
@@ -768,7 +696,6 @@
       if (tab.dataset.tab === 'servicos') carregarServicos();
       if (tab.dataset.tab === 'feedback') carregarFeedback();
       if (tab.dataset.tab === 'estatisticas') carregarEstatisticas();
-      if (tab.dataset.tab === 'consultorio') iniciarConsultorio();
     });
   });
 
@@ -2090,174 +2017,6 @@ Equipa LampMind`;
   }
 
   checkSession();
-
-  /* ---------- Consultório: multi-IA (Claude + Gemini + GPT) ---------- */
-  function consultorioChaveGuardada() {
-    try { return sessionStorage.getItem('consultorio_chave') || ''; } catch (e) { return ''; }
-  }
-  function consultorioGuardarChave(chave) {
-    try { sessionStorage.setItem('consultorio_chave', chave); } catch (e) { /* ignora */ }
-  }
-
-  function iniciarConsultorio() {
-    const chave = consultorioChaveGuardada();
-    if (chave) {
-      document.getElementById('consultorio-gate').classList.add('hidden');
-      document.getElementById('consultorio-conteudo').classList.remove('hidden');
-    } else {
-      document.getElementById('consultorio-gate').classList.remove('hidden');
-      document.getElementById('consultorio-conteudo').classList.add('hidden');
-    }
-  }
-
-  document.getElementById('consultorio-auth-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const msg = document.getElementById('consultorio-auth-msg');
-    const chave = document.getElementById('consultorio-chave-input').value;
-    msg.classList.add('hidden');
-    try {
-      const resp = await fetch(`${SUPABASE_URL}/functions/v1/consultorio-auth`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chave })
-      });
-      const dados = await resp.json();
-      if (!resp.ok || !dados.ok) {
-        msg.textContent = 'Chave incorreta.';
-        msg.className = 'text-sm text-red-400';
-        msg.classList.remove('hidden');
-        return;
-      }
-      consultorioGuardarChave(chave);
-      iniciarConsultorio();
-      carregarConsultorioLog();
-    } catch (err) {
-      msg.textContent = 'Erro ao verificar a chave: ' + err.message;
-      msg.className = 'text-sm text-red-400';
-      msg.classList.remove('hidden');
-    }
-  });
-
-  document.getElementById('consultorio-nav-perguntar').addEventListener('click', () => {
-    document.getElementById('consultorio-painel-perguntar').classList.remove('hidden');
-    document.getElementById('consultorio-painel-observacao').classList.add('hidden');
-    document.getElementById('consultorio-nav-perguntar').style.background = '#fff';
-    document.getElementById('consultorio-nav-perguntar').style.color = '#000';
-    document.getElementById('consultorio-nav-observacao').style.background = 'transparent';
-    document.getElementById('consultorio-nav-observacao').style.color = '';
-  });
-  document.getElementById('consultorio-nav-observacao').addEventListener('click', () => {
-    document.getElementById('consultorio-painel-observacao').classList.remove('hidden');
-    document.getElementById('consultorio-painel-perguntar').classList.add('hidden');
-    document.getElementById('consultorio-nav-observacao').style.background = '#fff';
-    document.getElementById('consultorio-nav-observacao').style.color = '#000';
-    document.getElementById('consultorio-nav-perguntar').style.background = 'transparent';
-    document.getElementById('consultorio-nav-perguntar').style.color = '';
-    carregarConsultorioLog();
-  });
-
-  document.getElementById('consultorio-perguntar-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('consultorio-perguntar-btn');
-    const resultado = document.getElementById('consultorio-resultado');
-    const pergunta = document.getElementById('consultorio-pergunta').value;
-    const modo = document.getElementById('consultorio-modo').value;
-    const chave = consultorioChaveGuardada();
-
-    btn.disabled = true;
-    btn.textContent = 'A consultar...';
-    resultado.classList.add('hidden');
-
-    try {
-      const resp = await fetch(`${SUPABASE_URL}/functions/v1/consultorio`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pergunta, modo, chave })
-      });
-      const dados = await resp.json();
-      if (!resp.ok) {
-        if (resp.status === 401) {
-          // chave pode ter mudado ou expirado a sessão local
-          sessionStorage.removeItem('consultorio_chave');
-          iniciarConsultorio();
-          throw new Error('Sessão do Consultório expirou. Introduz a chave outra vez.');
-        }
-        throw new Error(dados.erro || 'Erro ao consultar as IAs');
-      }
-      resultado.innerHTML = consultorioRenderizarResultado(dados);
-      resultado.classList.remove('hidden');
-    } catch (err) {
-      resultado.innerHTML = `<div class="card rounded-2xl p-6 text-red-400 text-sm">${err.message}</div>`;
-      resultado.classList.remove('hidden');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Perguntar';
-    }
-  });
-
-  function consultorioNomeIA(ia) {
-    return { claude: '🟣 Claude', gemini: '🔵 Gemini', gpt: '🟢 GPT' }[ia] || ia;
-  }
-
-  function consultorioRenderizarResultado(dados) {
-    const individuais = Object.entries(dados.respostas_individuais || {}).map(([ia, r]) => `
-      <div class="card rounded-xl p-5">
-        <div class="flex items-center justify-between mb-2">
-          <span class="font-medium">${consultorioNomeIA(ia)}</span>
-          <span class="text-xs text-gray-500">${r.erro ? 'Falhou' : (r.ms ? r.ms + ' ms' : '—')}</span>
-        </div>
-        ${r.erro
-          ? `<p class="text-sm text-red-400">${r.erro}</p>`
-          : `<p class="text-sm whitespace-pre-wrap">${(r.texto || '').replace(/</g, '&lt;')}</p>`}
-      </div>
-    `).join('');
-
-    return `
-      <div class="card rounded-2xl p-6" style="border-color:rgba(255,255,255,0.25);">
-        <p class="text-xs text-gray-400">Quem assumiu: <span class="text-white font-medium">${dados.ia_escolhida}</span></p>
-        <p class="text-xs text-gray-500 mt-1">${dados.motivo_roteamento || ''}</p>
-      </div>
-      <div class="grid sm:grid-cols-${Object.keys(dados.respostas_individuais || {}).length > 1 ? '1' : '1'} gap-3">
-        ${individuais}
-      </div>
-    `;
-  }
-
-  async function carregarConsultorioLog() {
-    const lista = document.getElementById('consultorio-log-lista');
-    lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
-    const { data, error } = await supabase
-      .from('consultorio_registos')
-      .select('*')
-      .order('criado_em', { ascending: false })
-      .limit(50);
-    if (error) { lista.innerHTML = '<p class="text-red-400">Erro: ' + error.message + '</p>'; return; }
-    if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não há registos.</p>'; return; }
-
-    lista.innerHTML = data.map((r, i) => {
-      const detalhesId = `consultorio-detalhe-${i}`;
-      const individuais = Object.entries(r.respostas_individuais || {}).map(([ia, resp]) => `
-        <div class="border border-white/10 rounded-lg p-3 mt-2">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-medium">${consultorioNomeIA(ia)}</span>
-            <span class="text-xs text-gray-500">${resp.erro ? 'Falhou' : (resp.ms ? resp.ms + ' ms' : '—')}</span>
-          </div>
-          <p class="text-xs text-gray-400 whitespace-pre-wrap">${resp.erro ? resp.erro : (resp.texto || '').slice(0, 400).replace(/</g, '&lt;')}</p>
-        </div>
-      `).join('');
-
-      return `
-      <div class="border border-white/10 rounded-xl p-4">
-        <div class="flex items-start justify-between gap-3 cursor-pointer" onclick="document.getElementById('${detalhesId}').classList.toggle('hidden')">
-          <div>
-            <p class="text-sm">${(r.pergunta || '').slice(0, 140)}${r.pergunta && r.pergunta.length > 140 ? '…' : ''}</p>
-            <p class="text-xs text-gray-500 mt-1">${new Date(r.criado_em).toLocaleString('pt-PT')} · modo: ${r.modo} · respondeu: <span class="text-white">${r.ia_escolhida}</span> · ${r.tempo_total_ms || '—'} ms</p>
-          </div>
-        </div>
-        <div id="${detalhesId}" class="hidden mt-3">${individuais}</div>
-      </div>
-    `; }).join('');
-  }
 </script>
 </body>
 </html>
