@@ -2093,7 +2093,7 @@ Equipa LampMind`;
     try { return sessionStorage.getItem('consultorio_chave') || ''; } catch (e) { return ''; }
   }
   function consultorioGuardarChave(chave) {
-    try { sessionStorage.setItem('consultorio_chave', chave); } catch (e) { /* ignora */ }
+    try { sessionStorage.setItem('consultorio_chave', (chave || '').trim()); } catch (e) { /* ignora */ }
   }
 
   function iniciarConsultorio() {
@@ -2110,7 +2110,7 @@ Equipa LampMind`;
   document.getElementById('consultorio-auth-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('consultorio-auth-msg');
-    const chave = document.getElementById('consultorio-chave-input').value;
+    const chave = document.getElementById('consultorio-chave-input').value.trim();
     msg.classList.add('hidden');
     try {
       const resp = await fetch(`${SUPABASE_URL}/functions/v1/consultorio-auth`, {
@@ -2156,8 +2156,8 @@ Equipa LampMind`;
   document.getElementById('consultorio-trocar-chave-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('consultorio-trocar-chave-msg');
-    const chaveAtual = document.getElementById('consultorio-chave-atual-input').value;
-    const chaveNova = document.getElementById('consultorio-chave-nova-input').value;
+    const chaveAtual = document.getElementById('consultorio-chave-atual-input').value.trim();
+    const chaveNova = document.getElementById('consultorio-chave-nova-input').value.trim();
     msg.classList.add('hidden');
     try {
       const resp = await fetch(`${SUPABASE_URL}/functions/v1/consultorio-auth`, {
