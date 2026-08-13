@@ -25,24 +25,6 @@
 </head>
 <body class="antialiased">
 
-<!-- Diagnóstico temporário: mostra qualquer erro de JS diretamente no ecrã, sem precisar de DevTools -->
-<div id="erro-diagnostico" style="display:none; position:fixed; top:0; left:0; right:0; z-index:9999; background:#dc2626; color:#fff; padding:14px 16px; font-family:monospace; font-size:12px; white-space:pre-wrap; max-height:40vh; overflow-y:auto;"></div>
-<script>
-  (function() {
-    var caixa = document.getElementById('erro-diagnostico');
-    function mostrar(msg) {
-      caixa.style.display = 'block';
-      caixa.textContent += msg + '\n\n';
-    }
-    window.addEventListener('error', function(e) {
-      mostrar('ERRO: ' + e.message + '\nFicheiro: ' + e.filename + ' linha ' + e.lineno);
-    });
-    window.addEventListener('unhandledrejection', function(e) {
-      mostrar('PROMESSA REJEITADA: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
-    });
-  })();
-</script>
-
 <div class="max-w-3xl mx-auto px-6 py-14">
   <div class="flex items-center gap-2 mb-10">
     <svg width="26" height="26" viewBox="0 0 48 48" fill="none"><path d="M27 3 L11 26H21L17 45L37 20H26L27 3Z" fill="#FFC107"/></svg>
@@ -641,6 +623,7 @@
         <div class="flex gap-2 mb-6">
           <button type="button" id="consultorio-nav-perguntar" class="rounded-lg px-4 py-2 text-sm" style="background:#fff; color:#000; font-weight:600;">💬 Perguntar</button>
           <button type="button" id="consultorio-nav-observacao" class="rounded-lg px-4 py-2 text-sm border border-white/20">📊 Observação</button>
+          <button type="button" id="consultorio-nav-chave" class="rounded-lg px-4 py-2 text-sm border border-white/20">🔑 Chave</button>
         </div>
 
         <!-- Painel: Perguntar -->
@@ -669,6 +652,20 @@
             <p class="font-display text-lg mb-1">Observação — desempenho das IAs</p>
             <p class="text-sm text-gray-400 mb-6">Histórico de tudo o que já foi perguntado: qual IA respondeu, o tempo de resposta e a resposta de cada uma.</p>
             <div id="consultorio-log-lista" class="space-y-3 text-sm"></div>
+          </div>
+        </div>
+
+        <!-- Painel: Alterar chave de acesso -->
+        <div id="consultorio-painel-chave" class="hidden">
+          <div class="card rounded-2xl p-8 max-w-md">
+            <p class="font-display text-lg mb-1">Alterar chave de acesso</p>
+            <p class="text-sm text-gray-400 mb-6">Define uma nova chave para entrar no Consultório. Precisas da chave atual para confirmar.</p>
+            <form id="consultorio-trocar-chave-form" class="space-y-3">
+              <input required type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" id="consultorio-chave-atual-input" placeholder="Chave atual" class="w-full rounded-lg px-4 py-3 text-sm">
+              <input required minlength="6" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" id="consultorio-chave-nova-input" placeholder="Nova chave (mínimo 6 caracteres)" class="w-full rounded-lg px-4 py-3 text-sm">
+              <button type="submit" class="rounded-lg px-4 py-3 text-sm w-full" style="background:#fff; color:#000; font-weight:600;">Guardar nova chave</button>
+              <p id="consultorio-trocar-chave-msg" class="text-sm hidden"></p>
+            </form>
           </div>
         </div>
       </div>
@@ -2138,22 +2135,53 @@ Equipa LampMind`;
     }
   });
 
-  document.getElementById('consultorio-nav-perguntar').addEventListener('click', () => {
-    document.getElementById('consultorio-painel-perguntar').classList.remove('hidden');
-    document.getElementById('consultorio-painel-observacao').classList.add('hidden');
-    document.getElementById('consultorio-nav-perguntar').style.background = '#fff';
-    document.getElementById('consultorio-nav-perguntar').style.color = '#000';
-    document.getElementById('consultorio-nav-observacao').style.background = 'transparent';
-    document.getElementById('consultorio-nav-observacao').style.color = '';
-  });
-  document.getElementById('consultorio-nav-observacao').addEventListener('click', () => {
-    document.getElementById('consultorio-painel-observacao').classList.remove('hidden');
-    document.getElementById('consultorio-painel-perguntar').classList.add('hidden');
-    document.getElementById('consultorio-nav-observacao').style.background = '#fff';
-    document.getElementById('consultorio-nav-observacao').style.color = '#000';
-    document.getElementById('consultorio-nav-perguntar').style.background = 'transparent';
-    document.getElementById('consultorio-nav-perguntar').style.color = '';
-    carregarConsultorioLog();
+  function consultorioMostrarPainel(nome) {
+    const paineis = { perguntar: 'consultorio-painel-perguntar', observacao: 'consultorio-painel-observacao', chave: 'consultorio-painel-chave' };
+    const navs = { perguntar: 'consultorio-nav-perguntar', observacao: 'consultorio-nav-observacao', chave: 'consultorio-nav-chave' };
+    Object.entries(paineis).forEach(([k, id]) => {
+      document.getElementById(id).classList.toggle('hidden', k !== nome);
+    });
+    Object.entries(navs).forEach(([k, id]) => {
+      const btn = document.getElementById(id);
+      btn.style.background = k === nome ? '#fff' : 'transparent';
+      btn.style.color = k === nome ? '#000' : '';
+    });
+    if (nome === 'observacao') carregarConsultorioLog();
+  }
+
+  document.getElementById('consultorio-nav-perguntar').addEventListener('click', () => consultorioMostrarPainel('perguntar'));
+  document.getElementById('consultorio-nav-observacao').addEventListener('click', () => consultorioMostrarPainel('observacao'));
+  document.getElementById('consultorio-nav-chave').addEventListener('click', () => consultorioMostrarPainel('chave'));
+
+  document.getElementById('consultorio-trocar-chave-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('consultorio-trocar-chave-msg');
+    const chaveAtual = document.getElementById('consultorio-chave-atual-input').value;
+    const chaveNova = document.getElementById('consultorio-chave-nova-input').value;
+    msg.classList.add('hidden');
+    try {
+      const resp = await fetch(`${SUPABASE_URL}/functions/v1/consultorio-auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chave: chaveAtual, nova_chave: chaveNova })
+      });
+      const dados = await resp.json();
+      if (!resp.ok || !dados.ok) {
+        msg.textContent = dados.erro || 'Chave atual incorreta.';
+        msg.className = 'text-sm text-red-400';
+        msg.classList.remove('hidden');
+        return;
+      }
+      consultorioGuardarChave(chaveNova);
+      msg.textContent = 'Chave alterada com sucesso! Já está a usar a nova chave nesta sessão.';
+      msg.className = 'text-sm text-green-400';
+      msg.classList.remove('hidden');
+      e.target.reset();
+    } catch (err) {
+      msg.textContent = 'Erro ao trocar a chave: ' + err.message;
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    }
   });
 
   document.getElementById('consultorio-perguntar-form').addEventListener('submit', async (e) => {
