@@ -2337,6 +2337,59 @@ Equipa LampMind`;
   }
 
   let consultorioSemFalaSeguidas = 0;
+  let consultorioMediaStream = null;
+  let consultorioMediaRecorder = null;
+  let consultorioAudioChunks = [];
+
+  function consultorioGravacaoIniciar() {
+    if (!consultorioMediaStream) return;
+    consultorioAudioChunks = [];
+    try {
+      consultorioMediaRecorder = new MediaRecorder(consultorioMediaStream);
+    } catch (e) {
+      consultorioMediaRecorder = null;
+      return;
+    }
+    consultorioMediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) consultorioAudioChunks.push(e.data); };
+    consultorioMediaRecorder.start();
+  }
+
+  function consultorioGravacaoParar() {
+    return new Promise((resolve) => {
+      if (!consultorioMediaRecorder || consultorioMediaRecorder.state === 'inactive') { resolve(null); return; }
+      consultorioMediaRecorder.onstop = () => {
+        const tipo = consultorioMediaRecorder.mimeType || 'audio/webm';
+        resolve(consultorioAudioChunks.length ? new Blob(consultorioAudioChunks, { type: tipo }) : null);
+      };
+      try { consultorioMediaRecorder.stop(); } catch (e) { resolve(null); }
+    });
+  }
+
+  function consultorioBlobParaBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const leitor = new FileReader();
+      leitor.onloadend = () => resolve(leitor.result.split(',')[1]);
+      leitor.onerror = reject;
+      leitor.readAsDataURL(blob);
+    });
+  }
+
+  async function consultorioTranscreverMelhor(blob) {
+    try {
+      if (!blob || blob.size < 800) return null; // muito curto para ter sido fala real
+      const base64 = await consultorioBlobParaBase64(blob);
+      const resp = await fetch(`${SUPABASE_URL}/functions/v1/consultorio-transcrever`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chave: consultorioChaveGuardada(), audio_base64: base64, mime_type: blob.type || 'audio/webm' })
+      });
+      if (!resp.ok) return null;
+      const dados = await resp.json();
+      return dados.texto || null;
+    } catch (e) {
+      return null; // qualquer falha aqui cai de volta para a transcrição do navegador
+    }
+  }
 
   async function consultorioChamadaIniciar() {
     if (!ConsultorioSpeechRecognition || !window.speechSynthesis) {
@@ -2344,11 +2397,11 @@ Equipa LampMind`;
       return;
     }
 
-    // Pede a permissão do microfone de forma explícita primeiro — se falhar aqui,
-    // mostramos logo o motivo em vez de ficar "a ouvir" para sempre sem nunca captar nada.
+    // Pede a permissão do microfone e mantém o fluxo de áudio aberto durante toda a
+    // chamada — é usado para gravar cada fala e mandá-la ao Gemini transcrever com
+    // muito mais precisão do que o reconhecimento nativo do navegador.
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach((t) => t.stop()); // só precisávamos de confirmar a permissão
+      consultorioMediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (permErr) {
       alert('Não consegui aceder ao microfone. Verifica se deste permissão ao navegador para usar o microfone neste site (nas definições do navegador ou do telemóvel) e tenta outra vez.');
       return;
@@ -2369,13 +2422,22 @@ Equipa LampMind`;
       chamadaOrbe.textContent = '🎙️';
       chamadaTranscricao.textContent = '';
       consultorioChamadaDefinirEstado('ouvindo', 'A ouvir...');
+      consultorioGravacaoIniciar();
     });
 
     consultorioReconhecimento.addEventListener('result', async (e) => {
       consultorioSemFalaSeguidas = 0;
-      const texto = e.results[0][0].transcript;
-      chamadaTranscricao.textContent = '"' + texto + '"';
+      const textoNavegador = e.results[0][0].transcript;
       chamadaOrbe.textContent = '🤔';
+      consultorioChamadaDefinirEstado('processando', 'A perceber o que disseste...');
+
+      // Usa a gravação real para pedir uma transcrição melhor (Gemini); se falhar
+      // por qualquer razão, segue com a transcrição do navegador, que já temos.
+      const blob = await consultorioGravacaoParar();
+      const melhor = await consultorioTranscreverMelhor(blob);
+      const texto = (melhor && melhor.trim()) ? melhor.trim() : textoNavegador;
+
+      chamadaTranscricao.textContent = '"' + texto + '"';
       consultorioChamadaDefinirEstado('processando', 'A pensar...');
 
       try {
@@ -2398,7 +2460,8 @@ Equipa LampMind`;
       }
     });
 
-    consultorioReconhecimento.addEventListener('error', (e) => {
+    consultorioReconhecimento.addEventListener('error', async (e) => {
+      await consultorioGravacaoParar(); // não deixa gravação a correr entre tentativas
       if (!consultorioChamadaAtiva) return;
 
       if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
@@ -2430,6 +2493,8 @@ Equipa LampMind`;
   function consultorioChamadaTerminar() {
     consultorioChamadaAtiva = false;
     if (consultorioReconhecimento) { try { consultorioReconhecimento.stop(); } catch (e) {} }
+    if (consultorioMediaRecorder && consultorioMediaRecorder.state !== 'inactive') { try { consultorioMediaRecorder.stop(); } catch (e) {} }
+    if (consultorioMediaStream) { consultorioMediaStream.getTracks().forEach((t) => t.stop()); consultorioMediaStream = null; }
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     chamadaOverlay.classList.add('hidden');
     document.getElementById('consultorio-chat-mensagens').classList.remove('hidden');
