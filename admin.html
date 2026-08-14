@@ -2336,12 +2336,26 @@ Equipa LampMind`;
     try { consultorioReconhecimento.start(); } catch (e) { /* já a correr */ }
   }
 
+  let consultorioSemFalaSeguidas = 0;
+
   async function consultorioChamadaIniciar() {
     if (!ConsultorioSpeechRecognition || !window.speechSynthesis) {
       alert('O teu navegador não suporta conversa por voz (funciona em Chrome/Edge). Podes continuar a usar o chat por texto normalmente.');
       return;
     }
+
+    // Pede a permissão do microfone de forma explícita primeiro — se falhar aqui,
+    // mostramos logo o motivo em vez de ficar "a ouvir" para sempre sem nunca captar nada.
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((t) => t.stop()); // só precisávamos de confirmar a permissão
+    } catch (permErr) {
+      alert('Não consegui aceder ao microfone. Verifica se deste permissão ao navegador para usar o microfone neste site (nas definições do navegador ou do telemóvel) e tenta outra vez.');
+      return;
+    }
+
     consultorioChamadaAtiva = true;
+    consultorioSemFalaSeguidas = 0;
     chamadaOverlay.classList.remove('hidden');
     document.getElementById('consultorio-chat-mensagens').classList.add('hidden');
     chamadaBtn.textContent = '💬 Voltar ao texto';
@@ -2358,6 +2372,7 @@ Equipa LampMind`;
     });
 
     consultorioReconhecimento.addEventListener('result', async (e) => {
+      consultorioSemFalaSeguidas = 0;
       const texto = e.results[0][0].transcript;
       chamadaTranscricao.textContent = '"' + texto + '"';
       chamadaOrbe.textContent = '🤔';
@@ -2384,10 +2399,29 @@ Equipa LampMind`;
     });
 
     consultorioReconhecimento.addEventListener('error', (e) => {
-      // 'no-speech' e 'aborted' acontecem em silêncio normal — só volta a ouvir
-      if (consultorioChamadaAtiva && (e.error === 'no-speech' || e.error === 'aborted' || e.error === 'network')) {
-        setTimeout(consultorioChamadaOuvirDeNovo, 400);
+      if (!consultorioChamadaAtiva) return;
+
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        consultorioChamadaDefinirEstado('erro', 'Permissão do microfone bloqueada.');
+        chamadaTranscricao.textContent = 'Ativa o microfone para este site nas definições do navegador e clica em "Conversar por voz" outra vez.';
+        consultorioChamadaTerminar();
+        return;
       }
+      if (e.error === 'audio-capture') {
+        consultorioChamadaDefinirEstado('erro', 'Não encontrei nenhum microfone.');
+        chamadaTranscricao.textContent = 'Verifica se o teu dispositivo tem um microfone disponível.';
+        consultorioChamadaTerminar();
+        return;
+      }
+
+      if (e.error === 'no-speech') {
+        consultorioSemFalaSeguidas++;
+        chamadaTranscricao.textContent = consultorioSemFalaSeguidas > 1
+          ? 'Continuo sem ouvir nada — verifica se o microfone não está mudo.'
+          : 'Não ouvi nada ainda...';
+      }
+      // 'no-speech', 'aborted' e 'network' são normais (silêncio, troca rápida) — só volta a ouvir
+      setTimeout(consultorioChamadaOuvirDeNovo, 500);
     });
 
     consultorioChamadaOuvirDeNovo();
