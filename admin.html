@@ -643,7 +643,10 @@
                 <p class="font-display text-base">Consultório — chat com as IAs</p>
                 <p class="text-xs text-gray-400">Claude, Gemini e GPT — a mais forte para o assunto assume, ou colaboram quando fizer sentido.</p>
               </div>
-              <button type="button" id="consultorio-limpar-chat" class="text-xs text-gray-400 border border-white/20 rounded-lg px-3 py-1.5 shrink-0" title="Limpar conversa">Limpar</button>
+              <div class="flex items-center gap-2 shrink-0">
+                <button type="button" id="consultorio-voz-toggle" class="text-xs text-gray-400 border border-white/20 rounded-lg px-3 py-1.5" title="Ler respostas em voz alta">🔇 Voz</button>
+                <button type="button" id="consultorio-limpar-chat" class="text-xs text-gray-400 border border-white/20 rounded-lg px-3 py-1.5" title="Limpar conversa">Limpar</button>
+              </div>
             </div>
             <div id="consultorio-chat-mensagens" class="flex-1 overflow-y-auto px-5 py-4 space-y-3"></div>
             <form id="consultorio-perguntar-form" class="border-t border-white/10 p-3 space-y-2">
@@ -655,9 +658,11 @@
                 <option value="colaborativo">🤝 Colaborar — as três respondem</option>
               </select>
               <div class="flex gap-2">
+                <button type="button" id="consultorio-mic-btn" title="Falar a pergunta" class="rounded-lg px-4 text-sm shrink-0 border border-white/20">🎤</button>
                 <input type="text" required id="consultorio-pergunta" placeholder="Escreve a tarefa ou pergunta..." autocomplete="off" class="flex-1 rounded-lg px-4 py-3 text-sm">
                 <button type="submit" id="consultorio-perguntar-btn" class="rounded-lg px-5 text-sm shrink-0" style="background:#fff; color:#000; font-weight:600;">Enviar</button>
               </div>
+              <p id="consultorio-voz-status" class="text-xs text-gray-500 hidden"></p>
             </form>
           </div>
         </div>
@@ -2296,9 +2301,89 @@ Equipa LampMind`;
     consultorioScrollFundo();
   }
 
+  /* ---------- Consultório: voz (falar a pergunta + ouvir a resposta) ---------- */
+  const ConsultorioSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let consultorioReconhecimento = null;
+  let consultorioAOuvir = false;
+  let consultorioVozAtiva = false;
+
+  const micBtn = document.getElementById('consultorio-mic-btn');
+  const vozStatus = document.getElementById('consultorio-voz-status');
+  const vozToggle = document.getElementById('consultorio-voz-toggle');
+
+  if (!ConsultorioSpeechRecognition) {
+    micBtn.disabled = true;
+    micBtn.title = 'O teu navegador não suporta ditado por voz';
+    micBtn.style.opacity = '0.4';
+  } else {
+    consultorioReconhecimento = new ConsultorioSpeechRecognition();
+    consultorioReconhecimento.lang = 'pt-PT';
+    consultorioReconhecimento.interimResults = false;
+    consultorioReconhecimento.maxAlternatives = 1;
+
+    consultorioReconhecimento.addEventListener('start', () => {
+      consultorioAOuvir = true;
+      micBtn.textContent = '🔴';
+      micBtn.title = 'A ouvir... clica para parar';
+      vozStatus.textContent = 'A ouvir...';
+      vozStatus.classList.remove('hidden');
+    });
+
+    consultorioReconhecimento.addEventListener('result', (e) => {
+      const texto = e.results[0][0].transcript;
+      const input = document.getElementById('consultorio-pergunta');
+      input.value = (input.value ? input.value + ' ' : '') + texto;
+      input.focus();
+    });
+
+    consultorioReconhecimento.addEventListener('error', (e) => {
+      vozStatus.textContent = 'Não percebi — tenta outra vez (' + e.error + ')';
+      vozStatus.classList.remove('hidden');
+      setTimeout(() => vozStatus.classList.add('hidden'), 3000);
+    });
+
+    consultorioReconhecimento.addEventListener('end', () => {
+      consultorioAOuvir = false;
+      micBtn.textContent = '🎤';
+      micBtn.title = 'Falar a pergunta';
+      vozStatus.classList.add('hidden');
+    });
+
+    micBtn.addEventListener('click', () => {
+      if (consultorioAOuvir) {
+        consultorioReconhecimento.stop();
+      } else {
+        try { consultorioReconhecimento.start(); } catch (e) { /* já a correr */ }
+      }
+    });
+  }
+
+  if (!window.speechSynthesis) {
+    vozToggle.disabled = true;
+    vozToggle.title = 'O teu navegador não suporta leitura em voz alta';
+    vozToggle.style.opacity = '0.4';
+  } else {
+    vozToggle.addEventListener('click', () => {
+      consultorioVozAtiva = !consultorioVozAtiva;
+      vozToggle.textContent = consultorioVozAtiva ? '🔊 Voz' : '🔇 Voz';
+      vozToggle.style.background = consultorioVozAtiva ? '#fff' : 'transparent';
+      vozToggle.style.color = consultorioVozAtiva ? '#000' : '';
+      if (!consultorioVozAtiva) window.speechSynthesis.cancel();
+    });
+  }
+
+  function consultorioFalar(texto) {
+    if (!consultorioVozAtiva || !window.speechSynthesis || !texto) return;
+    window.speechSynthesis.cancel();
+    const fala = new SpeechSynthesisUtterance(texto);
+    fala.lang = 'pt-PT';
+    window.speechSynthesis.speak(fala);
+  }
+
   document.getElementById('consultorio-limpar-chat').addEventListener('click', () => {
     consultorioHistorico = [];
     document.getElementById('consultorio-chat-mensagens').innerHTML = '';
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
   });
 
   document.getElementById('consultorio-perguntar-form').addEventListener('submit', async (e) => {
@@ -2341,6 +2426,7 @@ Equipa LampMind`;
       consultorioAdicionarRespostas(dados);
       if (dados.resposta_final) {
         consultorioHistorico.push({ role: 'assistant', content: dados.resposta_final });
+        consultorioFalar(dados.resposta_final);
       }
     } catch (err) {
       document.getElementById(metaId)?.remove();
