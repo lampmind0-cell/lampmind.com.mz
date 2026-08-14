@@ -632,6 +632,7 @@
           <button type="button" id="consultorio-nav-perguntar" class="rounded-lg px-4 py-2 text-sm" style="background:#fff; color:#000; font-weight:600;">💬 Perguntar</button>
           <button type="button" id="consultorio-nav-observacao" class="rounded-lg px-4 py-2 text-sm border border-white/20">📊 Observação</button>
           <button type="button" id="consultorio-nav-chave" class="rounded-lg px-4 py-2 text-sm border border-white/20">🔑 Chave</button>
+          <button type="button" id="consultorio-nav-memoria" class="rounded-lg px-4 py-2 text-sm border border-white/20">🧠 Memória</button>
         </div>
 
         <!-- Painel: Perguntar -->
@@ -681,6 +682,19 @@
               <button type="submit" class="rounded-lg px-4 py-3 text-sm w-full" style="background:#fff; color:#000; font-weight:600;">Guardar nova chave</button>
               <p id="consultorio-trocar-chave-msg" class="text-sm hidden"></p>
             </form>
+          </div>
+        </div>
+
+        <!-- Painel: Memória permanente (o que as IAs já aprenderam) -->
+        <div id="consultorio-painel-memoria" class="hidden">
+          <div class="card rounded-2xl p-8">
+            <p class="font-display text-lg mb-1">Memória — o que as IAs já sabem</p>
+            <p class="text-sm text-gray-400 mb-6">Factos aprendidos automaticamente nas conversas, ou escritos por ti. Isto é dado a todas as IAs em toda conversa futura.</p>
+            <form id="consultorio-memoria-form" class="flex gap-2 mb-6">
+              <input type="text" required id="consultorio-memoria-input" placeholder="Escreve um facto para a IA lembrar sempre..." class="flex-1 rounded-lg px-4 py-3 text-sm">
+              <button type="submit" class="rounded-lg px-4 text-sm shrink-0" style="background:#fff; color:#000; font-weight:600;">Adicionar</button>
+            </form>
+            <div id="consultorio-memoria-lista" class="space-y-2 text-sm"></div>
           </div>
         </div>
       </div>
@@ -2151,8 +2165,8 @@ Equipa LampMind`;
   });
 
   function consultorioMostrarPainel(nome) {
-    const paineis = { perguntar: 'consultorio-painel-perguntar', observacao: 'consultorio-painel-observacao', chave: 'consultorio-painel-chave' };
-    const navs = { perguntar: 'consultorio-nav-perguntar', observacao: 'consultorio-nav-observacao', chave: 'consultorio-nav-chave' };
+    const paineis = { perguntar: 'consultorio-painel-perguntar', observacao: 'consultorio-painel-observacao', chave: 'consultorio-painel-chave', memoria: 'consultorio-painel-memoria' };
+    const navs = { perguntar: 'consultorio-nav-perguntar', observacao: 'consultorio-nav-observacao', chave: 'consultorio-nav-chave', memoria: 'consultorio-nav-memoria' };
     Object.entries(paineis).forEach(([k, id]) => {
       document.getElementById(id).classList.toggle('hidden', k !== nome);
     });
@@ -2162,11 +2176,48 @@ Equipa LampMind`;
       btn.style.color = k === nome ? '#000' : '';
     });
     if (nome === 'observacao') carregarConsultorioLog();
+    if (nome === 'memoria') carregarConsultorioMemoria();
   }
 
   document.getElementById('consultorio-nav-perguntar').addEventListener('click', () => consultorioMostrarPainel('perguntar'));
   document.getElementById('consultorio-nav-observacao').addEventListener('click', () => consultorioMostrarPainel('observacao'));
   document.getElementById('consultorio-nav-chave').addEventListener('click', () => consultorioMostrarPainel('chave'));
+  document.getElementById('consultorio-nav-memoria').addEventListener('click', () => consultorioMostrarPainel('memoria'));
+
+  async function carregarConsultorioMemoria() {
+    const lista = document.getElementById('consultorio-memoria-lista');
+    lista.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+    const { data, error } = await supabase.from('consultorio_memoria').select('*').order('criado_em', { ascending: false });
+    if (error) { lista.innerHTML = '<p class="text-red-400">Erro: ' + error.message + '</p>'; return; }
+    if (!data.length) { lista.innerHTML = '<p class="text-gray-500">Ainda não há nada guardado — vai-se acumulando conforme as conversas acontecem.</p>'; return; }
+
+    lista.innerHTML = data.map(m => `
+      <div class="border border-white/10 rounded-xl p-3 flex items-start justify-between gap-3">
+        <div>
+          <p>${(m.conteudo || '').replace(/</g, '&lt;')}</p>
+          <p class="text-xs text-gray-500 mt-1">${m.origem === 'manual' ? '✍️ escrito por ti' : '🧠 aprendido automaticamente'} · ${new Date(m.criado_em).toLocaleDateString('pt-PT')}</p>
+        </div>
+        <button data-id="${m.id}" class="del-memoria-btn text-xs text-red-400 shrink-0">Remover</button>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.del-memoria-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        await supabase.from('consultorio_memoria').delete().eq('id', b.dataset.id);
+        carregarConsultorioMemoria();
+      });
+    });
+  }
+
+  document.getElementById('consultorio-memoria-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input = document.getElementById('consultorio-memoria-input');
+    const conteudo = input.value.trim();
+    if (!conteudo) return;
+    await supabase.from('consultorio_memoria').insert({ conteudo, origem: 'manual' });
+    input.value = '';
+    carregarConsultorioMemoria();
+  });
 
   document.getElementById('consultorio-trocar-chave-form').addEventListener('submit', async (e) => {
     e.preventDefault();
