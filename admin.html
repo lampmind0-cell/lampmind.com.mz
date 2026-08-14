@@ -19,6 +19,14 @@
   .btn:hover{ transform:translateY(-2px); }
   .btn-danger{ background:#3a1414; color:#ff8b8b; }
   .card{ background:var(--card); border:1px solid var(--hair); }
+
+  /* ---------- Consultório: bolhas de chat (mesmo estilo do Assistente do site) ---------- */
+  .cons-msg{ max-width:88%; padding:10px 14px; border-radius:14px; font-size:13px; line-height:1.55; white-space:pre-wrap; }
+  .cons-msg-user{ background:#fff; color:#000; align-self:flex-end; border-bottom-right-radius:4px; margin-left:auto; }
+  .cons-msg-ia{ background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); align-self:flex-start; border-bottom-left-radius:4px; }
+  .cons-msg-ia-label{ font-size:11px; font-weight:600; opacity:.6; margin-bottom:4px; }
+  .cons-msg-erro{ background:rgba(220,38,38,0.12); border:1px solid rgba(220,38,38,0.35); color:#fca5a5; }
+  .cons-msg-meta{ font-size:11px; color:#6b7280; align-self:center; }
   .tab{ color:#8A93A3; border-bottom:2px solid transparent; padding-bottom:10px; cursor:pointer; }
   .tab.active{ color:#F4F5F7; border-color:var(--electric); }
 </style>
@@ -628,22 +636,29 @@
 
         <!-- Painel: Perguntar -->
         <div id="consultorio-painel-perguntar">
-          <div class="card rounded-2xl p-8">
-            <p class="font-display text-lg mb-1">Consultar as IAs</p>
-            <p class="text-sm text-gray-400 mb-6">Claude, Gemini e GPT — a mais forte para o assunto assume, ou as três colaboram quando fizer sentido.</p>
-            <form id="consultorio-perguntar-form" class="space-y-3">
-              <textarea required id="consultorio-pergunta" rows="4" placeholder="Escreve a tarefa ou pergunta..." class="w-full rounded-lg px-4 py-3 text-sm"></textarea>
-              <select id="consultorio-modo" class="w-full rounded-lg px-4 py-3 text-sm">
-                <option value="automatico">🤖 Automático (a IA mais forte para o assunto assume, ou colaboram se for complexo)</option>
+          <div class="card rounded-2xl overflow-hidden flex flex-col" style="height:min(600px, 75vh);">
+            <div class="flex items-center justify-between gap-3 px-5 py-4 border-b border-white/10">
+              <div>
+                <p class="font-display text-base">Consultório — chat com as IAs</p>
+                <p class="text-xs text-gray-400">Claude, Gemini e GPT — a mais forte para o assunto assume, ou colaboram quando fizer sentido.</p>
+              </div>
+              <button type="button" id="consultorio-limpar-chat" class="text-xs text-gray-400 border border-white/20 rounded-lg px-3 py-1.5 shrink-0" title="Limpar conversa">Limpar</button>
+            </div>
+            <div id="consultorio-chat-mensagens" class="flex-1 overflow-y-auto px-5 py-4 space-y-3"></div>
+            <form id="consultorio-perguntar-form" class="border-t border-white/10 p-3 space-y-2">
+              <select id="consultorio-modo" class="w-full rounded-lg px-3 py-2 text-xs">
+                <option value="automatico">🤖 Automático (a IA mais forte assume, ou colaboram se for complexo)</option>
                 <option value="claude">Só Claude</option>
                 <option value="gemini">Só Gemini</option>
                 <option value="gpt">Só GPT</option>
                 <option value="colaborativo">🤝 Colaborar — as três respondem</option>
               </select>
-              <button type="submit" id="consultorio-perguntar-btn" class="rounded-lg px-4 py-3 text-sm w-full" style="background:#fff; color:#000; font-weight:600;">Perguntar</button>
+              <div class="flex gap-2">
+                <input type="text" required id="consultorio-pergunta" placeholder="Escreve a tarefa ou pergunta..." autocomplete="off" class="flex-1 rounded-lg px-4 py-3 text-sm">
+                <button type="submit" id="consultorio-perguntar-btn" class="rounded-lg px-5 text-sm shrink-0" style="background:#fff; color:#000; font-weight:600;">Enviar</button>
+              </div>
             </form>
           </div>
-          <div id="consultorio-resultado" class="hidden mt-6 space-y-4"></div>
         </div>
 
         <!-- Painel: Observação (histórico / desempenho) -->
@@ -2184,72 +2199,107 @@ Equipa LampMind`;
     }
   });
 
-  document.getElementById('consultorio-perguntar-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('consultorio-perguntar-btn');
-    const resultado = document.getElementById('consultorio-resultado');
-    const pergunta = document.getElementById('consultorio-pergunta').value;
-    const modo = document.getElementById('consultorio-modo').value;
-    const chave = consultorioChaveGuardada();
-
-    btn.disabled = true;
-    btn.textContent = 'A consultar...';
-    resultado.classList.add('hidden');
-
-    try {
-      const resp = await fetch(`${SUPABASE_URL}/functions/v1/consultorio`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pergunta, modo, chave })
-      });
-      const dados = await resp.json();
-      if (!resp.ok) {
-        if (resp.status === 401) {
-          // chave pode ter mudado ou expirado a sessão local
-          sessionStorage.removeItem('consultorio_chave');
-          iniciarConsultorio();
-          throw new Error('Sessão do Consultório expirou. Introduz a chave outra vez.');
-        }
-        throw new Error(dados.erro || 'Erro ao consultar as IAs');
-      }
-      resultado.innerHTML = consultorioRenderizarResultado(dados);
-      resultado.classList.remove('hidden');
-    } catch (err) {
-      resultado.innerHTML = `<div class="card rounded-2xl p-6 text-red-400 text-sm">${err.message}</div>`;
-      resultado.classList.remove('hidden');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Perguntar';
-    }
-  });
+  /* ---------- Consultório: conversa contínua (chat) com histórico ---------- */
+  let consultorioHistorico = []; // [{ role: 'user'|'assistant', content: string }]
 
   function consultorioNomeIA(ia) {
     return { claude: '🟣 Claude', gemini: '🔵 Gemini', gpt: '🟢 GPT' }[ia] || ia;
   }
 
-  function consultorioRenderizarResultado(dados) {
-    const individuais = Object.entries(dados.respostas_individuais || {}).map(([ia, r]) => `
-      <div class="card rounded-xl p-5">
-        <div class="flex items-center justify-between mb-2">
-          <span class="font-medium">${consultorioNomeIA(ia)}</span>
-          <span class="text-xs text-gray-500">${r.erro ? 'Falhou' : (r.ms ? r.ms + ' ms' : '—')}</span>
-        </div>
-        ${r.erro
-          ? `<p class="text-sm text-red-400">${r.erro}</p>`
-          : `<p class="text-sm whitespace-pre-wrap">${(r.texto || '').replace(/</g, '&lt;')}</p>`}
-      </div>
-    `).join('');
-
-    return `
-      <div class="card rounded-2xl p-6" style="border-color:rgba(255,255,255,0.25);">
-        <p class="text-xs text-gray-400">Quem assumiu: <span class="text-white font-medium">${dados.ia_escolhida}</span></p>
-        <p class="text-xs text-gray-500 mt-1">${dados.motivo_roteamento || ''}</p>
-      </div>
-      <div class="grid sm:grid-cols-${Object.keys(dados.respostas_individuais || {}).length > 1 ? '1' : '1'} gap-3">
-        ${individuais}
-      </div>
-    `;
+  function consultorioEscapar(txt) {
+    return (txt || '').replace(/</g, '&lt;');
   }
+
+  function consultorioScrollFundo() {
+    const caixa = document.getElementById('consultorio-chat-mensagens');
+    caixa.scrollTop = caixa.scrollHeight;
+  }
+
+  function consultorioAdicionarMensagemUser(texto) {
+    const caixa = document.getElementById('consultorio-chat-mensagens');
+    caixa.insertAdjacentHTML('beforeend', `<div class="cons-msg cons-msg-user">${consultorioEscapar(texto)}</div>`);
+    consultorioScrollFundo();
+  }
+
+  function consultorioAdicionarMeta(texto) {
+    const caixa = document.getElementById('consultorio-chat-mensagens');
+    const id = 'cons-meta-' + Date.now();
+    caixa.insertAdjacentHTML('beforeend', `<div class="cons-msg-meta" id="${id}">${consultorioEscapar(texto)}</div>`);
+    consultorioScrollFundo();
+    return id;
+  }
+
+  function consultorioAdicionarRespostas(dados) {
+    const caixa = document.getElementById('consultorio-chat-mensagens');
+    const individuais = Object.entries(dados.respostas_individuais || {});
+    const bolhas = individuais.map(([ia, r]) => {
+      const tempo = r.erro ? 'Falhou' : (r.ms ? r.ms + ' ms' : '—');
+      const corpo = r.erro ? consultorioEscapar(r.erro) : consultorioEscapar(r.texto);
+      return `
+        <div class="cons-msg cons-msg-ia ${r.erro ? 'cons-msg-erro' : ''}">
+          <div class="cons-msg-ia-label">${consultorioNomeIA(ia)} · ${tempo}</div>
+          ${corpo}
+        </div>`;
+    }).join('');
+    caixa.insertAdjacentHTML('beforeend', bolhas);
+    consultorioScrollFundo();
+  }
+
+  document.getElementById('consultorio-limpar-chat').addEventListener('click', () => {
+    consultorioHistorico = [];
+    document.getElementById('consultorio-chat-mensagens').innerHTML = '';
+  });
+
+  document.getElementById('consultorio-perguntar-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('consultorio-perguntar-btn');
+    const input = document.getElementById('consultorio-pergunta');
+    const pergunta = input.value.trim();
+    const modo = document.getElementById('consultorio-modo').value;
+    const chave = consultorioChaveGuardada();
+    if (!pergunta) return;
+
+    consultorioAdicionarMensagemUser(pergunta);
+    consultorioHistorico.push({ role: 'user', content: pergunta });
+    input.value = '';
+
+    btn.disabled = true;
+    const metaId = consultorioAdicionarMeta('A consultar…');
+
+    try {
+      const resp = await fetch(`${SUPABASE_URL}/functions/v1/consultorio`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mensagens: consultorioHistorico, modo, chave })
+      });
+      const dados = await resp.json();
+      document.getElementById(metaId)?.remove();
+
+      if (!resp.ok) {
+        if (resp.status === 401) {
+          sessionStorage.removeItem('consultorio_chave');
+          consultorioHistorico.pop();
+          iniciarConsultorio();
+          throw new Error('Sessão do Consultório expirou. Introduz a chave outra vez.');
+        }
+        throw new Error(dados.erro || 'Erro ao consultar as IAs');
+      }
+
+      document.getElementById(metaId)?.remove();
+      const idMeta2 = consultorioAdicionarMeta(`Quem assumiu: ${dados.ia_escolhida} — ${dados.motivo_roteamento || ''}`);
+      consultorioAdicionarRespostas(dados);
+      if (dados.resposta_final) {
+        consultorioHistorico.push({ role: 'assistant', content: dados.resposta_final });
+      }
+    } catch (err) {
+      document.getElementById(metaId)?.remove();
+      const caixa = document.getElementById('consultorio-chat-mensagens');
+      caixa.insertAdjacentHTML('beforeend', `<div class="cons-msg cons-msg-ia cons-msg-erro">${consultorioEscapar(err.message)}</div>`);
+      consultorioScrollFundo();
+    } finally {
+      btn.disabled = false;
+    }
+  });
 
   async function carregarConsultorioLog() {
     const lista = document.getElementById('consultorio-log-lista');
