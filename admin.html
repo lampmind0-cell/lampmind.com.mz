@@ -644,10 +644,19 @@
                 <p class="text-xs text-gray-400">Claude, Gemini e GPT — a mais forte para o assunto assume, ou colaboram quando fizer sentido.</p>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <button type="button" id="consultorio-voz-toggle" class="text-xs text-gray-400 border border-white/20 rounded-lg px-3 py-1.5" title="Ler respostas em voz alta">🔇 Voz</button>
+                <button type="button" id="consultorio-chamada-btn" class="text-xs rounded-lg px-3 py-1.5" style="background:#fff; color:#000; font-weight:600;" title="Conversar por voz, como uma chamada">🎙️ Conversar por voz</button>
                 <button type="button" id="consultorio-limpar-chat" class="text-xs text-gray-400 border border-white/20 rounded-lg px-3 py-1.5" title="Limpar conversa">Limpar</button>
               </div>
             </div>
+
+            <!-- Overlay de chamada de voz: fala, ele responde falado, e volta a ouvir sozinho -->
+            <div id="consultorio-chamada-overlay" class="hidden flex-1 flex flex-col items-center justify-center gap-4 px-6 text-center">
+              <div id="consultorio-chamada-orbe" style="width:88px; height:88px; border-radius:999px; display:flex; align-items:center; justify-content:center; font-size:34px; background:rgba(255,255,255,0.08); border:2px solid rgba(255,255,255,0.2); transition:all .2s;">🎙️</div>
+              <p id="consultorio-chamada-estado" class="text-sm font-medium">A preparar...</p>
+              <p id="consultorio-chamada-transcricao" class="text-xs text-gray-400 max-w-sm"></p>
+              <button type="button" id="consultorio-chamada-terminar" class="text-xs rounded-lg px-4 py-2 border border-red-500/40 text-red-400">Terminar chamada</button>
+            </div>
+
             <div id="consultorio-chat-mensagens" class="flex-1 overflow-y-auto px-5 py-4 space-y-3"></div>
             <form id="consultorio-perguntar-form" class="border-t border-white/10 p-3 space-y-2">
               <select id="consultorio-modo" class="w-full rounded-lg px-3 py-2 text-xs">
@@ -658,11 +667,9 @@
                 <option value="colaborativo">🤝 Colaborar — as três respondem</option>
               </select>
               <div class="flex gap-2">
-                <button type="button" id="consultorio-mic-btn" title="Falar a pergunta" class="rounded-lg px-4 text-sm shrink-0 border border-white/20">🎤</button>
                 <input type="text" required id="consultorio-pergunta" placeholder="Escreve a tarefa ou pergunta..." autocomplete="off" class="flex-1 rounded-lg px-4 py-3 text-sm">
                 <button type="submit" id="consultorio-perguntar-btn" class="rounded-lg px-5 text-sm shrink-0" style="background:#fff; color:#000; font-weight:600;">Enviar</button>
               </div>
-              <p id="consultorio-voz-status" class="text-xs text-gray-500 hidden"></p>
             </form>
           </div>
         </div>
@@ -2301,84 +2308,106 @@ Equipa LampMind`;
     consultorioScrollFundo();
   }
 
-  /* ---------- Consultório: voz (falar a pergunta + ouvir a resposta) ---------- */
+  /* ---------- Consultório: modo de chamada de voz (conversa contínua, sem cliques no meio) ---------- */
   const ConsultorioSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const chamadaBtn = document.getElementById('consultorio-chamada-btn');
+  const chamadaOverlay = document.getElementById('consultorio-chamada-overlay');
+  const chamadaOrbe = document.getElementById('consultorio-chamada-orbe');
+  const chamadaEstado = document.getElementById('consultorio-chamada-estado');
+  const chamadaTranscricao = document.getElementById('consultorio-chamada-transcricao');
+
+  let consultorioChamadaAtiva = false;
   let consultorioReconhecimento = null;
-  let consultorioAOuvir = false;
-  let consultorioVozAtiva = false;
 
-  const micBtn = document.getElementById('consultorio-mic-btn');
-  const vozStatus = document.getElementById('consultorio-voz-status');
-  const vozToggle = document.getElementById('consultorio-voz-toggle');
+  function consultorioChamadaDefinirEstado(estado, texto) {
+    chamadaEstado.textContent = texto;
+    const cores = {
+      ouvindo: { bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.5)' },
+      processando: { bg: 'rgba(234,179,8,0.15)', border: 'rgba(234,179,8,0.5)' },
+      falando: { bg: 'rgba(59,130,246,0.15)', border: 'rgba(59,130,246,0.5)' },
+    };
+    const c = cores[estado] || { bg: 'rgba(255,255,255,0.08)', border: 'rgba(255,255,255,0.2)' };
+    chamadaOrbe.style.background = c.bg;
+    chamadaOrbe.style.borderColor = c.border;
+  }
 
-  if (!ConsultorioSpeechRecognition) {
-    micBtn.disabled = true;
-    micBtn.title = 'O teu navegador não suporta ditado por voz';
-    micBtn.style.opacity = '0.4';
-  } else {
+  function consultorioChamadaOuvirDeNovo() {
+    if (!consultorioChamadaAtiva || !consultorioReconhecimento) return;
+    try { consultorioReconhecimento.start(); } catch (e) { /* já a correr */ }
+  }
+
+  async function consultorioChamadaIniciar() {
+    if (!ConsultorioSpeechRecognition || !window.speechSynthesis) {
+      alert('O teu navegador não suporta conversa por voz (funciona em Chrome/Edge). Podes continuar a usar o chat por texto normalmente.');
+      return;
+    }
+    consultorioChamadaAtiva = true;
+    chamadaOverlay.classList.remove('hidden');
+    document.getElementById('consultorio-chat-mensagens').classList.add('hidden');
+    chamadaBtn.textContent = '💬 Voltar ao texto';
+
     consultorioReconhecimento = new ConsultorioSpeechRecognition();
     consultorioReconhecimento.lang = 'pt-PT';
     consultorioReconhecimento.interimResults = false;
     consultorioReconhecimento.maxAlternatives = 1;
 
     consultorioReconhecimento.addEventListener('start', () => {
-      consultorioAOuvir = true;
-      micBtn.textContent = '🔴';
-      micBtn.title = 'A ouvir... clica para parar';
-      vozStatus.textContent = 'A ouvir...';
-      vozStatus.classList.remove('hidden');
+      chamadaOrbe.textContent = '🎙️';
+      chamadaTranscricao.textContent = '';
+      consultorioChamadaDefinirEstado('ouvindo', 'A ouvir...');
     });
 
-    consultorioReconhecimento.addEventListener('result', (e) => {
+    consultorioReconhecimento.addEventListener('result', async (e) => {
       const texto = e.results[0][0].transcript;
-      const input = document.getElementById('consultorio-pergunta');
-      input.value = (input.value ? input.value + ' ' : '') + texto;
-      input.focus();
+      chamadaTranscricao.textContent = '"' + texto + '"';
+      chamadaOrbe.textContent = '🤔';
+      consultorioChamadaDefinirEstado('processando', 'A pensar...');
+
+      try {
+        const dados = await consultorioEnviar(texto);
+        if (!consultorioChamadaAtiva) return; // saiu da chamada entretanto
+        if (dados && dados.resposta_final && window.speechSynthesis) {
+          chamadaOrbe.textContent = '🗣️';
+          consultorioChamadaDefinirEstado('falando', 'A responder...');
+          window.speechSynthesis.cancel();
+          const fala = new SpeechSynthesisUtterance(dados.resposta_final);
+          fala.lang = 'pt-PT';
+          fala.onend = () => { if (consultorioChamadaAtiva) consultorioChamadaOuvirDeNovo(); };
+          fala.onerror = () => { if (consultorioChamadaAtiva) consultorioChamadaOuvirDeNovo(); };
+          window.speechSynthesis.speak(fala);
+        } else if (consultorioChamadaAtiva) {
+          consultorioChamadaOuvirDeNovo();
+        }
+      } catch (err) {
+        if (consultorioChamadaAtiva) consultorioChamadaOuvirDeNovo();
+      }
     });
 
     consultorioReconhecimento.addEventListener('error', (e) => {
-      vozStatus.textContent = 'Não percebi — tenta outra vez (' + e.error + ')';
-      vozStatus.classList.remove('hidden');
-      setTimeout(() => vozStatus.classList.add('hidden'), 3000);
-    });
-
-    consultorioReconhecimento.addEventListener('end', () => {
-      consultorioAOuvir = false;
-      micBtn.textContent = '🎤';
-      micBtn.title = 'Falar a pergunta';
-      vozStatus.classList.add('hidden');
-    });
-
-    micBtn.addEventListener('click', () => {
-      if (consultorioAOuvir) {
-        consultorioReconhecimento.stop();
-      } else {
-        try { consultorioReconhecimento.start(); } catch (e) { /* já a correr */ }
+      // 'no-speech' e 'aborted' acontecem em silêncio normal — só volta a ouvir
+      if (consultorioChamadaAtiva && (e.error === 'no-speech' || e.error === 'aborted' || e.error === 'network')) {
+        setTimeout(consultorioChamadaOuvirDeNovo, 400);
       }
     });
+
+    consultorioChamadaOuvirDeNovo();
   }
 
-  if (!window.speechSynthesis) {
-    vozToggle.disabled = true;
-    vozToggle.title = 'O teu navegador não suporta leitura em voz alta';
-    vozToggle.style.opacity = '0.4';
-  } else {
-    vozToggle.addEventListener('click', () => {
-      consultorioVozAtiva = !consultorioVozAtiva;
-      vozToggle.textContent = consultorioVozAtiva ? '🔊 Voz' : '🔇 Voz';
-      vozToggle.style.background = consultorioVozAtiva ? '#fff' : 'transparent';
-      vozToggle.style.color = consultorioVozAtiva ? '#000' : '';
-      if (!consultorioVozAtiva) window.speechSynthesis.cancel();
-    });
+  function consultorioChamadaTerminar() {
+    consultorioChamadaAtiva = false;
+    if (consultorioReconhecimento) { try { consultorioReconhecimento.stop(); } catch (e) {} }
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    chamadaOverlay.classList.add('hidden');
+    document.getElementById('consultorio-chat-mensagens').classList.remove('hidden');
+    chamadaBtn.textContent = '🎙️ Conversar por voz';
+    consultorioScrollFundo();
   }
 
-  function consultorioFalar(texto) {
-    if (!consultorioVozAtiva || !window.speechSynthesis || !texto) return;
-    window.speechSynthesis.cancel();
-    const fala = new SpeechSynthesisUtterance(texto);
-    fala.lang = 'pt-PT';
-    window.speechSynthesis.speak(fala);
-  }
+  chamadaBtn.addEventListener('click', () => {
+    if (consultorioChamadaAtiva) consultorioChamadaTerminar();
+    else consultorioChamadaIniciar();
+  });
+  document.getElementById('consultorio-chamada-terminar').addEventListener('click', consultorioChamadaTerminar);
 
   document.getElementById('consultorio-limpar-chat').addEventListener('click', () => {
     consultorioHistorico = [];
@@ -2386,20 +2415,13 @@ Equipa LampMind`;
     if (window.speechSynthesis) window.speechSynthesis.cancel();
   });
 
-  document.getElementById('consultorio-perguntar-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('consultorio-perguntar-btn');
-    const input = document.getElementById('consultorio-pergunta');
-    const pergunta = input.value.trim();
+  async function consultorioEnviar(pergunta) {
     const modo = document.getElementById('consultorio-modo').value;
     const chave = consultorioChaveGuardada();
-    if (!pergunta) return;
 
     consultorioAdicionarMensagemUser(pergunta);
     consultorioHistorico.push({ role: 'user', content: pergunta });
-    input.value = '';
 
-    btn.disabled = true;
     const metaId = consultorioAdicionarMeta('A consultar…');
 
     try {
@@ -2421,21 +2443,31 @@ Equipa LampMind`;
         throw new Error(dados.erro || 'Erro ao consultar as IAs');
       }
 
-      document.getElementById(metaId)?.remove();
-      const idMeta2 = consultorioAdicionarMeta(`Quem assumiu: ${dados.ia_escolhida} — ${dados.motivo_roteamento || ''}`);
+      consultorioAdicionarMeta(`Quem assumiu: ${dados.ia_escolhida} — ${dados.motivo_roteamento || ''}`);
       consultorioAdicionarRespostas(dados);
       if (dados.resposta_final) {
         consultorioHistorico.push({ role: 'assistant', content: dados.resposta_final });
-        consultorioFalar(dados.resposta_final);
       }
+      return dados;
     } catch (err) {
       document.getElementById(metaId)?.remove();
       const caixa = document.getElementById('consultorio-chat-mensagens');
       caixa.insertAdjacentHTML('beforeend', `<div class="cons-msg cons-msg-ia cons-msg-erro">${consultorioEscapar(err.message)}</div>`);
       consultorioScrollFundo();
-    } finally {
-      btn.disabled = false;
+      throw err;
     }
+  }
+
+  document.getElementById('consultorio-perguntar-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('consultorio-perguntar-btn');
+    const input = document.getElementById('consultorio-pergunta');
+    const pergunta = input.value.trim();
+    if (!pergunta) return;
+    input.value = '';
+    btn.disabled = true;
+    try { await consultorioEnviar(pergunta); } catch (e2) { /* já mostrado na caixa */ }
+    finally { btn.disabled = false; }
   });
 
   async function carregarConsultorioLog() {
