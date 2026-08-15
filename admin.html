@@ -2308,11 +2308,11 @@ Equipa LampMind`;
     consultorioScrollFundo();
   }
 
-  /* ---------- Consultório: modo de chamada de voz (conversa contínua, sem cliques no meio) ----------
-     Não usa o SpeechRecognition do navegador (entrava em conflito com a gravação do
-     microfone e falhava em vários telemóveis). Em vez disso: grava o áudio real e usa
-     deteção de volume (Web Audio API) para saber quando começaste e paraste de falar,
-     depois manda a gravação ao Gemini transcrever — mais preciso e mais fiável. */
+  /* ---------- Consultório: chamada de voz em tempo real (Gemini Live API) ----------
+     Streaming de áudio bidirecional de verdade — a mesma tecnologia que o app do
+     Gemini usa. Sem gravar-transcrever-responder-falar em etapas separadas: a voz
+     vai e vem diretamente, com deteção de fala e interrupção geridas pelo próprio
+     Gemini do lado do servidor. */
   const chamadaBtn = document.getElementById('consultorio-chamada-btn');
   const chamadaOverlay = document.getElementById('consultorio-chamada-overlay');
   const chamadaOrbe = document.getElementById('consultorio-chamada-orbe');
@@ -2320,22 +2320,11 @@ Equipa LampMind`;
   const chamadaTranscricao = document.getElementById('consultorio-chamada-transcricao');
 
   let consultorioChamadaAtiva = false;
-  let consultorioMediaStream = null;
-  let consultorioMediaRecorder = null;
-  let consultorioAudioChunks = [];
-  let consultorioAudioCtx = null;
-  let consultorioAnalyser = null;
-  let consultorioAnalyserBuffer = null;
-  let consultorioVadIntervalo = null;
-  let consultorioFalando = false;
-  let consultorioInicioFalaEm = 0;
-  let consultorioUltimaFalaEm = 0;
-  let consultorioAPararEProcessar = false;
-
-  const CONS_LIMIAR_VOLUME = 0.02;
-  const CONS_SILENCIO_PARA_PARAR_MS = 1100;
-  const CONS_DURACAO_MINIMA_MS = 300;
-  const CONS_DURACAO_MAXIMA_MS = 20000;
+  let consultorioLiveApi = null;
+  let consultorioAudioStreamer = null;
+  let consultorioAudioPlayer = null;
+  let consultorioTurnoUser = '';
+  let consultorioTurnoIA = '';
 
   function consultorioChamadaDefinirEstado(estado, texto) {
     chamadaEstado.textContent = texto;
@@ -2349,238 +2338,248 @@ Equipa LampMind`;
     chamadaOrbe.style.borderColor = c.border;
   }
 
-  function consultorioCalcularVolume() {
-    consultorioAnalyser.getByteTimeDomainData(consultorioAnalyserBuffer);
-    let soma = 0;
-    for (let i = 0; i < consultorioAnalyserBuffer.length; i++) {
-      const v = (consultorioAnalyserBuffer[i] - 128) / 128;
-      soma += v * v;
+  /* ---------- Classe: captura o microfone e envia ao Gemini em tempo real ---------- */
+  class ConsultorioAudioStreamer {
+    constructor(onChunk) {
+      this.onChunk = onChunk;
+      this.audioContext = null;
+      this.worklet = null;
+      this.mediaStream = null;
+      this.isStreaming = false;
+      this.sampleRate = 16000;
     }
-    return Math.sqrt(soma / consultorioAnalyserBuffer.length);
-  }
-
-  function consultorioBlobParaBase64(blob) {
-    return new Promise((resolve, reject) => {
-      const leitor = new FileReader();
-      leitor.onloadend = () => resolve(leitor.result.split(',')[1]);
-      leitor.onerror = reject;
-      leitor.readAsDataURL(blob);
-    });
-  }
-
-  async function consultorioTranscreverMelhor(blob) {
-    try {
-      if (!blob || blob.size < 800) return null;
-      const base64 = await consultorioBlobParaBase64(blob);
-      const resp = await fetch(`${SUPABASE_URL}/functions/v1/consultorio-transcrever`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chave: consultorioChaveGuardada(), audio_base64: base64, mime_type: blob.type || 'audio/webm' })
+    async start() {
+      this.mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: { sampleRate: this.sampleRate, echoCancellation: true, noiseSuppression: true, autoGainControl: true }
       });
-      if (!resp.ok) return null;
-      const dados = await resp.json();
-      return dados.texto || null;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  function consultorioVadLoop() {
-    if (!consultorioChamadaAtiva || !consultorioAnalyser || consultorioAPararEProcessar) return;
-    const vol = consultorioCalcularVolume();
-    const agora = Date.now();
-
-    if (vol > CONS_LIMIAR_VOLUME) {
-      if (!consultorioFalando) {
-        consultorioFalando = true;
-        consultorioInicioFalaEm = agora;
-        chamadaOrbe.textContent = '🎙️';
-        chamadaTranscricao.textContent = '';
-        consultorioChamadaDefinirEstado('ouvindo', 'A ouvir...');
-      }
-      consultorioUltimaFalaEm = agora;
-    } else if (consultorioFalando) {
-      const silencioMs = agora - consultorioUltimaFalaEm;
-      const duracaoFalaMs = agora - consultorioInicioFalaEm;
-      if (silencioMs > CONS_SILENCIO_PARA_PARAR_MS && duracaoFalaMs > CONS_DURACAO_MINIMA_MS) {
-        consultorioProcessarFalaDetectada();
-        return;
-      }
-    }
-
-    if (consultorioFalando && (agora - consultorioInicioFalaEm) > CONS_DURACAO_MAXIMA_MS) {
-      consultorioProcessarFalaDetectada();
-    }
-  }
-
-  // Deteta se falaste por cima da IA enquanto ela respondia (interrupção) — usa um
-  // limiar mais alto e mais tempo sustentado, para não disparar com o eco da própria voz da IA.
-  let consultorioInterrupcaoInicioEm = 0;
-  const CONS_LIMIAR_INTERRUPCAO = 0.045;
-  const CONS_DURACAO_INTERRUPCAO_MS = 350;
-
-  function consultorioVadLoopEnquantoFala() {
-    if (!consultorioChamadaAtiva || !consultorioAnalyser || !window.speechSynthesis.speaking) return;
-    const vol = consultorioCalcularVolume();
-    const agora = Date.now();
-    if (vol > CONS_LIMIAR_INTERRUPCAO) {
-      if (!consultorioInterrupcaoInicioEm) consultorioInterrupcaoInicioEm = agora;
-      if (agora - consultorioInterrupcaoInicioEm > CONS_DURACAO_INTERRUPCAO_MS) {
-        consultorioInterrupcaoInicioEm = 0;
-        window.speechSynthesis.cancel(); // dispara o onend, que já trata de voltar a ouvir
-      }
-    } else {
-      consultorioInterrupcaoInicioEm = 0;
-    }
-  }
-
-  function consultorioGravacaoParar() {
-    return new Promise((resolve) => {
-      if (!consultorioMediaRecorder || consultorioMediaRecorder.state === 'inactive') { resolve(null); return; }
-      consultorioMediaRecorder.onstop = () => {
-        const tipo = consultorioMediaRecorder.mimeType || 'audio/webm';
-        resolve(consultorioAudioChunks.length ? new Blob(consultorioAudioChunks, { type: tipo }) : null);
+      this.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: this.sampleRate });
+      await this.audioContext.audioWorklet.addModule('audio-processors/capture.worklet.js');
+      this.worklet = new AudioWorkletNode(this.audioContext, 'audio-capture-processor');
+      this.worklet.port.onmessage = (e) => {
+        if (!this.isStreaming || e.data.type !== 'audio') return;
+        const pcm = this.converterParaPCM16(e.data.data);
+        this.onChunk(this.arrayBufferParaBase64(pcm));
       };
-      try { consultorioMediaRecorder.stop(); } catch (e) { resolve(null); }
-    });
-  }
-
-  // ---------- Voz e texto mais naturais ----------
-  let consultorioVozesDisponiveis = [];
-  function consultorioCarregarVozes() {
-    if (!window.speechSynthesis) return;
-    consultorioVozesDisponiveis = window.speechSynthesis.getVoices();
-  }
-  if (window.speechSynthesis) {
-    consultorioCarregarVozes();
-    window.speechSynthesis.addEventListener('voiceschanged', consultorioCarregarVozes);
-  }
-
-  function consultorioEscolherVoz() {
-    const pt = consultorioVozesDisponiveis.filter((v) => v.lang && v.lang.toLowerCase().startsWith('pt'));
-    if (!pt.length) return null;
-    // vozes "Google"/"Natural"/"Online" costumam soar bem menos robóticas que a padrão do sistema
-    return pt.find((v) => /google|natural|online|premium/i.test(v.name)) || pt[0];
-  }
-
-  function consultorioLimparParaFala(texto) {
-    return (texto || '')
-      .replace(/\*\*(.*?)\*\*/g, '$1')
-      .replace(/\*(.*?)\*/g, '$1')
-      .replace(/`{1,3}([^`]*)`{1,3}/g, '$1')
-      .replace(/^#{1,6}\s*/gm, '')
-      .replace(/^-{2,}\s*$/gm, '')
-      .replace(/^[-*•]\s+/gm, '')
-      .replace(/\n{2,}/g, '. ')
-      .replace(/\n/g, ' ')
-      .replace(/\s{2,}/g, ' ')
-      .trim();
-  }
-
-  async function consultorioProcessarFalaDetectada() {
-    consultorioAPararEProcessar = true;
-    consultorioFalando = false;
-    chamadaOrbe.textContent = '🤔';
-    consultorioChamadaDefinirEstado('processando', 'A perceber o que disseste...');
-
-    const blob = await consultorioGravacaoParar();
-    const texto = await consultorioTranscreverMelhor(blob);
-
-    if (!consultorioChamadaAtiva) return;
-
-    if (!texto) {
-      chamadaTranscricao.textContent = 'Não percebi bem — tenta falar de novo.';
-      consultorioAPararEProcessar = false;
-      consultorioChamadaEscutar();
-      return;
+      const fonte = this.audioContext.createMediaStreamSource(this.mediaStream);
+      fonte.connect(this.worklet);
+      this.isStreaming = true;
     }
-
-    chamadaTranscricao.textContent = '"' + texto + '"';
-    consultorioChamadaDefinirEstado('processando', 'A pensar...');
-
-    try {
-      const dados = await consultorioEnviar(texto, { modoVoz: true });
-      if (!consultorioChamadaAtiva) return;
-      if (dados && dados.resposta_final && window.speechSynthesis) {
-        chamadaOrbe.textContent = '🗣️';
-        consultorioChamadaDefinirEstado('falando', 'A responder... (podes interromper a falar)');
-        window.speechSynthesis.cancel();
-        const fala = new SpeechSynthesisUtterance(consultorioLimparParaFala(dados.resposta_final));
-        const vozEscolhida = consultorioEscolherVoz();
-        if (vozEscolhida) fala.voice = vozEscolhida;
-        fala.lang = 'pt-PT';
-        fala.rate = 1.02;
-        fala.onend = () => { consultorioAPararEProcessar = false; if (consultorioChamadaAtiva) consultorioChamadaEscutar(); };
-        fala.onerror = () => { consultorioAPararEProcessar = false; if (consultorioChamadaAtiva) consultorioChamadaEscutar(); };
-        window.speechSynthesis.speak(fala);
-      } else {
-        consultorioAPararEProcessar = false;
-        consultorioChamadaEscutar();
+    stop() {
+      this.isStreaming = false;
+      if (this.worklet) { this.worklet.disconnect(); this.worklet.port.close(); this.worklet = null; }
+      if (this.audioContext) { try { this.audioContext.close(); } catch (e) {} this.audioContext = null; }
+      if (this.mediaStream) { this.mediaStream.getTracks().forEach((t) => t.stop()); this.mediaStream = null; }
+    }
+    converterParaPCM16(float32) {
+      const int16 = new Int16Array(float32.length);
+      for (let i = 0; i < float32.length; i++) {
+        const s = Math.max(-1, Math.min(1, float32[i]));
+        int16[i] = s * 0x7fff;
       }
-    } catch (err) {
-      consultorioAPararEProcessar = false;
-      if (consultorioChamadaAtiva) consultorioChamadaEscutar();
+      return int16.buffer;
+    }
+    arrayBufferParaBase64(buffer) {
+      const bytes = new Uint8Array(buffer);
+      let bin = '';
+      for (let i = 0; i < bytes.byteLength; i++) bin += String.fromCharCode(bytes[i]);
+      return window.btoa(bin);
     }
   }
 
-  function consultorioChamadaEscutar() {
-    if (!consultorioChamadaAtiva || !consultorioMediaStream) return;
-    consultorioAudioChunks = [];
-    try {
-      consultorioMediaRecorder = new MediaRecorder(consultorioMediaStream);
-    } catch (e) {
-      chamadaTranscricao.textContent = 'Não consegui iniciar a gravação neste navegador.';
-      return;
+  /* ---------- Classe: toca o áudio que o Gemini vai enviando, em fila ---------- */
+  class ConsultorioAudioPlayer {
+    constructor() {
+      this.audioContext = null;
+      this.worklet = null;
+      this.isInitialized = false;
+      this.sampleRate = 24000; // o Gemini responde em áudio a 24kHz
     }
-    consultorioMediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) consultorioAudioChunks.push(e.data); };
-    consultorioMediaRecorder.start();
-    consultorioFalando = false;
-    chamadaOrbe.textContent = '👂';
-    consultorioChamadaDefinirEstado('', 'À espera que fales...');
+    async init() {
+      if (this.isInitialized) return;
+      this.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: this.sampleRate });
+      await this.audioContext.audioWorklet.addModule('audio-processors/playback.worklet.js');
+      this.worklet = new AudioWorkletNode(this.audioContext, 'pcm-processor');
+      this.worklet.connect(this.audioContext.destination);
+      this.isInitialized = true;
+    }
+    async play(base64Audio) {
+      if (!this.isInitialized) await this.init();
+      if (this.audioContext.state === 'suspended') await this.audioContext.resume();
+      const bin = atob(base64Audio);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const int16 = new Int16Array(bytes.buffer);
+      const float32 = new Float32Array(int16.length);
+      for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 32768;
+      this.worklet.port.postMessage(float32);
+    }
+    interrupt() { if (this.worklet) this.worklet.port.postMessage('interrupt'); }
+    destroy() { if (this.audioContext) { try { this.audioContext.close(); } catch (e) {} this.audioContext = null; } this.isInitialized = false; }
+  }
+
+  /* ---------- Cliente da Gemini Live API (WebSocket direto, com token temporário) ---------- */
+  class ConsultorioGeminiLive {
+    constructor(token, model, systemInstructions) {
+      this.token = token;
+      this.modelUri = `models/${model}`;
+      this.systemInstructions = systemInstructions;
+      this.connected = false;
+      this.webSocket = null;
+      this.onReceiveResponse = () => {};
+      this.onOpen = () => {};
+      this.onClose = () => {};
+      this.onError = () => {};
+      this.serviceUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=${this.token}`;
+    }
+    connect() {
+      this.webSocket = new WebSocket(this.serviceUrl);
+      this.webSocket.onopen = () => {
+        this.connected = true;
+        this.enviarConfiguracaoInicial();
+        this.onOpen();
+      };
+      this.webSocket.onclose = () => { this.connected = false; this.onClose(); };
+      this.webSocket.onerror = () => { this.connected = false; this.onError(); };
+      this.webSocket.onmessage = async (evento) => {
+        let textoJson;
+        if (evento.data instanceof Blob) textoJson = await evento.data.text();
+        else textoJson = evento.data;
+        try { this.onReceiveResponse(JSON.parse(textoJson)); } catch (e) { /* mensagem inválida, ignora */ }
+      };
+    }
+    disconnect() { if (this.webSocket) { try { this.webSocket.close(); } catch (e) {} } this.connected = false; }
+    enviarConfiguracaoInicial() {
+      this.enviarMensagem({
+        setup: {
+          model: this.modelUri,
+          generationConfig: { responseModalities: ['AUDIO'] },
+          systemInstruction: { parts: [{ text: this.systemInstructions }] },
+          inputAudioTranscription: {},
+          outputAudioTranscription: {},
+          realtimeInputConfig: { automaticActivityDetection: {} },
+        }
+      });
+    }
+    enviarMensagem(msg) { if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) this.webSocket.send(JSON.stringify(msg)); }
+    enviarAudio(base64PCM) { this.enviarMensagem({ realtimeInput: { audio: { data: base64PCM, mimeType: 'audio/pcm' } } }); }
   }
 
   async function consultorioChamadaIniciar() {
-    if (!window.speechSynthesis || !navigator.mediaDevices || !window.MediaRecorder) {
-      alert('O teu navegador não suporta conversa por voz (funciona em Chrome/Edge). Podes continuar a usar o chat por texto normalmente.');
+    if (!navigator.mediaDevices || !window.AudioWorkletNode || !window.WebSocket) {
+      alert('O teu navegador não suporta conversa por voz em tempo real (funciona em Chrome/Edge). Podes continuar a usar o chat por texto normalmente.');
+      return;
+    }
+
+    let dadosToken;
+    try {
+      const resp = await fetch(`${SUPABASE_URL}/functions/v1/consultorio-live-token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chave: consultorioChaveGuardada() })
+      });
+      dadosToken = await resp.json();
+      if (!resp.ok) throw new Error(dadosToken.erro || 'Falha ao preparar a chamada');
+    } catch (err) {
+      alert('Não consegui iniciar a chamada: ' + err.message);
       return;
     }
 
     try {
-      consultorioMediaStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+      consultorioAudioStreamer = new ConsultorioAudioStreamer((base64) => {
+        if (consultorioLiveApi && consultorioLiveApi.connected) consultorioLiveApi.enviarAudio(base64);
+      });
+      await consultorioAudioStreamer.start();
     } catch (permErr) {
       alert('Não consegui aceder ao microfone. Verifica se deste permissão ao navegador para usar o microfone neste site e tenta outra vez.');
       return;
     }
 
+    consultorioAudioPlayer = new ConsultorioAudioPlayer();
+    consultorioTurnoUser = '';
+    consultorioTurnoIA = '';
+
     consultorioChamadaAtiva = true;
-    consultorioAPararEProcessar = false;
     chamadaOverlay.classList.remove('hidden');
     document.getElementById('consultorio-chat-mensagens').classList.add('hidden');
     chamadaBtn.textContent = '💬 Voltar ao texto';
+    chamadaOrbe.textContent = '🔌';
+    consultorioChamadaDefinirEstado('', 'A ligar...');
 
-    consultorioAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const fonte = consultorioAudioCtx.createMediaStreamSource(consultorioMediaStream);
-    consultorioAnalyser = consultorioAudioCtx.createAnalyser();
-    consultorioAnalyser.fftSize = 512;
-    consultorioAnalyserBuffer = new Uint8Array(consultorioAnalyser.fftSize);
-    fonte.connect(consultorioAnalyser);
+    consultorioLiveApi = new ConsultorioGeminiLive(dadosToken.token, dadosToken.model, dadosToken.system_instruction);
 
-    consultorioVadIntervalo = setInterval(() => {
-      consultorioVadLoop();
-      consultorioVadLoopEnquantoFala();
-    }, 100);
-    consultorioChamadaEscutar();
+    consultorioLiveApi.onOpen = () => {
+      chamadaOrbe.textContent = '👂';
+      consultorioChamadaDefinirEstado('ouvindo', 'À espera que fales...');
+    };
+
+    consultorioLiveApi.onError = () => {
+      chamadaTranscricao.textContent = 'A ligação falhou. Tenta outra vez.';
+      consultorioChamadaTerminar();
+    };
+
+    consultorioLiveApi.onClose = () => {
+      if (consultorioChamadaAtiva) consultorioChamadaTerminar();
+    };
+
+    consultorioLiveApi.onReceiveResponse = (msg) => {
+      const conteudo = msg?.serverContent;
+      const partes = conteudo?.modelTurn?.parts;
+
+      if (partes?.length) {
+        for (const parte of partes) {
+          if (parte.inlineData) {
+            chamadaOrbe.textContent = '🗣️';
+            consultorioChamadaDefinirEstado('falando', 'A responder... (podes interromper a falar)');
+            consultorioAudioPlayer.play(parte.inlineData.data);
+          }
+        }
+      }
+
+      if (conteudo?.inputTranscription?.text) {
+        consultorioTurnoUser += conteudo.inputTranscription.text;
+        chamadaTranscricao.textContent = '"' + consultorioTurnoUser + '"';
+      }
+      if (conteudo?.outputTranscription?.text) {
+        consultorioTurnoIA += conteudo.outputTranscription.text;
+      }
+
+      if (conteudo?.interrupted) {
+        consultorioAudioPlayer.interrupt();
+        chamadaOrbe.textContent = '👂';
+        consultorioChamadaDefinirEstado('ouvindo', 'A ouvir...');
+      }
+
+      if (conteudo?.turnComplete) {
+        const pergunta = consultorioTurnoUser.trim();
+        const resposta = consultorioTurnoIA.trim();
+        if (pergunta) consultorioAdicionarMensagemUser(pergunta);
+        if (resposta) {
+          const caixa = document.getElementById('consultorio-chat-mensagens');
+          caixa.insertAdjacentHTML('beforeend', `<div class="cons-msg cons-msg-ia"><div class="cons-msg-ia-label">🔵 Gemini (chamada)</div>${consultorioEscapar(resposta)}</div>`);
+          consultorioScrollFundo();
+        }
+        if (pergunta && resposta) {
+          fetch(`${SUPABASE_URL}/functions/v1/consultorio-live-registar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chave: consultorioChaveGuardada(), pergunta, resposta })
+          }).catch(() => {});
+        }
+        consultorioTurnoUser = '';
+        consultorioTurnoIA = '';
+        chamadaOrbe.textContent = '👂';
+        consultorioChamadaDefinirEstado('ouvindo', 'À espera que fales...');
+      }
+    };
+
+    consultorioLiveApi.connect();
   }
 
   function consultorioChamadaTerminar() {
     consultorioChamadaAtiva = false;
-    consultorioAPararEProcessar = false;
-    if (consultorioVadIntervalo) { clearInterval(consultorioVadIntervalo); consultorioVadIntervalo = null; }
-    if (consultorioMediaRecorder && consultorioMediaRecorder.state !== 'inactive') { try { consultorioMediaRecorder.stop(); } catch (e) {} }
-    if (consultorioAudioCtx) { try { consultorioAudioCtx.close(); } catch (e) {} consultorioAudioCtx = null; }
-    consultorioAnalyser = null;
-    if (consultorioMediaStream) { consultorioMediaStream.getTracks().forEach((t) => t.stop()); consultorioMediaStream = null; }
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (consultorioLiveApi) { consultorioLiveApi.disconnect(); consultorioLiveApi = null; }
+    if (consultorioAudioStreamer) { consultorioAudioStreamer.stop(); consultorioAudioStreamer = null; }
+    if (consultorioAudioPlayer) { consultorioAudioPlayer.destroy(); consultorioAudioPlayer = null; }
     chamadaOverlay.classList.add('hidden');
     document.getElementById('consultorio-chat-mensagens').classList.remove('hidden');
     chamadaBtn.textContent = '🎙️ Conversar por voz';
@@ -2596,7 +2595,6 @@ Equipa LampMind`;
   document.getElementById('consultorio-limpar-chat').addEventListener('click', () => {
     consultorioHistorico = [];
     document.getElementById('consultorio-chat-mensagens').innerHTML = '';
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
   });
 
   async function consultorioEnviar(pergunta, opcoes) {
